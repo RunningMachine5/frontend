@@ -1,4 +1,6 @@
-// 백엔드(/api/dashboard/overview)의 응답 구조를 타입 스크립트 타입으로 정의함
+// 1. 백엔드(/api/dashboard/overview)의 응답 구조를
+// 타입 스크립트 타입으로 정의함
+// 2. SSE 이벤트 데이터 타입 추가
 
 export type ApiError = {
     code: string;
