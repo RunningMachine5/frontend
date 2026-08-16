@@ -1,4 +1,4 @@
-// 첫 조회 + 10초 폴링
+// EventSource로 SSE 수신 후 overview 재조회
 
 import { useEffect, useState } from "react";
 
@@ -8,7 +8,7 @@ import {
 } from "./DashboardOverviewApi";
 import type { DashboardOverviewResponse } from "./dashboardOverviewTypes";
 
-const POLLING_INTERVAL_MS = 10_000;
+const REFRESH_DEBOUNCE_MS = 500;
 
 export function useDashboardOverview(params: DashOverviewParams){
     const [data, setData] = useState<DashboardOverviewResponse | null>(null);
@@ -17,6 +17,7 @@ export function useDashboardOverview(params: DashOverviewParams){
 
     useEffect(() => {
         let isActive = true;
+        let refreshTimer: number | null = null;
 
         async function loadOverview(){
             try {
@@ -41,16 +42,35 @@ export function useDashboardOverview(params: DashOverviewParams){
             }
         }
 
+        function scheduleRefresh(){
+            if(refreshTimer !== null){
+                window.clearTimeout(refreshTimer);
+            }
+
+            refreshTimer = window.setTimeout(
+                () => void loadOverview(),
+                REFRESH_DEBOUNCE_MS,
+            );
+        }
+
+        // 화면 첫 진입 시 overview 조회
         void loadOverview();
 
-        const intervalId = window.setInterval(
-            () => void loadOverview(),
-            POLLING_INTERVAL_MS,
-        );
+        // SSE 연결
+        const eventSource = new EventSource("/api/dashboard/events");
+
+        eventSource.addEventListener("dashboard_updated", () => {
+            scheduleRefresh();
+        });
 
         return () => {
             isActive = false;
-            window.clearInterval(intervalId);
+
+            if(refreshTimer !== null){
+                window.clearTimeout(refreshTimer);
+            }
+
+            eventSource.close();
         };
     }, [params.periodStart, params.periodEnd]);
 

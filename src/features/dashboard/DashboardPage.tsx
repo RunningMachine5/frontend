@@ -1,4 +1,4 @@
-// 화면 렌더링
+// 실시간 생긴 후 화면 렌더링
 
 import { useDashboardOverview } from "./useDashboardOverview";
 
@@ -69,7 +69,7 @@ export function DashboardPage() {
         <p>
           분석 기간: {data.period.period_start} ~ {data.period.period_end}
         </p>
-        <p>10초마다 자동 갱신됩니다.</p>
+        <p>실시간 갱신</p>
       </header>
 
       {errorMessage && (
