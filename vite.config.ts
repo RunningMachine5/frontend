@@ -26,6 +26,11 @@ export default defineConfig({
       "/api": {
         target: BACKEND_TARGET,
         changeOrigin: true
+      },
+      // 처리 페이지·이상거래 분석 화면이 /api 없이 부르는 거래 조회 경로.
+      "/transactions": {
+        target: BACKEND_TARGET,
+        changeOrigin: true
       }
     }
   }
