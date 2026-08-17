@@ -1,0 +1,14 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
+/* 폰트 파일 경로만 public/fonts 로 바꿨다. 나머지 토큰 값은 디자인 시스템 원본 그대로다. */
+@font-face{font-family:'KBFGText';src:url('/fonts/KBFGText-Light.otf') format('opentype');font-weight:300;font-style:normal;font-display:swap}
+@font-face{font-family:'KBFGText';src:url('/fonts/KBFGText-Medium.otf') format('opentype');font-weight:500;font-style:normal;font-display:swap}
+:root{
+  --font-brand:'KBFGText','Plus Jakarta Sans',-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+  --font-kit-display:'Plus Jakarta Sans',var(--font-brand);
+  --font-kit-body:'Satoshi','Plus Jakarta Sans',var(--font-brand);
+  --weight-light:300;
+  --weight-regular:400;
+  --weight-medium:500;
+  --weight-semibold:600;
+  --weight-bold:700;
+}

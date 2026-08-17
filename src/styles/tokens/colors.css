@@ -1,0 +1,52 @@
+:root{
+  /* Primary — green (source: Design-System/Color-Palette) */
+  --color-primary-100:#C9E0A3;
+  --color-primary-200:#A7BA88;
+  --color-primary-300:#7C8A64;
+  --color-primary-700:#505941;
+  --color-primary-800:#2C301D;
+  --color-primary-900:#171A0F;
+  --color-primary:var(--color-primary-200); /* rgb(167,186,136) — the button/accent green used across components */
+
+  /* Neutrals / backgrounds */
+  --color-white:#FFFFFF;
+  --color-black:#000000;
+  --color-bg-900:#282828; /* "Primary/900 (BG)" swatch — carries a subtle teal→transparent diagonal gradient on top, see guidelines */
+  --color-bg-800:#282F32; /* "Primary/800" swatch */
+  --color-gray-100:#F5F5F5;
+  --color-gray-200:#EDEDED;
+  --color-gray-300:#E0E0E0;
+  --color-gray-400:#ADADAD;
+  --color-gray-500:#807F7E;
+  --color-gray-600:#616161; /* most-used fill in the source file — default icon/text-secondary color */
+  --color-border:#D9D9D9;
+  --color-border-subtle:rgba(234,234,234,0.17);
+  --color-disabled-bg:#D0D5DD;
+  --color-disabled-text:#667085;
+  --color-placeholder:#98A2B3;
+  --color-text:#161616;
+  --color-text-strong:#1B1B1B;
+
+  /* Semantic — Success (green) */
+  --color-success-100:#EBFCD0;--color-success-200:#D2F9A3;--color-success-300:#AFED72;--color-success-400:#8BDC4D;
+  --color-success-500:#5AC61B;--color-success-600:#41AA13;--color-success-700:#2D8E0D;--color-success-800:#1C7208;--color-success-900:#105F05;
+  /* Semantic — Information (blue) */
+  --color-info-100:#CBFCFE;--color-info-200:#98F4FE;--color-info-300:#65E3FD;--color-info-400:#3ECFFB;
+  --color-info-500:#00AEF9;--color-info-600:#0087D6;--color-info-700:#0065B3;--color-info-800:#004790;--color-info-900:#003377;
+  /* Semantic — Warning (yellow) */
+  --color-warning-100:#FDFCCD;--color-warning-200:#FCF99D;--color-warning-300:#F7F16B;--color-warning-400:#EFE746;
+  --color-warning-500:#E5DA0D;--color-warning-600:#C4BA09;--color-warning-700:#A49B06;--color-warning-800:#847C04;--color-warning-900:#6D6602;
+  /* Semantic — Danger (red) */
+  --color-danger-100:#FFE5D7;--color-danger-200:#FFC5B0;--color-danger-300:#FF9E88;--color-danger-400:#FF7A6B;
+  --color-danger-500:#FF3D3A;--color-danger-600:#DB2A36;--color-danger-700:#B71D35;--color-danger-800:#931231;--color-danger-900:#7A0B2F;
+
+  /* Aliases */
+  --surface-page:var(--color-white);
+  --surface-card:var(--color-white);
+  --surface-inverse:var(--color-bg-900);
+  --text-primary:var(--color-text);
+  --text-secondary:var(--color-gray-600);
+  --text-on-primary:var(--color-white);
+  --link:var(--color-primary-300);
+  --link-hover:var(--color-primary-700);
+}

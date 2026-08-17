@@ -1,25 +1,20 @@
-import { StrictMode, useEffect, useState } from "react";
+import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
-import { CaseDetailPage } from "./features/caseDetail/CaseDetailPage";
-import { DashboardPage } from "./features/dashboard/DashboardPage";
-import { QueuePage } from "./features/queue/QueuePage";
+import { BrowserRouter } from "react-router-dom";
 
-function App() {
-  const [hash, setHash] = useState(window.location.hash);
+import { App } from "./App";
 
-  useEffect(() => {
-    const syncHash = () => setHash(window.location.hash);
-    window.addEventListener("hashchange", syncHash);
-    return () => window.removeEventListener("hashchange", syncHash);
-  }, []);
-
-  if (hash.startsWith("#case/")) return <CaseDetailPage />;
-  if (hash === "#queue") return <QueuePage />;
-  return <DashboardPage />;
-}
+// 디자인 시스템 토큰. 값은 원본 그대로이며 챗봇 화면이 var(--color-*) 로 참조한다.
+import "./styles/tokens/fonts.css";
+import "./styles/tokens/colors.css";
+import "./styles/tokens/effects.css";
+import "./styles/tokens/spacing.css";
+import "./styles/chatbot.css";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <App />
+    <BrowserRouter>
+      <App />
+    </BrowserRouter>
   </StrictMode>,
 );

@@ -1,0 +1,17 @@
+:root{
+  /* Radii — observed exactly in source components (never snapped to a grid) */
+  --radius-pill:50px; /* buttons, inputs */
+  --radius-input:45px;
+  --radius-card-sm:20.92px;
+  --radius-card-lg:34px;
+  --radius-swatch:24px;
+  --radius-frame:60px; /* outer Design-System frame corner */
+  --radius-icon-mask:2px;
+
+  /* Shadows — confirmed values from Design-System/Effects */
+  --shadow-elevation-1:0px 2px 4px 0px rgba(0,0,0,0.24);
+  --shadow-button-float:0px 0px 16px 0px rgba(206,210,199,0.5);
+  --border-swatch:inset 0 0 0 1px rgba(148,148,148,0.3); /* @kind shadow */
+  --border-hairline:inset 0 0 0 1px rgb(217,217,217); /* @kind shadow */
+  --backdrop-blur:blur(40px); /* @kind other */
+}
