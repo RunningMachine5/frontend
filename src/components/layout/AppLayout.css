@@ -1,0 +1,39 @@
+ .app-layout{
+    display:flex;
+    min-height:100vh;
+    background:#121217;
+    color:#f1f1f7
+}
+
+.app-sidebar{width:280px;min-height:100vh;flex:0 0 280px;padding:30px 22px 32px;background:#1b1b22;border-right:1px solid #30303a;display:flex;flex-direction:column}
+
+.app-brand{display:flex;align-items:center;gap:14px;margin:0 6px 58px;color:#f1f1f7;text-decoration:none}
+
+.app-brand>span{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;background:#b640be;font-size:20px;font-weight:700}
+
+.app-brand b{font-size:20px;line-height:1.2}
+
+.app-nav-title{margin:0 6px 12px;color:#9ca1b0;font-size:11px;font-weight:700}
+
+.app-sidebar nav{display:grid;gap:10px}
+
+.app-sidebar nav a{height:48px;padding:0 16px;display:flex;align-items:center;border-radius:12px;color:#9ca1b0;font-size:15px;font-weight:500;text-decoration:none}
+
+.app-sidebar nav a.active,
+.app-sidebar nav a:hover{background:#2d193c;color:#f1f1f7;font-weight:700}
+
+.app-system-status{margin:46px 6px 0;padding-top:28px;border-top:1px solid #3c3c48;color:#f1f1f7;font-size:13px;font-weight:500}
+
+.app-system-status i{display:inline-block;width:8px;height:8px;margin-right:10px;border-radius:50%;background:#3ec887}
+
+.app-system-status small,
+
+.app-user small{display:block;margin-top:8px;color:#9ca1b0;font-size:11px}
+
+.app-user{min-height:86px;margin-top:auto;padding:16px;display:flex;align-items:center;gap:14px;border:1px solid #3c3c48;border-radius:14px;background:#202028;font-size:13px;font-weight:700}
+
+.app-user>b{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;background:#b640be;font-size:11px}
+
+@media(max-width:820px)
+
+{.app-sidebar{display:none}}
