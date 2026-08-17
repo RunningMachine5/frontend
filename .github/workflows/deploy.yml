@@ -1,0 +1,90 @@
+name: Frontend Dev CD
+
+on:
+  push:
+    branches: [dev]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: frontend-development
+  cancel-in-progress: false
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    env:
+      VM_HOST: ${{ secrets.VM_HOST }}
+      VM_USER: ${{ secrets.VM_USER }}
+      VM_SSH_PORT: ${{ secrets.VM_SSH_PORT }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build frontend
+        run: npm run build
+
+      - name: Package build output
+        run: tar -czf frontend-dist.tar.gz -C dist .
+
+      - name: Configure SSH
+        env:
+          VM_SSH_PRIVATE_KEY: ${{ secrets.VM_SSH_PRIVATE_KEY }}
+          VM_SSH_KNOWN_HOSTS: ${{ secrets.VM_SSH_KNOWN_HOSTS }}
+        run: |
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$VM_SSH_PRIVATE_KEY" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          printf '%s\n' "$VM_SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts
+          chmod 600 ~/.ssh/known_hosts
+
+      - name: Upload frontend build
+        run: |
+          scp -P "$VM_SSH_PORT" frontend-dist.tar.gz \
+            "$VM_USER@$VM_HOST:/tmp/fdshield-frontend-${GITHUB_SHA}.tar.gz"
+
+      - name: Activate frontend release
+        run: |
+          ssh -p "$VM_SSH_PORT" "$VM_USER@$VM_HOST" \
+            "RELEASE_SHA='$GITHUB_SHA' bash -s" <<'REMOTE'
+          set -euo pipefail
+
+          frontend_root=/opt/fdshield/frontend
+          release_dir="$frontend_root/releases/$RELEASE_SHA"
+          archive="/tmp/fdshield-frontend-$RELEASE_SHA.tar.gz"
+
+          mkdir -p "$release_dir"
+          tar -xzf "$archive" -C "$release_dir"
+          rm -f "$archive"
+
+          ln -sfn "releases/$RELEASE_SHA" "$frontend_root/current.next"
+          mv -Tf "$frontend_root/current.next" "$frontend_root/current"
+
+          docker exec fdshield-nginx-container nginx -t
+          docker exec fdshield-nginx-container nginx -s reload
+          REMOTE
+
+      - name: Verify deployed frontend
+        run: |
+          for attempt in $(seq 1 12); do
+            if curl -fsS --max-time 10 https://fdshield.cloud/ | grep -q '<div id="root"></div>'; then
+              echo "Frontend deployment completed successfully."
+              exit 0
+            fi
+            echo "Frontend is not ready yet ($attempt/12); retrying in 5s..."
+            sleep 5
+          done
+
+          echo "Frontend deployment verification failed."
+          exit 1
