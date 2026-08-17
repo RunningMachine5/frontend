@@ -1,0 +1,17 @@
+/* 챗봇 화면 전용 애니메이션과 기본 여백 제거.
+   디자인 원본 Chat.dc.html 의 <style> 블록에서 옮겼다.
+   배경색은 화면마다 달라 body 가 아니라 각 페이지가 정한다. */
+
+body {
+  margin: 0;
+}
+
+@keyframes typingDot {
+  0%, 60%, 100% { opacity: 0.25; transform: translateY(0); }
+  30% { opacity: 1; transform: translateY(-3px); }
+}
+
+@keyframes shieldPop {
+  0% { transform: scale(0.7); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
