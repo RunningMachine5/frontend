@@ -1,0 +1,203 @@
+// 챗봇 화면 한 세션의 상태·대화 이력·턴 실행을 쥔 훅.
+// 흐름은 PRD 2.2~2.6 이고, 화면 상태 전이는 docs/customer-chatbot-frontend.md 4장에 정리돼 있다.
+
+import { useCallback, useRef, useState } from "react";
+
+import {
+    ChatApiError,
+    fetchChatSession,
+    sendChatButtonAction,
+    sendChatMessage,
+    verifyChatSession,
+} from "./chatbotApi";
+import type {
+    ChatBubble,
+    ChatButtonAction,
+    ChatMessage,
+    ChatSessionDetail,
+    ChatViewStatus,
+} from "./chatbotTypes";
+
+// 인증 성공 화면을 보여주는 시간. 디자인 원본의 전환 연출 길이다.
+const TRANSITION_MS = 1400;
+
+export type ChatPhase = "GATE" | "TRANSITION" | "CHAT" | "NOT_FOUND";
+
+// 서버 이력을 말풍선으로 옮긴다. SYSTEM 안내도 고객 눈에는 챗봇 발화라 같은 쪽에 붙인다.
+function toBubbles(messages: ChatMessage[]): ChatBubble[] {
+    return messages.map((message) => ({
+        key: `server-${message.message_id}`,
+        fromBot: message.sender_type !== "HUMAN",
+        text: message.message_text,
+    }));
+}
+
+export function useChatSession(chatSessionId: string) {
+    const [phase, setPhase] = useState<ChatPhase>("GATE");
+    const [status, setStatus] = useState<ChatViewStatus>("URL_SENT");
+    const [isOlder, setIsOlder] = useState(false);
+    const [bubbles, setBubbles] = useState<ChatBubble[]>([]);
+
+    const [verifyBusy, setVerifyBusy] = useState(false);
+    const [verifyError, setVerifyError] = useState<string | null>(null);
+
+    const [isTyping, setIsTyping] = useState(false);
+    const [turnError, setTurnError] = useState<string | null>(null);
+
+    // 낙관적으로 붙인 말풍선의 key 를 서버 이력과 겹치지 않게 만든다.
+    const localBubbleSeq = useRef(0);
+
+    const applyDetail = useCallback((detail: ChatSessionDetail) => {
+        setStatus(detail.status);
+        setIsOlder(detail.is_older);
+        setBubbles(toBubbles(detail.messages));
+    }, []);
+
+    /** 409 로 상태가 어긋났을 때 서버 값으로 화면을 다시 맞춘다. */
+    const resyncSession = useCallback(async () => {
+        try {
+            applyDetail(await fetchChatSession(chatSessionId));
+        } catch {
+            // 복구 조회까지 실패하면 이미 떠 있는 오류 안내를 그대로 둔다.
+        }
+    }, [applyDetail, chatSessionId]);
+
+    const handleTurnError = useCallback(
+        async (error: unknown) => {
+            const message =
+                error instanceof ChatApiError
+                    ? error.message
+                    : "요청을 처리하지 못했습니다.";
+            setTurnError(message);
+
+            if (error instanceof ChatApiError && error.status === 409) {
+                await resyncSession();
+            }
+        },
+        [resyncSession],
+    );
+
+    /** 출생연도 4자리 인증. 성공하면 전환 화면을 거쳐 챗봇 화면으로 넘어간다. */
+    const verify = useCallback(
+        async (birthYear: string) => {
+            if (verifyBusy) {
+                return;
+            }
+
+            setVerifyBusy(true);
+            setVerifyError(null);
+
+            try {
+                applyDetail(await verifyChatSession(chatSessionId, birthYear));
+                setPhase("TRANSITION");
+                window.setTimeout(() => setPhase("CHAT"), TRANSITION_MS);
+            } catch (error) {
+                if (error instanceof ChatApiError && error.status === 404) {
+                    setPhase("NOT_FOUND");
+                } else {
+                    setVerifyError(
+                        error instanceof ChatApiError
+                            ? error.message
+                            : "본인인증에 실패했습니다.",
+                    );
+                }
+            } finally {
+                setVerifyBusy(false);
+            }
+        },
+        [applyDetail, chatSessionId, verifyBusy],
+    );
+
+    /** 최초 알림 뒤 버튼 3종 (PRD 2.3). */
+    const selectAction = useCallback(
+        async (action: ChatButtonAction) => {
+            if (status !== "URL_SENT") {
+                return;
+            }
+
+            // 버튼을 즉시 감춰 두 번 눌러 409 가 나는 것을 막는다.
+            setStatus("SUBMITTING");
+            setTurnError(null);
+            setIsTyping(true);
+
+            try {
+                const result = await sendChatButtonAction(chatSessionId, action);
+                setBubbles((current) => [
+                    ...current,
+                    ...result.messages.map((text, index) => ({
+                        key: `local-${(localBubbleSeq.current += 1)}-${index}`,
+                        fromBot: true,
+                        text,
+                    })),
+                ]);
+                setStatus(result.status);
+            } catch (error) {
+                await handleTurnError(error);
+                setStatus((current) =>
+                    current === "SUBMITTING" ? "URL_SENT" : current,
+                );
+            } finally {
+                setIsTyping(false);
+            }
+        },
+        [chatSessionId, handleTurnError, status],
+    );
+
+    /**
+     * 고객 답변 한 건 전송 (PRD 2.4~2.6).
+     * 평가·분해·검색·생성 LLM 을 거쳐 응답이 느리므로 타이핑 표시를 실제 대기 표시로 쓴다.
+     */
+    const sendAnswer = useCallback(
+        async (messageText: string) => {
+            const text = messageText.trim();
+            if (!text || status !== "IN_PROGRESS" || isTyping) {
+                return;
+            }
+
+            setTurnError(null);
+            setBubbles((current) => [
+                ...current,
+                {
+                    key: `local-${(localBubbleSeq.current += 1)}`,
+                    fromBot: false,
+                    text,
+                },
+            ]);
+            setIsTyping(true);
+
+            try {
+                const result = await sendChatMessage(chatSessionId, text);
+                setBubbles((current) => [
+                    ...current,
+                    ...result.messages.map((botText, index) => ({
+                        key: `local-${(localBubbleSeq.current += 1)}-${index}`,
+                        fromBot: true,
+                        text: botText,
+                    })),
+                ]);
+                setStatus(result.status);
+            } catch (error) {
+                // 보낸 말풍선은 지우지 않는다. 백엔드가 이미 저장했을 수 있고,
+                // 지우면 고객이 같은 말을 두 번 하게 된다.
+                await handleTurnError(error);
+            } finally {
+                setIsTyping(false);
+            }
+        },
+        [chatSessionId, handleTurnError, isTyping, status],
+    );
+
+    return {
+        phase,
+        status,
+        isOlder,
+        bubbles,
+        verifyBusy,
+        verifyError,
+        isTyping,
+        turnError,
+        verify,
+        selectAction,
+        sendAnswer,
+    };
+}
