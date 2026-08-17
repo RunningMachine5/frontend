@@ -83,6 +83,17 @@ npm run preview   # http://localhost:4173
 > `npm run preview`에는 개발 서버의 `/api` 프록시가 적용되지 않습니다.
 > 빌드 결과물을 실제로 확인하려면 배포 환경(Nginx 등)에서 `/api` 요청을 백엔드로 라우팅하도록 설정해야 합니다.
 
+## 배포
+
+- 운영 주소: https://fdshield.cloud
+- `dev` 브랜치에 반영되면 GitHub Actions가 `npm ci`와 `npm run build`를 실행합니다.
+- 성공한 `dist/`는 기존 VM의 `/opt/fdshield/frontend/releases/<commit>`에 업로드됩니다.
+- `current` 링크를 새 릴리스로 교체한 뒤 공용 Nginx를 reload하므로 별도 Frontend 컨테이너는 사용하지 않습니다.
+- 브라우저의 상대경로 요청은 Nginx가 Backend 컨테이너로 전달하므로 배포용 API 환경변수는 없습니다.
+
+자동 배포에는 저장소의 `VM_HOST`, `VM_USER`, `VM_SSH_PORT`,
+`VM_SSH_PRIVATE_KEY`, `VM_SSH_KNOWN_HOSTS` Secret을 사용합니다.
+
 ## npm 스크립트
 
 | 스크립트 | 설명 |
