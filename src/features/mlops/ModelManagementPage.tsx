@@ -39,6 +39,7 @@ export function ModelManagementPage() {
   const [runs, setRuns] = useState<TrainingRun[]>([]);
   const [selectedRunId, setSelectedRunId] = useState<number | null>(null);
   const [details, setDetails] = useState<ModelDetails | null>(null);
+  const [productionDetails, setProductionDetails] = useState<ModelDetails | null>(null);
   const [serving, setServing] = useState<ServingStatus | null>(null);
   const [dialog, setDialog] = useState<"dataset" | "training" | "promotion" | null>(null);
   const [datasetVersion, setDatasetVersion] = useState("");
@@ -79,8 +80,15 @@ export function ModelManagementPage() {
       setDatasets(datasetRows);
       setRuns(trainingRows);
       setTrainingDatasetId((current) => current ?? datasetRows[0]?.id ?? null);
+      const production = trainingRows.find((run) => run.status === "PRODUCTION") ?? null;
+      if (production?.mlflow_run_id) {
+        try { setProductionDetails(await fetchModelDetails(production.id)); }
+        catch { setProductionDetails(null); }
+      } else {
+        setProductionDetails(null);
+      }
       const preferred = trainingRows.find((run) => run.id === keepSelectedRunId)
-        ?? trainingRows.find((run) => run.status === "PRODUCTION")
+        ?? production
         ?? trainingRows[0];
       if (preferred) void loadDetails(preferred);
       else { setSelectedRunId(null); setDetails(null); }
@@ -191,13 +199,13 @@ export function ModelManagementPage() {
           <section className="admin-metrics">
             <article><span>최근 데이터셋</span><strong>{latestDataset?.version ?? "없음"}</strong><small>{latestDataset ? `${latestDataset.row_count.toLocaleString("ko-KR")}행` : "새 버전 생성 필요"}</small></article>
             <article><span>최근 학습 실행</span><strong className={latestRun?.status === "FAILED" ? "danger" : "positive"}>{latestRun ? STATUS_LABELS[latestRun.status] : "없음"}</strong><small>{latestRun ? `Run #${latestRun.id} · ${formatDate(latestRun.created_at)}` : "실행 이력 없음"}</small></article>
-            <article><span>Champion 모델</span><strong className="accent">{productionRun ? `Run #${productionRun.id}` : "없음"}</strong><small>{productionRun?.model_key ?? "승인된 모델 없음"}</small></article>
+            <article><span>현재 운영 모델</span><strong className="accent">{productionRun ? `Run #${productionRun.id}` : "없음"}</strong><small>{productionRun?.model_key ?? "승인된 모델 없음"}</small></article>
             <article aria-busy={isServingLoading}><span>Serving 상태</span><strong className={!serving?.reconciling ? "positive" : "accent"}>{isServingLoading ? "조회 중..." : serving ? `${serving.reconciling ? "전환 중" : "정상"} · ${trafficPercent}%` : "확인 불가"}</strong><small>{isServingLoading ? "Cloud Run 상태 확인 중" : serving?.latest_ready_revision ?? "Ready revision 없음"}</small></article>
           </section>
 
           <section className="model-overview-grid">
             <article className="admin-panel champion-card">
-              <div><em className="status production">PRODUCTION</em><h2>Champion model {details?.model_version ? `v${details.model_version}` : ""}</h2><p>현재 운영 트래픽과 선택한 학습 Run의 모델 정보를 함께 확인합니다.</p><dl><div><dt>Feature 계약</dt><dd>{details?.tags.feature_contract ?? "—"}</dd></div><div><dt>결정 임계값</dt><dd>{details?.params.decision_threshold ?? "0.50"}</dd></div><div><dt>Registry 상태</dt><dd>{productionRun ? "champion" : "—"}</dd></div></dl></div>
+              <div><em className="status production">{productionRun ? "PRODUCTION" : "미배포"}</em><h2>{productionDetails?.model_version ? `운영 모델 v${productionDetails.model_version}` : productionRun ? `운영 모델 Run #${productionRun.id}` : "운영 모델 없음"}</h2><p>현재 운영 트래픽에 연결된 모델과 MLflow alias 정보를 확인합니다.</p><dl><div><dt>Feature 계약</dt><dd>{productionDetails?.tags.feature_contract ?? "—"}</dd></div><div><dt>결정 임계값</dt><dd>{productionDetails?.params.decision_threshold ?? "—"}</dd></div><div><dt>MLflow Alias</dt><dd>{productionRun ? "champion" : "—"}</dd></div></dl></div>
               <div className="traffic-ring" style={{ "--traffic": `${trafficPercent * 3.6}deg` } as CSSProperties}><strong>{trafficPercent}%</strong><span>운영 트래픽</span></div>
             </article>
             <article className="admin-panel dataset-card">
