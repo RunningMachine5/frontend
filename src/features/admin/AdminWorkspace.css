@@ -204,6 +204,16 @@
   .model-admin-page .review-note{font-size:13px}
   .model-admin-page .model-detail-loading strong{font-size:14px}
   .model-admin-page .model-detail-loading span{font-size:12px}
+
+  /*
+   * 학습 Run은 패널 안에 세로 스크롤을 따로 만들지 않는다.
+   * Run이 많아지면 페이지 전체가 자연스럽게 길어져 목록을 한 번에 읽을 수 있다.
+   */
+  .model-admin-page{height:auto;min-height:100vh;overflow:visible}
+  .model-admin-page .model-workspace{min-height:clamp(300px,34vh,420px);flex:1 0 auto}
+  .model-admin-page .runs-panel,.model-admin-page .model-detail{min-height:clamp(300px,34vh,420px)}
+  .model-admin-page .model-detail{overflow:visible;scrollbar-gutter:auto}
+  .model-admin-page .admin-table-wrap{min-height:auto;flex:none;overflow-x:auto;overflow-y:visible;scrollbar-gutter:auto}
 }
 
 @media(max-width:1280px){
