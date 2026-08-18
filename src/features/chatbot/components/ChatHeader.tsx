@@ -2,8 +2,9 @@
 // 뒤로가기·더보기 아이콘은 원본의 시각 구성이라 그대로 두되 동작은 붙이지 않는다.
 
 import hamsterImage from "../../../assets/chatbot/financial-chatbot-hamster-70.png";
+import type { ChatSizes } from "../chatbotSizes";
 
-export function ChatHeader() {
+export function ChatHeader({ sizes }: { sizes: ChatSizes }) {
     return (
         <div style={headerStyle}>
             <svg
@@ -22,16 +23,28 @@ export function ChatHeader() {
                 />
             </svg>
 
-            <div style={avatarStyle}>
+            <div
+                style={{
+                    ...avatarStyle,
+                    width: sizes.avatar,
+                    height: sizes.avatar,
+                }}
+            >
                 <img
                     src={hamsterImage}
                     alt="햄주임"
-                    style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                    style={{
+                        width: "100%",
+                        height: "100%",
+                        objectFit: "cover",
+                    }}
                 />
             </div>
 
             <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={nameStyle}>햄주임</div>
+                <div style={{ ...nameStyle, fontSize: sizes.headerFont }}>
+                    햄주임
+                </div>
                 <div
                     style={{
                         display: "flex",
@@ -40,7 +53,9 @@ export function ChatHeader() {
                     }}
                 >
                     <span style={onlineDotStyle} />
-                    <span style={roleStyle}>금융사기 대처 도우미</span>
+                    <span style={{ ...roleStyle, fontSize: sizes.subFont }}>
+                        금융사기 대처 도우미
+                    </span>
                 </div>
             </div>
 
@@ -69,9 +84,8 @@ const headerStyle = {
     background: "var(--color-white)",
 };
 
+// 크기(width/height/fontSize)는 chatbotSizes.ts 의 값으로 덮어쓴다.
 const avatarStyle = {
-    width: "40px",
-    height: "40px",
     borderRadius: "50%",
     background: "var(--color-warning-100)",
     flex: "none",
@@ -82,7 +96,6 @@ const avatarStyle = {
 };
 
 const nameStyle = {
-    fontSize: "15px",
     fontWeight: 600,
     color: "var(--color-text-strong)",
 };
@@ -96,6 +109,5 @@ const onlineDotStyle = {
 };
 
 const roleStyle = {
-    fontSize: "11.5px",
     color: "var(--text-secondary)",
 };

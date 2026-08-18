@@ -32,7 +32,7 @@ export type ChatSessionDetail = {
     chat_session_id: string;
     transaction_id: number;
     status: ChatSessionStatus;
-    // 참이면 고령자 전용 UI 대상이다. PRD 2.2 가 "추후 구현"으로 남겨 아직 분기하지 않는다.
+    // 참이면 고령자 대상이다. 챗봇 화면의 글씨·여백·버튼을 키우는 데 쓴다(chatbotSizes.ts).
     is_older: boolean;
     question_step: number;
     messages: ChatMessage[];

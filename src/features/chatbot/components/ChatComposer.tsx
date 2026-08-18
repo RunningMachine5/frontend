@@ -3,6 +3,7 @@
 
 import { useState } from "react";
 
+import type { ChatSizes } from "../chatbotSizes";
 import type { ChatViewStatus } from "../chatbotTypes";
 
 // 상태별 안내. 디자인 원본의 placeholders 맵을 그대로 옮겼다.
@@ -20,9 +21,15 @@ type ChatComposerProps = {
     status: ChatViewStatus;
     isTyping: boolean;
     onSend: (text: string) => void;
+    sizes: ChatSizes;
 };
 
-export function ChatComposer({ status, isTyping, onSend }: ChatComposerProps) {
+export function ChatComposer({
+    status,
+    isTyping,
+    onSend,
+    sizes,
+}: ChatComposerProps) {
     const [value, setValue] = useState("");
 
     const disabled = status !== "IN_PROGRESS" || isTyping;
@@ -48,16 +55,31 @@ export function ChatComposer({ status, isTyping, onSend }: ChatComposerProps) {
                 }}
                 placeholder={PLACEHOLDERS[status]}
                 disabled={disabled}
-                style={{ ...inputStyle, opacity }}
+                style={{
+                    ...inputStyle,
+                    fontSize: sizes.inputFont,
+                    padding: sizes.inputPadding,
+                    opacity,
+                }}
             />
 
             <button
                 onClick={send}
                 disabled={disabled}
                 aria-label="전송"
-                style={{ ...sendButtonStyle, opacity }}
+                style={{
+                    ...sendButtonStyle,
+                    width: sizes.sendSize,
+                    height: sizes.sendSize,
+                    opacity,
+                }}
             >
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                <svg
+                    width={sizes.sendIcon}
+                    height={sizes.sendIcon}
+                    viewBox="0 0 24 24"
+                    fill="none"
+                >
                     <path
                         d="M4 12L20 4L14 20L11 13L4 12Z"
                         fill="var(--color-text-strong)"
@@ -78,13 +100,12 @@ const composerStyle = {
     background: "var(--color-white)",
 };
 
+// 크기(width/height/fontSize/padding)는 chatbotSizes.ts 의 값으로 덮어쓴다.
 const inputStyle = {
     flex: 1,
     border: "none",
     background: "var(--color-gray-100)",
     borderRadius: "45px",
-    padding: "12px 16px",
-    fontSize: "14px",
     fontFamily: "var(--font-brand)",
     color: "var(--color-text)",
     outline: "none",
@@ -93,8 +114,6 @@ const inputStyle = {
 
 const sendButtonStyle = {
     flex: "none",
-    width: "40px",
-    height: "40px",
     borderRadius: "50%",
     background: "var(--color-primary-200)",
     border: "none",
