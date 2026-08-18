@@ -141,7 +141,7 @@ export function RuleManagementPage() {
 
   return (
     <AppLayout activeNav="rules">
-      <section className="admin-page">
+      <section className="admin-page rule-admin-page">
         <header className="admin-header">
           <div><p className="admin-eyebrow">RULE GOVERNANCE</p><h1>룰 규칙 관리</h1><p>사기유형별 조건과 가중치를 수정하고 운영 반영 전 영향을 비교합니다.</p></div>
           <div className="admin-actions">
