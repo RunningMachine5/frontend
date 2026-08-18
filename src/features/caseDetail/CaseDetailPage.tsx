@@ -4,6 +4,7 @@ import { AppLayout } from "../../components/layout/AppLayout";
 import type {
   CaseReviewUpsertRequest,
   ReviewDecision,
+  RuleEvidence,
   TransactionView,
 } from "./caseDetailTypes";
 import { useCaseDetail } from "./useCaseDetail";
@@ -71,17 +72,30 @@ function EmptyData({ message = "현재 연동된 데이터가 없습니다." }: 
   return <div className="case-empty"><span>—</span><p>데이터 없음</p><small>{message}</small></div>;
 }
 
-function RuleEvidenceList({ components }: { components?: Record<string, string[]> }) {
-  const entries = Object.entries(components ?? {}).filter(([, values]) => values.length > 0);
+function RuleEvidenceList({
+  components,
+}: {
+  components?: RuleEvidence[] | Record<string, string[]>;
+}) {
+  const entries: RuleEvidence[] = Array.isArray(components)
+    ? components
+    : Object.entries(components ?? {}).flatMap(([fraudType, codes]) =>
+        codes.map((code) => ({
+          fraud_type: fraudType,
+          evidence_code: code,
+          observed_value: true,
+          contribution: 0,
+        })),
+      );
 
   if (entries.length === 0) return <EmptyData message="적중한 Rule 근거가 없습니다." />;
 
   return (
     <ul className="evidence-list">
-      {entries.slice(0, 4).map(([fraudType, values]) => (
-        <li key={fraudType}>
-          <strong className="evidence-code">{translateRule(fraudType)}</strong>
-          <span>{values.map(translateRule).join(" · ")}</span>
+      {entries.slice(0, 4).map((evidence) => (
+        <li key={`${evidence.fraud_type}-${evidence.evidence_code}`}>
+          <strong className="evidence-code">{translateRule(evidence.fraud_type)}</strong>
+          <span>{translateRule(evidence.evidence_code)} · +{evidence.contribution.toFixed(2)}</span>
         </li>
       ))}
     </ul>

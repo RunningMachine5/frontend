@@ -9,10 +9,20 @@ import type { SuspiciousTrendPoint } from "./dashboardOverviewTypes";
 import { useDashboardOverview } from "./useDashboardOverview";
 import "./DashboardPage.css";
 
-const TEST_PERIOD = {
-  periodStart: "2025-01-01T00:00:00+09:00",
-  periodEnd: "2025-01-06T00:00:00+09:00",
-};
+function getCurrentDashboardPeriod() {
+  const periodEnd = new Date();
+  periodEnd.setHours(24, 0, 0, 0);
+
+  const periodStart = new Date(periodEnd);
+  periodStart.setDate(periodStart.getDate() - 5);
+
+  return {
+    periodStart: periodStart.toISOString(),
+    periodEnd: periodEnd.toISOString(),
+  };
+}
+
+const CURRENT_PERIOD = getCurrentDashboardPeriod();
 
 function SuspiciousTrendPanel({ points }: { points: SuspiciousTrendPoint[] }) {
   const maxCount = Math.max(...points.map((point) => point.suspicious_count), 1);
@@ -26,7 +36,7 @@ function SuspiciousTrendPanel({ points }: { points: SuspiciousTrendPoint[] }) {
 }
 
 export function DashboardPage() {
-  const { data, isLoading, errorMessage } = useDashboardOverview(TEST_PERIOD);
+  const { data, isLoading, errorMessage } = useDashboardOverview(CURRENT_PERIOD);
 
   if (isLoading && !data) return <main className="dashboard-state">대시보드를 불러오는 중...</main>;
   if (errorMessage && !data) return <main className="dashboard-state">오류: {errorMessage}</main>;

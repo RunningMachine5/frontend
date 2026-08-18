@@ -54,7 +54,7 @@ export type CaseAgentView = {
     rule_filter_status?: string;
     primary_fraud_type?: string | null;
     type_scores?: Record<string, number>;
-    matched_components?: Record<string, string[]>;
+    matched_components?: RuleEvidence[] | Record<string, string[]>;
   } | null;
   investigation_result: Record<string, unknown> | null;
   similar_case_results: SimilarCaseView[];
@@ -86,9 +86,32 @@ export type ChatMessageView = {
 export type ChatView = {
   chat_session_id: string;
   status: string;
-  created_at: string;
+  created_at: string | null;
   completed_at: string | null;
   messages: ChatMessageView[];
+};
+
+export type ChatSessionStatusValue =
+  | "URL_SENT"
+  | "IN_PROGRESS"
+  | "HANDOFF_REQUESTED"
+  | "DONE"
+  | "FAILED";
+
+export type TransactionChatSessionStatus = {
+  transaction_id: number;
+  chat_session_id: string | null;
+  status: ChatSessionStatusValue | null;
+};
+
+export type TransactionChatSessionDetail = TransactionChatSessionStatus & {
+  completed_at: string | null;
+  messages: ChatMessageView[];
+  type_scores: Array<{
+    type_code: string;
+    display_name: string;
+    score: number;
+  }>;
 };
 
 export type ReviewDecision = "CONFIRMED_FRAUD" | "FALSE_POSITIVE" | "ON_HOLD";
@@ -166,6 +189,7 @@ export type AgentCaseResult = {
   failure_reason: string | null;
   risk_score: number;
   risk_grade: string;
+  best_similar_case_id: string | null;
   rule_result: {
     primary_fraud_type: string | null;
     type_scores: Record<string, number>;
@@ -200,3 +224,5 @@ export type AgentCaseResult = {
 };
 
 export type AgentCaseApiResponse = ApiResponse<AgentCaseResult>;
+export type TransactionChatSessionStatusApiResponse = ApiResponse<TransactionChatSessionStatus>;
+export type TransactionChatSessionDetailApiResponse = ApiResponse<TransactionChatSessionDetail>;
