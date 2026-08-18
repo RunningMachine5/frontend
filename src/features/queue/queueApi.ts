@@ -1,32 +1,35 @@
-import type { AgentCaseResult, TransactionResult } from "../caseDetail/caseDetailTypes";
 import type { ApiResponse } from "../dashboard/dashboardOverviewTypes";
+import type { CaseListResponse, QueueSearchFilters } from "./queueTypes";
 
-export type QueueRow = TransactionResult & { agent: AgentCaseResult | null };
+const PAGE_SIZE = 10;
 
-async function getAgentCase(transactionId: number) {
-  const response = await fetch(`/api/transactions/${transactionId}/agent-case`);
-  if (!response.ok) return null;
-  const body = (await response.json()) as ApiResponse<AgentCaseResult>;
-  return body.success ? body.data : null;
+function appendDateTime(params: URLSearchParams, key: string, value: string) {
+  if (value) params.set(key, new Date(value).toISOString());
 }
 
-// 목록 API는 검색/페이지네이션을 지원하지 않아, 화면에서는 최신 의심 거래 24건만 사용한다.
-export async function fetchQueueRows() {
-  const response = await fetch("/transactions");
-  if (!response.ok) throw new Error("거래 목록을 불러오지 못했습니다.");
+export async function fetchQueueRows(filters: QueueSearchFilters) {
+  const params = new URLSearchParams({
+    page: String(filters.page),
+    page_size: String(PAGE_SIZE),
+  });
 
-  const allTransactions = (await response.json()) as TransactionResult[];
-  const suspicious = allTransactions
-    .filter((transaction) => transaction.predict_result === true)
-    .sort((left, right) => new Date(right.created_at).getTime() - new Date(left.created_at).getTime())
-    .slice(0, 24);
+  if (filters.transactionId.trim()) {
+    params.set("transaction_id", filters.transactionId.trim());
+  }
+  if (filters.ipAddress.trim()) {
+    params.set("ip_address", filters.ipAddress.trim());
+  }
+  appendDateTime(params, "period_start", filters.periodStart);
+  appendDateTime(params, "period_end", filters.periodEnd);
 
-  const rows = await Promise.all(
-    suspicious.map(async (transaction) => ({
-      ...transaction,
-      agent: await getAgentCase(transaction.transaction_id),
-    })),
-  );
+  const response = await fetch(`/api/cases?${params.toString()}`);
+  const body = (await response.json()) as ApiResponse<CaseListResponse>;
 
-  return { allCount: allTransactions.length, suspiciousCount: suspicious.length, rows };
+  if (!response.ok || !body.success || !body.data) {
+    throw new Error(body.error?.message ?? "처리 목록을 불러오지 못했습니다.");
+  }
+
+  return body.data;
 }
+
+export { PAGE_SIZE };

@@ -1,7 +1,15 @@
 import type {
   AgentCaseApiResponse,
   AgentCaseResult,
-  TransactionResult,
+  CaseDetailApiResponse,
+  CaseDetailResponse,
+  CaseReviewApiResponse,
+  CaseReviewUpsertRequest,
+  CaseReviewView,
+  TransactionChatSessionDetail,
+  TransactionChatSessionDetailApiResponse,
+  TransactionChatSessionStatus,
+  TransactionChatSessionStatusApiResponse,
 } from "./caseDetailTypes";
 
 async function readJson<T>(response: Response): Promise<T> {
@@ -12,23 +20,68 @@ async function readJson<T>(response: Response): Promise<T> {
   return JSON.parse(text) as T;
 }
 
-export async function fetchCaseDetail(transactionId: number) {
-  const [transactionResponse, agentResponse] = await Promise.all([
-    fetch(`/transactions/${transactionId}`),
-    fetch(`/api/transactions/${transactionId}/agent-case`),
-  ]);
+export async function fetchCaseDetail(transactionId: number): Promise<CaseDetailResponse> {
+  const response = await fetch(`/api/transactions/${transactionId}/detail`);
+  const result = await readJson<CaseDetailApiResponse>(response);
 
-  const transaction = await readJson<TransactionResult>(transactionResponse);
-
-  if (!transactionResponse.ok) {
-    throw new Error("거래 정보를 불러오지 못했습니다.");
+  if (!response.ok || !result.success || !result.data) {
+    throw new Error(result.error?.message ?? "사건 상세 정보를 불러오지 못했습니다.");
   }
 
-  const agentResult = await readJson<AgentCaseApiResponse>(agentResponse);
+  return result.data;
+}
 
-  if (!agentResponse.ok || !agentResult.success || !agentResult.data) {
-    throw new Error(agentResult.error?.message ?? "Agent 분석 결과가 없습니다.");
+export async function fetchAgentCase(transactionId: number): Promise<AgentCaseResult> {
+  const response = await fetch(`/api/transactions/${transactionId}/agent-case`);
+  const result = await readJson<AgentCaseApiResponse>(response);
+
+  if (!response.ok || !result.success || !result.data) {
+    throw new Error(result.error?.message ?? "Agent 결과를 불러오지 못했습니다.");
   }
 
-  return { transaction, agent: agentResult.data as AgentCaseResult };
+  return result.data;
+}
+
+export async function fetchChatSessionStatus(
+  transactionId: number,
+): Promise<TransactionChatSessionStatus> {
+  const response = await fetch(`/transactions/${transactionId}/chat-session`);
+  const result = await readJson<TransactionChatSessionStatusApiResponse>(response);
+
+  if (!response.ok || !result.success || !result.data) {
+    throw new Error(result.error?.message ?? "채팅 상태를 불러오지 못했습니다.");
+  }
+
+  return result.data;
+}
+
+export async function fetchChatSessionDetail(
+  transactionId: number,
+): Promise<TransactionChatSessionDetail> {
+  const response = await fetch(`/transactions/${transactionId}/chat-session/detail`);
+  const result = await readJson<TransactionChatSessionDetailApiResponse>(response);
+
+  if (!response.ok || !result.success || !result.data) {
+    throw new Error(result.error?.message ?? "채팅 내역을 불러오지 못했습니다.");
+  }
+
+  return result.data;
+}
+
+export async function saveCaseReview(
+  caseId: string,
+  request: CaseReviewUpsertRequest,
+): Promise<CaseReviewView> {
+  const response = await fetch(`/api/cases/${caseId}/review`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(request),
+  });
+  const result = await readJson<CaseReviewApiResponse>(response);
+
+  if (!response.ok || !result.success || !result.data) {
+    throw new Error(result.error?.message ?? "최종 판정을 저장하지 못했습니다.");
+  }
+
+  return result.data;
 }

@@ -1,22 +1,36 @@
 import { useEffect, useState } from "react";
 
-import { fetchQueueRows, type QueueRow } from "./queueApi";
+import { fetchQueueRows } from "./queueApi";
+import type { CaseListItem, QueueSearchFilters } from "./queueTypes";
 
-export function useQueue() {
-  const [rows, setRows] = useState<QueueRow[]>([]);
-  const [allCount, setAllCount] = useState(0);
+export function useQueue(filters: QueueSearchFilters) {
+  const [rows, setRows] = useState<CaseListItem[]>([]);
+  const [totalCount, setTotalCount] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   useEffect(() => {
-    fetchQueueRows()
-      .then((result) => {
-        setRows(result.rows);
-        setAllCount(result.allCount);
-      })
-      .catch((error: unknown) => setErrorMessage(error instanceof Error ? error.message : "목록 조회에 실패했습니다."))
-      .finally(() => setIsLoading(false));
-  }, []);
+    let active = true;
+    setIsLoading(true);
+    setErrorMessage(null);
 
-  return { rows, allCount, isLoading, errorMessage };
+    fetchQueueRows(filters)
+      .then((result) => {
+        if (!active) return;
+        setRows(result.items);
+        setTotalCount(result.total_count);
+      })
+      .catch((error: unknown) => {
+        if (active) setErrorMessage(error instanceof Error ? error.message : "목록 조회에 실패했습니다.");
+      })
+      .finally(() => {
+        if (active) setIsLoading(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [filters]);
+
+  return { rows, totalCount, isLoading, errorMessage };
 }
