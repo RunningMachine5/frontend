@@ -1,8 +1,4 @@
-import type {
-  AgentCaseApiResponse,
-  AgentCaseResult,
-  TransactionResult,
-} from "./caseDetailTypes";
+import type { CaseDetailApiResponse, CaseDetailResponse } from "./caseDetailTypes";
 
 async function readJson<T>(response: Response): Promise<T> {
   const text = await response.text();
@@ -12,23 +8,13 @@ async function readJson<T>(response: Response): Promise<T> {
   return JSON.parse(text) as T;
 }
 
-export async function fetchCaseDetail(transactionId: number) {
-  const [transactionResponse, agentResponse] = await Promise.all([
-    fetch(`/transactions/${transactionId}`),
-    fetch(`/api/transactions/${transactionId}/agent-case`),
-  ]);
+export async function fetchCaseDetail(transactionId: number): Promise<CaseDetailResponse> {
+  const response = await fetch(`/api/transactions/${transactionId}/detail`);
+  const result = await readJson<CaseDetailApiResponse>(response);
 
-  const transaction = await readJson<TransactionResult>(transactionResponse);
-
-  if (!transactionResponse.ok) {
-    throw new Error("거래 정보를 불러오지 못했습니다.");
+  if (!response.ok || !result.success || !result.data) {
+    throw new Error(result.error?.message ?? "사건 상세 정보를 불러오지 못했습니다.");
   }
 
-  const agentResult = await readJson<AgentCaseApiResponse>(agentResponse);
-
-  if (!agentResponse.ok || !agentResult.success || !agentResult.data) {
-    throw new Error(agentResult.error?.message ?? "Agent 분석 결과가 없습니다.");
-  }
-
-  return { transaction, agent: agentResult.data as AgentCaseResult };
+  return result.data;
 }
