@@ -24,11 +24,6 @@ export default defineConfig(({ mode }) => {
 
   return {
     plugins: [react()],
-    define: {
-      "import.meta.env.VITE_LOCAL_ADMIN_AUTO_CONNECT": JSON.stringify(
-        localAdminToken ? "true" : "false",
-      ),
-    },
     server: {
       proxy: {
       "/api/chat": {

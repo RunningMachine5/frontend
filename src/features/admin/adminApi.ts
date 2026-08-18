@@ -1,18 +1,5 @@
 import type { ApiResponse } from "../dashboard/dashboardOverviewTypes";
 
-const ADMIN_TOKEN_KEY = "fdshield_mlops_admin_token";
-
-export function readAdminToken() {
-  return sessionStorage.getItem(ADMIN_TOKEN_KEY) ?? "";
-}
-
-export function storeAdminToken(token: string) {
-  const normalized = token.trim();
-  if (normalized) sessionStorage.setItem(ADMIN_TOKEN_KEY, normalized);
-  else sessionStorage.removeItem(ADMIN_TOKEN_KEY);
-  return normalized;
-}
-
 function errorMessage(body: unknown, fallback: string) {
   if (!body || typeof body !== "object") return fallback;
   const source = body as Record<string, unknown>;
@@ -28,14 +15,12 @@ function errorMessage(body: unknown, fallback: string) {
 
 export async function adminRequest<T>(
   path: string,
-  token: string,
   init: RequestInit = {},
 ): Promise<T> {
   const response = await fetch(`/api${path}`, {
     ...init,
     headers: {
       "Content-Type": "application/json",
-      "X-MLOps-Admin-Token": token,
       ...init.headers,
     },
   });

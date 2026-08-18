@@ -1,8 +1,6 @@
 import { useCallback, useEffect, useState, type CSSProperties } from "react";
 
 import { AppLayout } from "../../components/layout/AppLayout";
-import { AdminAccess } from "../admin/AdminAccess";
-import { useAdminToken } from "../admin/useAdminToken";
 import {
   buildDataset,
   completeDeployment,
@@ -37,7 +35,6 @@ function metricText(value: number | null) {
 }
 
 export function ModelManagementPage() {
-  const { token, saveToken } = useAdminToken();
   const [datasets, setDatasets] = useState<DatasetVersion[]>([]);
   const [runs, setRuns] = useState<TrainingRun[]>([]);
   const [selectedRunId, setSelectedRunId] = useState<number | null>(null);
@@ -56,23 +53,22 @@ export function ModelManagementPage() {
 
   const selectedRun = runs.find((run) => run.id === selectedRunId) ?? null;
 
-  const loadDetails = useCallback(async (run: TrainingRun, adminToken = token) => {
+  const loadDetails = useCallback(async (run: TrainingRun) => {
     setSelectedRunId(run.id);
     if (!run.mlflow_run_id) { setDetails(null); return; }
-    try { setDetails(await fetchModelDetails(adminToken, run.id)); }
+    try { setDetails(await fetchModelDetails(run.id)); }
     catch { setDetails(null); }
-  }, [token]);
+  }, []);
 
   const refresh = useCallback(async () => {
-    if (!token) return;
     setError(null);
     try {
       const [datasetRows, trainingRows, servingState] = await Promise.all([
-        fetchDatasets(token),
-        fetchTrainingRuns(token),
+        fetchDatasets(),
+        fetchTrainingRuns(),
         // 로컬 개발에서는 GCP 자격증명이 없어 Serving 상태만 실패할 수 있다.
         // 데이터셋과 학습 이력까지 함께 숨기지 않고 해당 카드만 확인 불가로 둔다.
-        fetchServingStatus(token).catch(() => null),
+        fetchServingStatus().catch(() => null),
       ]);
       setDatasets(datasetRows);
       setRuns(trainingRows);
@@ -81,11 +77,11 @@ export function ModelManagementPage() {
       const preferred = trainingRows.find((run) => run.id === selectedRunId)
         ?? trainingRows.find((run) => run.status === "PRODUCTION")
         ?? trainingRows[0];
-      if (preferred) await loadDetails(preferred, token);
+      if (preferred) await loadDetails(preferred);
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "모델 관리 정보를 불러오지 못했습니다.");
     }
-  }, [loadDetails, selectedRunId, token]);
+  }, [loadDetails, selectedRunId]);
 
   useEffect(() => { void refresh(); }, [refresh]);
 
@@ -113,7 +109,7 @@ export function ModelManagementPage() {
   };
 
   const createDataset = () => runAction(async () => {
-    const created = await buildDataset(token, datasetVersion, datasetUri);
+    const created = await buildDataset(datasetVersion, datasetUri);
     setDialog(null);
     setDatasetVersion(""); setDatasetUri("");
     setNotice(`${created.version} 데이터셋을 생성했습니다.`);
@@ -122,7 +118,7 @@ export function ModelManagementPage() {
 
   const launchTraining = () => runAction(async () => {
     if (!trainingDatasetId) return;
-    const result = await startTraining(token, trainingDatasetId);
+    const result = await startTraining(trainingDatasetId);
     setDialog(null);
     setSelectedRunId(result.training_run.id);
     setNotice(`학습 Run #${result.training_run.id}을 시작했습니다.`);
@@ -132,14 +128,14 @@ export function ModelManagementPage() {
   const decide = (decision: "APPROVE" | "REJECT") => runAction(async () => {
     if (!selectedRun) return;
     const reason = decision === "APPROVE" ? "관리자 화면에서 지표와 0% 후보를 확인함" : "관리자 검토에서 후보를 거절함";
-    await decideModel(token, selectedRun.id, decision, reason);
+    await decideModel(selectedRun.id, decision, reason);
     setNotice(decision === "APPROVE" ? "후보 모델을 STAGED로 승인했습니다." : "후보 모델을 거절했습니다.");
     await refresh();
   });
 
   const promote = () => runAction(async () => {
     if (!selectedRun) return;
-    const result = await promoteModel(token, selectedRun.id, Number(transactionId), JSON.parse(promotionJson));
+    const result = await promoteModel(selectedRun.id, Number(transactionId), JSON.parse(promotionJson));
     setOperationId(result.operation_id ?? "");
     setDialog(null);
     setNotice("후보 예측 검증을 통과해 운영 트래픽 전환을 요청했습니다.");
@@ -148,7 +144,7 @@ export function ModelManagementPage() {
 
   const complete = () => runAction(async () => {
     if (!selectedRun) return;
-    await completeDeployment(token, selectedRun.id, operationId);
+    await completeDeployment(selectedRun.id, operationId);
     setNotice("운영 전환과 MLflow champion 지정을 완료했습니다.");
     await refresh();
   });
@@ -159,16 +155,14 @@ export function ModelManagementPage() {
         <header className="admin-header">
           <div><p className="admin-eyebrow">MODEL OPERATIONS</p><h1>모델 관리</h1><p>학습 데이터셋 생성부터 후보 모델 검토와 운영 배포까지 관리합니다.</p></div>
           <div className="admin-actions">
-            <button className="admin-button" disabled={!token} onClick={() => setDialog("dataset")} type="button">새 데이터셋 생성</button>
-            <button className="admin-button primary" disabled={!token || datasets.length === 0} onClick={() => setDialog("training")} type="button">학습 실행</button>
+            <button className="admin-button" onClick={() => setDialog("dataset")} type="button">새 데이터셋 생성</button>
+            <button className="admin-button primary" disabled={datasets.length === 0} onClick={() => setDialog("training")} type="button">학습 실행</button>
           </div>
         </header>
 
-        <AdminAccess onSave={saveToken} token={token} />
         {error && <div className="admin-alert error" role="alert">{error}</div>}
         {notice && <div className="admin-alert success" role="status">{notice}</div>}
 
-        {token && <>
           <section className="admin-metrics">
             <article><span>최근 데이터셋</span><strong>{latestDataset?.version ?? "없음"}</strong><small>{latestDataset ? `${latestDataset.row_count.toLocaleString("ko-KR")}행` : "새 버전 생성 필요"}</small></article>
             <article><span>최근 학습 실행</span><strong className={latestRun?.status === "FAILED" ? "danger" : "positive"}>{latestRun ? STATUS_LABELS[latestRun.status] : "없음"}</strong><small>{latestRun ? `Run #${latestRun.id} · ${formatDate(latestRun.created_at)}` : "실행 이력 없음"}</small></article>
@@ -210,8 +204,6 @@ export function ModelManagementPage() {
               </div>}
             </aside>
           </section>
-        </>}
-
         {dialog === "dataset" && <div className="admin-dialog-backdrop" onMouseDown={() => setDialog(null)} role="presentation"><section aria-modal="true" className="admin-dialog" onMouseDown={(event) => event.stopPropagation()} role="dialog"><header><div><p className="admin-eyebrow">DATASET VERSION</p><h2>새 학습 데이터셋 생성</h2></div><button onClick={() => setDialog(null)} type="button">닫기</button></header><label><span>버전 이름</span><input onChange={(event) => setDatasetVersion(event.target.value)} placeholder="train-labeled-20260818-v1" value={datasetVersion} /></label><label><span>새 GCS 객체 위치</span><input onChange={(event) => setDatasetUri(event.target.value)} placeholder="gs://bucket/versions/train-labeled-v1.csv" value={datasetUri} /></label><p className="dialog-help">기존 원본 CSV와 DB의 확정 라벨 거래를 합쳐 새 불변 객체를 생성합니다.</p><button className="admin-button primary" disabled={!datasetVersion || !datasetUri || isBusy} onClick={() => void createDataset()} type="button">데이터셋 생성</button></section></div>}
         {dialog === "training" && <div className="admin-dialog-backdrop" onMouseDown={() => setDialog(null)} role="presentation"><section aria-modal="true" className="admin-dialog" onMouseDown={(event) => event.stopPropagation()} role="dialog"><header><div><p className="admin-eyebrow">CLOUD RUN JOB</p><h2>학습 실행</h2></div><button onClick={() => setDialog(null)} type="button">닫기</button></header><label><span>학습 데이터셋</span><select onChange={(event) => setTrainingDatasetId(Number(event.target.value))} value={trainingDatasetId ?? ""}>{datasets.map((dataset) => <option key={dataset.id} value={dataset.id}>{dataset.version} · {dataset.row_count.toLocaleString("ko-KR")}행</option>)}</select></label><p className="dialog-help">학습은 비동기로 실행되며 완료 후 CANDIDATE 상태에서 MLflow 지표를 검토합니다.</p><button className="admin-button primary" disabled={!trainingDatasetId || isBusy} onClick={() => void launchTraining()} type="button">학습 시작</button></section></div>}
         {dialog === "promotion" && <div className="admin-dialog-backdrop" onMouseDown={() => setDialog(null)} role="presentation"><section aria-modal="true" className="admin-dialog" onMouseDown={(event) => event.stopPropagation()} role="dialog"><header><div><p className="admin-eyebrow">SERVING SMOKE</p><h2>후보 모델 예측 검증</h2></div><button onClick={() => setDialog(null)} type="button">닫기</button></header><label><span>거래 ID</span><input min="1" onChange={(event) => setTransactionId(event.target.value)} type="number" value={transactionId} /></label><label className="json-field"><span>같은 거래의 raw51 Feature JSON</span><textarea onChange={(event) => setPromotionJson(event.target.value)} spellCheck={false} value={promotionJson} /></label><button className="admin-button primary" disabled={!transactionId || isBusy} onClick={() => void promote()} type="button">검증 후 트래픽 전환</button></section></div>}

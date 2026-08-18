@@ -31,7 +31,6 @@ export function AppLayout({ activeNav, children }: AppLayoutProps) {
           ))}
         </nav>
         <div className="app-system-status"><i />데이터 스트림 연결됨<small>SSE 실시간 갱신</small></div>
-        <div className="app-user"><b>관리</b><span>운영 관리자<small>Rule · MLOps</small></span></div>
       </aside>
       <nav aria-label="모바일 메뉴" className="app-mobile-nav">
         {navigation.map((item) => (
