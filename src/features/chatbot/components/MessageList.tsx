@@ -4,6 +4,7 @@
 import type { RefObject } from "react";
 
 import hamsterImage from "../../../assets/chatbot/financial-chatbot-hamster-70.png";
+import type { ChatSizes } from "../chatbotSizes";
 import type { ChatBubble, ChatButtonAction } from "../chatbotTypes";
 
 // 라벨은 PRD 2.3 의 버튼 이름을 쓴다. 문구를 내려주는 API 가 없어 프론트 상수로 둔다.
@@ -19,6 +20,7 @@ type MessageListProps = {
     isTyping: boolean;
     showActions: boolean;
     onSelectAction: (action: ChatButtonAction) => void;
+    sizes: ChatSizes;
 };
 
 export function MessageList({
@@ -27,21 +29,36 @@ export function MessageList({
     isTyping,
     showActions,
     onSelectAction,
+    sizes,
 }: MessageListProps) {
+    const avatarSize = { width: sizes.avatarSmall, height: sizes.avatarSmall };
+    const bubbleSize = { fontSize: sizes.msgFont, padding: sizes.msgPadding };
+    const actionSize = {
+        fontSize: sizes.actionFont,
+        padding: sizes.actionPadding,
+    };
+
     return (
-        <div ref={scrollRef} style={scrollAreaStyle}>
-            <div style={dayDividerStyle}>오늘</div>
+        <div ref={scrollRef} style={{ ...scrollAreaStyle, gap: sizes.rowGap }}>
+            <div style={{ ...dayDividerStyle, fontSize: sizes.dayFont }}>
+                오늘
+            </div>
 
             {bubbles.map((bubble) =>
                 bubble.fromBot ? (
                     <div key={bubble.key} style={botRowStyle}>
-                        <div style={smallAvatarStyle}>
+                        <div style={{ ...smallAvatarStyle, ...avatarSize }}>
                             <img src={hamsterImage} alt="" style={imageStyle} />
                         </div>
-                        <div style={botBubbleStyle}>{bubble.text}</div>
+                        <div style={{ ...botBubbleStyle, ...bubbleSize }}>
+                            {bubble.text}
+                        </div>
                     </div>
                 ) : (
-                    <div key={bubble.key} style={userBubbleStyle}>
+                    <div
+                        key={bubble.key}
+                        style={{ ...userBubbleStyle, ...bubbleSize }}
+                    >
                         {bubble.text}
                     </div>
                 ),
@@ -49,7 +66,7 @@ export function MessageList({
 
             {isTyping && (
                 <div style={typingRowStyle}>
-                    <div style={smallAvatarStyle}>
+                    <div style={{ ...smallAvatarStyle, ...avatarSize }}>
                         <img src={hamsterImage} alt="" style={imageStyle} />
                     </div>
                     <div style={typingBubbleStyle}>
@@ -61,17 +78,23 @@ export function MessageList({
             )}
 
             {showActions && (
-                <div style={actionColumnStyle}>
+                <div
+                    style={{
+                        ...actionColumnStyle,
+                        paddingLeft: sizes.actionIndent,
+                    }}
+                >
                     {ACTION_BUTTONS.map(({ action, label }, index) => (
                         <button
                             key={action}
                             onClick={() => onSelectAction(action)}
-                            style={
+                            style={{
                                 // 첫 버튼(챗봇 상담)만 강조색이다.
-                                index === 0
+                                ...(index === 0
                                     ? primaryActionStyle
-                                    : secondaryActionStyle
-                            }
+                                    : secondaryActionStyle),
+                                ...actionSize,
+                            }}
                         >
                             {label}
                         </button>
@@ -88,13 +111,11 @@ const scrollAreaStyle = {
     padding: "18px 16px",
     display: "flex",
     flexDirection: "column" as const,
-    gap: "14px",
     background: "var(--color-gray-100)",
 };
 
 const dayDividerStyle = {
     alignSelf: "center",
-    fontSize: "11px",
     color: "var(--color-gray-500)",
     background: "var(--color-gray-200)",
     padding: "4px 12px",
@@ -115,9 +136,8 @@ const typingRowStyle = {
     alignItems: "flex-end",
 };
 
+// 크기(width/height/fontSize/padding)는 chatbotSizes.ts 의 값으로 덮어쓴다.
 const smallAvatarStyle = {
-    width: "28px",
-    height: "28px",
     borderRadius: "50%",
     background: "var(--color-warning-100)",
     flex: "none",
@@ -137,8 +157,6 @@ const botBubbleStyle = {
     background: "var(--color-white)",
     border: "1px solid var(--color-border)",
     borderRadius: "4px 16px 16px 16px",
-    padding: "11px 14px",
-    fontSize: "14px",
     lineHeight: 1.5,
     color: "var(--color-text)",
     whiteSpace: "pre-line" as const,
@@ -151,8 +169,6 @@ const userBubbleStyle = {
     background: "var(--color-primary-200)",
     color: "var(--color-text-strong)",
     borderRadius: "16px 4px 16px 16px",
-    padding: "11px 14px",
-    fontSize: "14px",
     lineHeight: 1.5,
     whiteSpace: "pre-line" as const,
 };
@@ -176,18 +192,15 @@ function typingDotStyle(delaySeconds: number) {
     };
 }
 
-// 말풍선 본문과 세로선을 맞춘다(아바타 28px + 간격 8px).
+// 들여쓰기(paddingLeft)로 말풍선 본문과 세로선을 맞춘다.
 const actionColumnStyle = {
     display: "flex",
     flexDirection: "column" as const,
     gap: "8px",
-    paddingLeft: "36px",
 };
 
 const baseActionStyle = {
     fontFamily: "var(--font-brand)",
-    fontSize: "13.5px",
-    padding: "11px 16px",
     borderRadius: "14px",
     cursor: "pointer",
     textAlign: "left" as const,
