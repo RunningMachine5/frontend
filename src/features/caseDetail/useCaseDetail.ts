@@ -12,7 +12,7 @@ type CaseDetailState = {
   errorMessage: string | null;
 };
 
-export function useCaseDetail(transactionId: number) {
+export function useCaseDetail(transactionId: number | null) {
   const [state, setState] = useState<CaseDetailState>({
     detail: null,
     isLoading: true,
@@ -23,6 +23,13 @@ export function useCaseDetail(transactionId: number) {
 
   useEffect(() => {
     let cancelled = false;
+
+    if (transactionId === null) {
+      setState({ detail: null, isLoading: false, errorMessage: null });
+      return () => {
+        cancelled = true;
+      };
+    }
 
     setState({ detail: null, isLoading: true, errorMessage: null });
 

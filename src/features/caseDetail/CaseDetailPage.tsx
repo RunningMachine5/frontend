@@ -10,7 +10,7 @@ import { useCaseDetail } from "./useCaseDetail";
 import "./CaseDetailPage.css";
 import "./CaseDetailPageResponsive.css";
 
-const DEFAULT_TRANSACTION_ID = 1453;
+const SELECTED_TRANSACTION_ID_KEY = "fds.selectedTransactionId";
 
 const RULE_LABELS: Record<string, string> = {
   VOICE_PHISHING: "보이스피싱",
@@ -33,8 +33,8 @@ const DECISION_LABELS: Record<ReviewDecision, string> = {
 };
 
 function getTransactionId() {
-  const match = window.location.hash.match(/^#case\/(\d+)$/);
-  return match ? Number(match[1]) : DEFAULT_TRANSACTION_ID;
+  const storedId = Number(sessionStorage.getItem(SELECTED_TRANSACTION_ID_KEY));
+  return Number.isInteger(storedId) && storedId > 0 ? storedId : null;
 }
 
 function formatPercent(value: number | null) {
@@ -47,6 +47,13 @@ function formatAmount(value: number) {
 
 function formatDate(value: string | null) {
   return value ? new Date(value).toLocaleString("ko-KR") : "데이터 없음";
+}
+
+function formatLocation(transaction: TransactionView) {
+  if (transaction.location_lat === null || transaction.location_lon === null) {
+    return "데이터 없음";
+  }
+  return `${transaction.location_lat}, ${transaction.location_lon}`;
 }
 
 function translateRule(value: string) {
@@ -150,9 +157,12 @@ export function CaseDetailPage() {
     ));
   }, [detail]);
 
-  if (isLoading) return <main className="case-state">사건 상세 정보를 불러오는 중...</main>;
+  if (transactionId === null) {
+    return <AppLayout activeNav="case"><main className="case-state">처리 페이지에서 분석할 거래를 먼저 선택해주세요.</main></AppLayout>;
+  }
+  if (isLoading) return <AppLayout activeNav="case"><main className="case-state">사건 상세 정보를 불러오는 중...</main></AppLayout>;
   if (errorMessage || !detail) {
-    return <main className="case-state">오류: {errorMessage ?? "표시할 사건 데이터가 없습니다."}</main>;
+    return <AppLayout activeNav="case"><main className="case-state">오류: {errorMessage ?? "표시할 사건 데이터가 없습니다."}</main></AppLayout>;
   }
 
   const caseId = detail.case_id;
@@ -251,7 +261,7 @@ export function CaseDetailPage() {
             {similarCases.length > 0 ? <div className="similar-list">{similarCases.slice(0, 3).map((item) => <div className="similar-row" key={item.similar_case_id}><b>#{item.similarity_rank}</b><div><strong>{item.similar_case_id}</strong><p>{item.similarity_reason}</p></div><span>{formatPercent(item.similarity_score)}</span></div>)}</div> : <EmptyData message="조건에 맞는 완료 사건이 없습니다." />}
           </article>
 
-          <article className="case-panel"><div className="case-panel-head"><div><p className="case-eyebrow">TRANSACTION PROFILE</p><h2>거래 · 고객 · 계좌 정보</h2></div></div>{transaction ? <dl className="profile-definition"><div><dt>거래 시각</dt><dd>{formatDate(transaction.transaction_datetime)}</dd></div><div><dt>거래 금액</dt><dd>{formatAmount(transaction.transaction_amount)}</dd></div><div><dt>채널 / 위치</dt><dd>{transaction.channel} / {transaction.location}</dd></div><div><dt>고객 ID</dt><dd>{transaction.customer_id}</dd></div><div><dt>출금 계좌</dt><dd>{transaction.source_account_id}</dd></div><div><dt>수취 계좌</dt><dd>{transaction.recipient_account_id ?? "데이터 없음"}</dd></div></dl> : <EmptyData message={detail.transaction.error_message ?? "거래 정보가 없습니다."} />}</article>
+          <article className="case-panel"><div className="case-panel-head"><div><p className="case-eyebrow">TRANSACTION PROFILE</p><h2>거래 · 고객 · 계좌 정보</h2></div></div>{transaction ? <dl className="profile-definition"><div><dt>거래 시각</dt><dd>{formatDate(transaction.transaction_datetime)}</dd></div><div><dt>거래 금액</dt><dd>{formatAmount(transaction.transaction_amount)}</dd></div><div><dt>채널 / 위치</dt><dd>{transaction.channel} / {formatLocation(transaction)}</dd></div><div><dt>고객 ID</dt><dd>{transaction.customer_id ?? "데이터 없음"}</dd></div><div><dt>출금 계좌</dt><dd>{transaction.source_account_number}</dd></div><div><dt>수취 계좌</dt><dd>{transaction.recipient_account_number}</dd></div></dl> : <EmptyData message={detail.transaction.error_message ?? "거래 정보가 없습니다."} />}</article>
           <article className="case-panel"><div className="case-panel-head"><div><p className="case-eyebrow">DEVICE SIGNAL</p><h2>단말 · 접속 위험정보</h2></div></div><DeviceRiskInfo transaction={transaction} /></article>
 
           <article className="case-panel guide-checklist-card">
@@ -270,7 +280,7 @@ export function CaseDetailPage() {
         <aside className="case-wing-drawer" aria-label={openWing === "chat" ? "사건 소통 및 처리 이력" : "최종 판정 및 처리"}>
           <header><div><p className="case-eyebrow">{openWing === "chat" ? "CASE ACTIVITY" : "REVIEW ACTION"}</p><h2>{openWing === "chat" ? "사건 소통 및 처리 이력" : "최종 판정 및 처리"}</h2></div><button aria-label="패널 닫기" onClick={() => setOpenWing(null)} type="button">×</button></header>
           {openWing === "chat" ? (
-            chat && chat.messages.length > 0 ? <div className="chat-history"><div className="chat-session-status"><span>세션 상태</span><strong>{chat.session_status ?? "데이터 없음"}</strong></div>{chat.messages.map((message) => <article className={`chat-entry ${message.sender_type.toLowerCase()}`} key={message.message_id}><div><strong>{message.sender_type === "CUSTOMER" ? "고객" : message.sender_type === "AGENT" ? "AI" : message.sender_type}</strong><time>{formatDate(message.sent_at)}</time></div><p>{message.message_text}</p></article>)}</div> : <EmptyData message={detail.chat.error_message ?? "연결된 채팅 메시지가 없습니다."} />
+            chat && chat.messages.length > 0 ? <div className="chat-history"><div className="chat-session-status"><span>세션 상태</span><strong>{chat.status}</strong></div>{chat.messages.map((message) => <article className={`chat-entry ${message.sender_type.toLowerCase()}`} key={message.message_id}><div><strong>{message.sender_type === "CUSTOMER" ? "고객" : message.sender_type === "AGENT" ? "AI" : message.sender_type}</strong><time>{formatDate(message.sent_at)}</time></div><p>{message.message_text}</p></article>)}</div> : <EmptyData message={detail.chat.error_message ?? "연결된 채팅 메시지가 없습니다."} />
           ) : (
             <div className="review-form">
               {review && <p className="saved-review">최근 저장: {formatDate(review.reviewed_at)}</p>}

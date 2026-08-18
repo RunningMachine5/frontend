@@ -1,7 +1,7 @@
 import { defineConfig, loadEnv, type ProxyOptions } from "vite";
 import react from "@vitejs/plugin-react";
 
-const BACKEND_TARGET = "http://localhost:8000";
+const BACKEND_TARGET = "http://127.0.0.1:8000";
 
 // 챗봇 API 는 백엔드에서 /chat, /agent 지만 프론트는 /api/chat, /api/agent 로 부른다.
 // 고객이 브라우저로 여는 챗봇 화면 주소가 /chat/{chat_session_id} 라서, /chat 을 그대로

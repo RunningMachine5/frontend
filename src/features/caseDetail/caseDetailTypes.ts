@@ -13,10 +13,11 @@ export type TransactionView = {
   transaction_datetime: string;
   transaction_amount: number;
   channel: string;
-  location: string;
-  customer_id: string;
-  source_account_id: string;
-  recipient_account_id: string | null;
+  location_lat: number | null;
+  location_lon: number | null;
+  customer_id: number | null;
+  source_account_number: string;
+  recipient_account_number: string;
   access_medium: string | null;
   operating_system: string | null;
   ip_address: string | null;
@@ -76,17 +77,17 @@ export type CaseAgentView = {
 };
 
 export type ChatMessageView = {
-  message_id: string;
+  message_id: number;
   sender_type: string;
   message_text: string;
   sent_at: string;
 };
 
 export type ChatView = {
-  chat_session_id: string | null;
-  session_status: string | null;
-  started_at: string | null;
-  closed_at: string | null;
+  chat_session_id: string;
+  status: string;
+  created_at: string;
+  completed_at: string | null;
   messages: ChatMessageView[];
 };
 
