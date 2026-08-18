@@ -194,8 +194,6 @@ export function ModelManagementPage() {
 
         {error && <div className="admin-alert error" role="alert">{error}</div>}
         {notice && <div className="admin-alert success" role="status">{notice}</div>}
-        {isListsLoading && <div className="admin-loading-strip" role="status" aria-live="polite"><i aria-hidden="true" /><span><strong>모델 관리 정보를 불러오는 중입니다.</strong><small>데이터셋과 학습 실행 이력을 먼저 불러오고 있습니다.</small></span></div>}
-
           <section className="admin-metrics">
             <article><span>최근 데이터셋</span><strong>{latestDataset?.version ?? "없음"}</strong><small>{latestDataset ? `${latestDataset.row_count.toLocaleString("ko-KR")}행` : "새 버전 생성 필요"}</small></article>
             <article><span>최근 학습 실행</span><strong className={latestRun?.status === "FAILED" ? "danger" : "positive"}>{latestRun ? STATUS_LABELS[latestRun.status] : "없음"}</strong><small>{latestRun ? `Run #${latestRun.id} · ${formatDate(latestRun.created_at)}` : "실행 이력 없음"}</small></article>
