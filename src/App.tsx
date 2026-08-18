@@ -13,7 +13,9 @@ import { Navigate, Route, Routes } from "react-router-dom";
 import { CaseDetailPage } from "./features/caseDetail/CaseDetailPage";
 import { ChatbotPage } from "./features/chatbot/ChatbotPage";
 import { DashboardPage } from "./features/dashboard/DashboardPage";
+import { ModelManagementPage } from "./features/mlops/ModelManagementPage";
 import { QueuePage } from "./features/queue/QueuePage";
+import { RuleManagementPage } from "./features/rules/RuleManagementPage";
 
 /** 해시(#queue, #case/{id})로 갈리는 담당자 화면들. */
 function MonitoringPages() {
@@ -27,6 +29,8 @@ function MonitoringPages() {
 
   if (hash.startsWith("#case/")) return <CaseDetailPage />;
   if (hash === "#queue") return <QueuePage />;
+  if (hash === "#rules") return <RuleManagementPage />;
+  if (hash === "#model") return <ModelManagementPage />;
   return <DashboardPage />;
 }
 

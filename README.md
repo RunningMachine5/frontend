@@ -42,6 +42,8 @@ npm run dev
 | `/api/dashboard/*` | `http://localhost:8000/api/dashboard/*` | 경로 그대로 |
 | `/api/chat/*` | `http://localhost:8000/chat/*` | `/api` 를 떼고 전달 |
 | `/api/agent/*` | `http://localhost:8000/agent/*` | `/api` 를 떼고 전달 |
+| `/api/rule-*` | `http://localhost:8000/rule-*` | 룰 관리 API로 전달 |
+| `/api/mlops/*` | `http://localhost:8000/mlops/*` | 모델 관리 API로 전달 |
 
 챗봇 API만 `/api` 접두어를 붙여 부르는 이유는, 고객이 브라우저로 여는 챗봇 화면 주소가
 `/chat/{chat_session_id}` 라서 `/chat` 을 그대로 프록시하면 화면 대신 API 응답이 내려오기 때문입니다.
@@ -62,7 +64,14 @@ npm run dev
 | 경로 | 화면 |
 | --- | --- |
 | `/` | FDS 통합 모니터링 대시보드 |
+| `/#rules` | 룰 규칙 관리 |
+| `/#model` | 데이터셋·학습·모델 관리 |
 | `/chat/:chatSessionId` | 고객 대응 챗봇 ([작업 문서](docs/customer-chatbot-frontend.md)) |
+
+룰·모델 관리 화면은 Backend의 `X-MLOps-Admin-Token`을 요구합니다. 로컬 개발
+서버는 `../backend/.env`의 토큰을 브라우저에 노출하지 않고 관리자 API 요청에
+자동으로 전달합니다. 운영에서는 화면에서 입력한 토큰을 현재 브라우저 탭의
+`sessionStorage`에만 보관합니다.
 
 챗봇 화면은 백엔드가 이메일로 보낸 세션 URL로 접속합니다. 백엔드 `.env` 의 `CHAT_BASE_URL` 을
 이 프론트 주소(`http://localhost:5173`)로 맞춰야 메일 링크가 이 화면으로 옵니다.
