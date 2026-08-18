@@ -1,8 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 
 import { AppLayout } from "../../components/layout/AppLayout";
-import { AdminAccess } from "../admin/AdminAccess";
-import { useAdminToken } from "../admin/useAdminToken";
 import {
   activateRuleSet,
   createRuleDraft,
@@ -42,7 +40,6 @@ function formatExpression(expression: RuleExpression): string {
 }
 
 export function RuleManagementPage() {
-  const { token, saveToken } = useAdminToken();
   const [summaries, setSummaries] = useState<RuleSetSummary[]>([]);
   const [selectedSet, setSelectedSet] = useState<RuleSet | null>(null);
   const [selectedRuleId, setSelectedRuleId] = useState<number | null>(null);
@@ -57,8 +54,8 @@ export function RuleManagementPage() {
   const [notice, setNotice] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const loadRuleSet = useCallback(async (id: number, adminToken = token) => {
-    const detail = await fetchRuleSet(adminToken, id);
+  const loadRuleSet = useCallback(async (id: number) => {
+    const detail = await fetchRuleSet(id);
     setSelectedSet(detail);
     setSelectedRuleId((current) =>
       current && detail.rules.some((rule) => rule.id === current)
@@ -67,26 +64,25 @@ export function RuleManagementPage() {
     );
     setValidation(null);
     setReplay(null);
-  }, [token]);
+  }, []);
 
   const refresh = useCallback(async () => {
-    if (!token) return;
     setError(null);
     try {
       const [sets, ruleFeatures] = await Promise.all([
-        fetchRuleSets(token),
-        fetchRuleFeatures(token),
+        fetchRuleSets(),
+        fetchRuleFeatures(),
       ]);
       setSummaries(sets);
       setFeatures(ruleFeatures);
       const preferred = sets.find((set) => set.status === "DRAFT")
         ?? sets.find((set) => set.status === "ACTIVE")
         ?? sets[0];
-      if (preferred) await loadRuleSet(preferred.id, token);
+      if (preferred) await loadRuleSet(preferred.id);
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "룰셋을 불러오지 못했습니다.");
     }
-  }, [loadRuleSet, token]);
+  }, [loadRuleSet]);
 
   useEffect(() => { void refresh(); }, [refresh]);
 
@@ -129,7 +125,7 @@ export function RuleManagementPage() {
 
   const saveCurrentRule = () => runAction(async () => {
     if (!selectedSet || !editingRule) return;
-    const saved = await saveRule(token, selectedSet.id, editingRule);
+    const saved = await saveRule(selectedSet.id, editingRule);
     setEditingRule(saved);
     await loadRuleSet(selectedSet.id);
     setNotice("가중치 변경을 DRAFT에 저장했습니다.");
@@ -137,7 +133,7 @@ export function RuleManagementPage() {
 
   const runTest = () => runAction(async () => {
     if (!selectedSet) return;
-    const result = await testRuleSet(token, selectedSet.id, JSON.parse(testJson));
+    const result = await testRuleSet(selectedSet.id, JSON.parse(testJson));
     setTestResult(result);
     setDialog(null);
     setNotice("입력 데이터 1건으로 룰 점수를 계산했습니다.");
@@ -152,9 +148,9 @@ export function RuleManagementPage() {
             <button className="admin-button" onClick={() => setDialog("features")} type="button">Feature 목록</button>
             <button
               className="admin-button primary"
-              disabled={!token || Boolean(draftSet) || isBusy}
+              disabled={Boolean(draftSet) || isBusy}
               onClick={() => runAction(async () => {
-                const created = await createRuleDraft(token, activeSet?.id);
+                const created = await createRuleDraft(activeSet?.id);
                 await refresh();
                 await loadRuleSet(created.id);
                 setNotice(`DRAFT v${created.version}을 만들었습니다.`);
@@ -164,12 +160,9 @@ export function RuleManagementPage() {
           </div>
         </header>
 
-        <AdminAccess onSave={saveToken} token={token} />
         {error && <div className="admin-alert error" role="alert">{error}</div>}
         {notice && <div className="admin-alert success" role="status">{notice}</div>}
 
-        {token && (
-          <>
             <section className="admin-metrics">
               <article><span>운영 룰셋</span><strong className="positive">{activeSet ? `ACTIVE v${activeSet.version}` : "없음"}</strong><small>{formatDate(activeSet?.activated_at ?? null)} 활성화</small></article>
               <article><span>관리 사기유형</span><strong>{enabledRules}종</strong><small>선택 룰셋의 활성 유형</small></article>
@@ -223,16 +216,13 @@ export function RuleManagementPage() {
                 {replay && <div className="replay-result"><strong>Replay 결과 · 표본 {replay.selected_count}건</strong><dl><div><dt>점수 변경 거래</dt><dd>{replay.score_changed_transaction_count}건</dd></div><div><dt>평균 최대 변화</dt><dd>{Math.max(0, ...replay.type_summaries.map((item) => Math.abs(item.average_score_delta ?? 0))).toFixed(3)}</dd></div><div><dt>근거 변경</dt><dd>{replay.evidence_changed_transaction_count}건</dd></div><div><dt>평가 오류</dt><dd>{replay.error_count}건</dd></div></dl></div>}
                 {testResult && <div className="test-result"><strong>단건 점수</strong>{testResult.type_scores.map((item) => <span key={item.type_code}>{item.display_name}<b>{item.score.toFixed(2)}</b></span>)}</div>}
                 <div className="verify-actions">
-                  <button className="admin-button" disabled={!selectedSet || isBusy} onClick={() => runAction(async () => { if (selectedSet) setValidation(await validateRuleSet(token, selectedSet.id)); })} type="button">검증 실행</button>
+                  <button className="admin-button" disabled={!selectedSet || isBusy} onClick={() => runAction(async () => { if (selectedSet) setValidation(await validateRuleSet(selectedSet.id)); })} type="button">검증 실행</button>
                   <button className="admin-button" disabled={!selectedSet || isBusy} onClick={() => setDialog("test")} type="button">단건 테스트</button>
-                  <button className="admin-button" disabled={selectedSet?.status !== "DRAFT" || isBusy} onClick={() => runAction(async () => { if (selectedSet) setReplay(await replayRuleSet(token, selectedSet.id)); })} type="button">Replay 비교</button>
-                  <button className="admin-button primary" disabled={selectedSet?.status !== "DRAFT" || !validation?.valid || isBusy} onClick={() => { if (selectedSet && window.confirm(`DRAFT v${selectedSet.version}을 운영 룰셋으로 활성화할까요?`)) void runAction(async () => { await activateRuleSet(token, selectedSet.id); await refresh(); setNotice("DRAFT를 ACTIVE 룰셋으로 반영했습니다."); }); }} type="button">DRAFT 활성화</button>
+                  <button className="admin-button" disabled={selectedSet?.status !== "DRAFT" || isBusy} onClick={() => runAction(async () => { if (selectedSet) setReplay(await replayRuleSet(selectedSet.id)); })} type="button">Replay 비교</button>
+                  <button className="admin-button primary" disabled={selectedSet?.status !== "DRAFT" || !validation?.valid || isBusy} onClick={() => { if (selectedSet && window.confirm(`DRAFT v${selectedSet.version}을 운영 룰셋으로 활성화할까요?`)) void runAction(async () => { await activateRuleSet(selectedSet.id); await refresh(); setNotice("DRAFT를 ACTIVE 룰셋으로 반영했습니다."); }); }} type="button">DRAFT 활성화</button>
                 </div>
               </aside>
             </section>
-          </>
-        )}
-
         {dialog === "features" && <div className="admin-dialog-backdrop" role="presentation" onMouseDown={() => setDialog(null)}><section aria-modal="true" className="admin-dialog feature-dialog" onMouseDown={(event) => event.stopPropagation()} role="dialog"><header><div><p className="admin-eyebrow">RULE FEATURES</p><h2>사용 가능한 Feature</h2></div><button onClick={() => setDialog(null)} type="button">닫기</button></header><div className="feature-list">{features.map((feature) => <article key={feature.field}><strong>{feature.display_name}</strong><code>{feature.field}</code><span>{feature.value_type} · {feature.derived ? "파생값" : "원본값"}</span></article>)}</div></section></div>}
         {dialog === "rule" && editingRule && <div className="admin-dialog-backdrop" role="presentation" onMouseDown={() => setDialog(null)}><section aria-modal="true" className="admin-dialog" onMouseDown={(event) => event.stopPropagation()} role="dialog"><header><div><p className="admin-eyebrow">FRAUD TYPE</p><h2>사기유형 정보</h2></div><button onClick={() => setDialog(null)} type="button">닫기</button></header><label><span>유형 코드</span><input disabled value={editingRule.type_code} /></label><label><span>표시 이름</span><input disabled={selectedSet?.status !== "DRAFT"} onChange={(event) => setEditingRule({ ...editingRule, display_name: event.target.value })} value={editingRule.display_name} /></label><label><span>설명</span><textarea className="short-textarea" disabled={selectedSet?.status !== "DRAFT"} onChange={(event) => setEditingRule({ ...editingRule, description: event.target.value })} value={editingRule.description ?? ""} /></label><label className="checkbox-field"><input checked={editingRule.enabled} disabled={selectedSet?.status !== "DRAFT"} onChange={(event) => setEditingRule({ ...editingRule, enabled: event.target.checked })} type="checkbox" /><span>실시간 점수 계산에 이 유형 포함</span></label><button className="admin-button primary" disabled={selectedSet?.status !== "DRAFT" || isBusy} onClick={() => { setDialog(null); void saveCurrentRule(); }} type="button">유형 정보 저장</button></section></div>}
         {dialog === "test" && <div className="admin-dialog-backdrop" role="presentation" onMouseDown={() => setDialog(null)}><section aria-modal="true" className="admin-dialog" onMouseDown={(event) => event.stopPropagation()} role="dialog"><header><div><p className="admin-eyebrow">ONE TRANSACTION</p><h2>단건 룰 테스트</h2></div><button onClick={() => setDialog(null)} type="button">닫기</button></header><label className="json-field"><span>raw51 Feature JSON</span><textarea onChange={(event) => setTestJson(event.target.value)} spellCheck={false} value={testJson} /></label><button className="admin-button primary" disabled={isBusy} onClick={() => void runTest()} type="button">점수 계산</button></section></div>}

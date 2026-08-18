@@ -68,10 +68,9 @@ npm run dev
 | `/#model` | 데이터셋·학습·모델 관리 |
 | `/chat/:chatSessionId` | 고객 대응 챗봇 ([작업 문서](docs/customer-chatbot-frontend.md)) |
 
-룰·모델 관리 화면은 Backend의 `X-MLOps-Admin-Token`을 요구합니다. 로컬 개발
-서버는 `../backend/.env`의 토큰을 브라우저에 노출하지 않고 관리자 API 요청에
-자동으로 전달합니다. 운영에서는 화면에서 입력한 토큰을 현재 브라우저 탭의
-`sessionStorage`에만 보관합니다.
+룰·모델 관리 화면의 관리자 토큰은 브라우저에서 입력하거나 저장하지 않습니다.
+로컬에서는 Vite 프록시가 `../backend/.env`의 토큰을 읽어 요청 헤더에 넣고,
+운영에서는 Nginx가 VM 환경변수의 토큰을 같은 방식으로 전달합니다.
 
 챗봇 화면은 백엔드가 이메일로 보낸 세션 URL로 접속합니다. 백엔드 `.env` 의 `CHAT_BASE_URL` 을
 이 프론트 주소(`http://localhost:5173`)로 맞춰야 메일 링크가 이 화면으로 옵니다.

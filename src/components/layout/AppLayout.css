@@ -32,11 +32,8 @@
 
 .app-system-status small,
 
-.app-user small{display:block;margin-top:8px;color:#9ca1b0;font-size:11px}
 
-.app-user{min-height:86px;margin-top:auto;padding:16px;display:flex;align-items:center;gap:14px;border:1px solid #3c3c48;border-radius:14px;background:#202028;font-size:13px;font-weight:700}
 
-.app-user>b{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;background:#b640be;font-size:11px}
 
 .app-mobile-nav{display:none}
 .app-brand:focus-visible,.app-sidebar nav a:focus-visible,.app-mobile-nav a:focus-visible{outline:2px solid #cf5bd7;outline-offset:2px}
