@@ -35,9 +35,7 @@
 .admin-alert{margin:15px 0 -1px;padding:11px 14px;border-radius:9px;font-size:12px;line-height:1.5}
 .admin-alert.error{border:1px solid #68313b;background:#281a20;color:#ff9da4}
 .admin-alert.success{border:1px solid #285d48;background:#17261f;color:#8ee0b7}
-.admin-loading-strip{margin:15px 0 -1px;padding:12px 14px;border:1px solid #58305d;border-radius:9px;display:flex;align-items:center;gap:11px;background:#241b27;color:#e4b4e8}
-.admin-loading-strip i,.model-detail-loading i{width:16px;height:16px;flex:0 0 16px;border:2px solid #704276;border-top-color:#dc69e4;border-radius:50%;animation:admin-loader-spin .8s linear infinite}
-.admin-loading-strip span{display:grid;gap:2px}.admin-loading-strip strong{font-size:11px}.admin-loading-strip small{color:#9f86a3;font-size:9px}
+.model-detail-loading i{width:16px;height:16px;flex:0 0 16px;border:2px solid #704276;border-top-color:#dc69e4;border-radius:50%;animation:admin-loader-spin .8s linear infinite}
 @keyframes admin-loader-spin{to{transform:rotate(360deg)}}
 
 .admin-metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:22px 0 16px}
@@ -206,6 +204,16 @@
   .model-admin-page .review-note{font-size:13px}
   .model-admin-page .model-detail-loading strong{font-size:14px}
   .model-admin-page .model-detail-loading span{font-size:12px}
+
+  /*
+   * 학습 Run은 패널 안에 세로 스크롤을 따로 만들지 않는다.
+   * Run이 많아지면 페이지 전체가 자연스럽게 길어져 목록을 한 번에 읽을 수 있다.
+   */
+  .model-admin-page{height:auto;min-height:100vh;overflow:visible}
+  .model-admin-page .model-workspace{min-height:clamp(300px,34vh,420px);flex:1 0 auto}
+  .model-admin-page .runs-panel,.model-admin-page .model-detail{min-height:clamp(300px,34vh,420px)}
+  .model-admin-page .model-detail{overflow:visible;scrollbar-gutter:auto}
+  .model-admin-page .admin-table-wrap{min-height:auto;flex:none;overflow-x:auto;overflow-y:visible;scrollbar-gutter:auto}
 }
 
 @media(max-width:1280px){
@@ -221,4 +229,4 @@
   .admin-page{padding:22px 15px 30px}.admin-header h1{font-size:26px}.admin-actions{display:grid;grid-template-columns:1fr 1fr}.admin-metrics{grid-template-columns:1fr}.version-list{grid-template-columns:1fr 1fr}.component-row{grid-template-columns:1fr}.weight-track{width:calc(100% - 30px)}.component-row input{width:100%}.rule-total{align-items:flex-start;gap:8px}.verify-actions{grid-template-columns:1fr}.champion-card{display:grid}.traffic-ring{justify-self:center}.champion-card dl{grid-template-columns:1fr}.model-workspace{grid-template-columns:minmax(0,1fr)}.metric-pairs{grid-template-columns:1fr}.model-actions{grid-template-columns:1fr}.feature-list{grid-template-columns:1fr}.admin-dialog-backdrop{padding:12px}.admin-dialog{max-height:calc(100vh - 24px)}
 }
 
-@media(prefers-reduced-motion:reduce){.admin-button{transition:none}.admin-loading-strip i,.model-detail-loading i{animation:none}}
+@media(prefers-reduced-motion:reduce){.admin-button{transition:none}.model-detail-loading i{animation:none}}
