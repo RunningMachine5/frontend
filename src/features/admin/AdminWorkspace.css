@@ -69,6 +69,144 @@
 .model-detail{display:flex;flex-direction:column}.recommendation{padding:6px 9px;border-radius:99px;background:#3c2045;color:#df76e5;font-size:8px;font-style:normal;font-weight:800;white-space:nowrap}.metric-pairs{padding:12px;display:grid;grid-template-columns:1fr 1fr;gap:7px}.metric-pairs div{padding:12px;border-radius:8px;background:#19191f}.metric-pairs span{display:block;color:#858997;font-size:8px}.metric-pairs strong{display:block;margin-top:7px;font-size:15px}.review-note{margin:0 12px 12px;padding:12px;border:1px solid #63306a;border-radius:8px;background:#281b2c;color:#b9bbc5;font-size:10px;line-height:1.5}.review-note strong{display:block;margin-bottom:4px;color:#df76e5}.model-actions{margin-top:auto;padding:12px;display:grid;grid-template-columns:1fr 1fr;gap:7px}
 .model-detail-loading{min-height:270px;flex:1;display:grid;place-content:center;justify-items:center;gap:8px;padding:28px;text-align:center}.model-detail-loading i{width:22px;height:22px;margin-bottom:4px}.model-detail-loading strong{font-size:12px}.model-detail-loading span{color:#858997;font-size:9px}
 
+/*
+ * 데스크톱 운영 화면에서는 페이지 전체가 한 화면에 머물고,
+ * 데이터가 길어질 수 있는 목록만 각 패널 안에서 스크롤한다.
+ */
+@media(min-width:1440px) and (min-height:700px){
+  .admin-page{height:100vh;min-height:0;box-sizing:border-box;padding:20px 28px;display:flex;flex-direction:column;overflow:hidden}
+  .admin-header{min-height:72px;flex:0 0 auto;padding-bottom:11px;align-items:center}
+  .admin-header h1{font-size:28px;line-height:1.2}
+  .admin-header>div>p:last-child,.panel-title small{font-size:12px;line-height:1.4}
+  .admin-actions{padding-top:0}
+  .admin-button{min-height:38px;padding:0 15px;font-size:13px}
+  .admin-button.compact{min-height:34px;padding:0 12px;font-size:12px}
+  .admin-metrics{flex:0 0 auto;gap:8px;margin:10px 0}
+  .admin-metrics article{min-height:84px;padding:14px 16px}
+  .admin-metrics span{font-size:11px}
+  .admin-metrics strong{margin:6px 0 5px;font-size:20px}
+  .admin-metrics small{display:block;font-size:11px;line-height:1.35;overflow-wrap:anywhere}
+  .panel-title{padding:13px 15px}
+  .panel-title h2{font-size:17px}
+  .admin-eyebrow{margin-bottom:4px;font-size:11px}
+  .admin-page .status{min-height:25px;padding:0 9px;font-size:11px}
+
+  .rule-workspace{min-height:0;flex:1;grid-template-columns:200px minmax(500px,1fr) clamp(340px,23vw,400px);gap:8px}
+  .version-panel,.rule-editor,.verify-panel{min-height:0}
+  .version-panel{display:flex;flex-direction:column}
+  .version-list{min-height:0;padding:8px;gap:6px;overflow-y:auto;scrollbar-gutter:stable}
+  .version-list button{padding:10px}
+  .version-list strong{font-size:14px}
+  .version-list small{margin-top:5px;font-size:11px}
+  .rule-tabs{padding:7px 10px 0;gap:4px}
+  .rule-tabs button{min-height:32px;padding:0 11px;font-size:11px}
+  .component-list{min-height:0;flex:1;padding:8px;gap:6px;overflow-y:auto;scrollbar-gutter:stable}
+  .component-row{padding:11px 13px 16px;grid-template-columns:minmax(0,1fr) 76px;gap:10px}
+  .component-row strong{font-size:13px}
+  .component-row code{margin-top:5px;font-size:11px;line-height:1.4}
+  .component-row label{font-size:11px}
+  .component-row input{width:72px;height:30px;font-size:11px}
+  .weight-track{right:12px;bottom:7px;width:92px;height:5px}
+  .rule-total{margin:0 10px;padding:9px 2px 11px;font-size:12px}
+  .rule-total strong{font-size:12px}
+  .editor-save{margin:auto 10px 10px}
+  .verify-steps{padding:8px;gap:6px}
+  .verify-steps li{min-height:44px;padding:9px 10px;font-size:12px}
+  .verify-steps em{font-size:11px}
+  .replay-result,.test-result{max-height:168px;margin:0 8px 8px;padding:10px;overflow-y:auto}
+  .replay-result>strong,.test-result>strong{font-size:11px}
+  .replay-result dt{font-size:10px}.test-result span{font-size:11px}
+  .replay-result dl{margin-top:7px}
+  .verify-actions{padding:8px;gap:6px}
+  .verify-actions .admin-button{min-height:35px}
+
+  .model-overview-grid{min-height:0;flex:0 0 240px;gap:8px}
+  .champion-card{height:240px;min-height:0;padding:18px 20px;gap:20px}
+  .champion-card h2{margin:8px 0 5px;font-size:21px}
+  .champion-card p,.dataset-card>p{font-size:11px;line-height:1.4}
+  .champion-card dl{gap:7px;margin:12px 0 0}
+  .champion-card dl div{padding:9px}
+  .champion-card dt{font-size:11px}
+  .champion-card dd{margin-top:5px;font-size:11px;line-height:1.35}
+  .traffic-ring{width:124px;height:124px;flex-basis:124px}
+  .traffic-ring strong{font-size:24px}
+  .traffic-ring span{font-size:11px}
+  .dataset-card{height:240px;padding:16px 18px;display:flex;flex-direction:column;overflow:hidden}
+  .dataset-card h2{margin:2px 0 4px;font-size:18px}
+  .dataset-card dl{margin:9px 0 8px}
+  .dataset-card dl div{padding:6px 0}
+  .dataset-card dt,.dataset-card dd{font-size:11px}
+  .dataset-card .admin-button{align-self:flex-start;margin-top:auto}
+  .workflow-rail{min-height:0;flex:0 0 70px;margin:8px 0;padding:7px}
+  .workflow-rail div{min-height:0;padding:6px 11px;gap:3px}
+  .workflow-rail small{font-size:11px}.workflow-rail strong{font-size:12px}.workflow-rail span{font-size:11px}
+  .model-workspace{min-height:0;flex:1;gap:8px}
+  .runs-panel,.model-detail{height:auto;min-height:0}
+  .runs-panel{display:flex;flex-direction:column}
+  .model-detail{overflow-y:auto;scrollbar-gutter:stable}
+  .admin-table-wrap{min-height:0;flex:1;overflow:auto;scrollbar-gutter:stable}
+  .admin-page table{font-size:12px}
+  .admin-page th,.admin-page td{padding:11px 12px}
+  .admin-page th{font-size:11px}
+  .table-run-button{font-size:12px}
+  .recommendation{font-size:11px}
+  .metric-pairs{padding:8px;gap:6px}
+  .metric-pairs div{padding:10px}
+  .metric-pairs span{font-size:11px}
+  .metric-pairs strong{margin-top:5px;font-size:15px}
+  .review-note{margin:0 8px 8px;padding:10px;font-size:11px}
+  .model-actions{padding:8px;gap:6px}
+  .model-detail-loading{min-height:0;padding:20px}
+
+  /*
+   * 모델 운영 화면은 숫자와 상태를 멀리서도 빠르게 훑는 화면이다.
+   * 남는 데스크톱 공간을 활용해 룰 편집 화면보다 한 단계 큰 글자 체계를 쓴다.
+   */
+  .model-admin-page .admin-header h1{font-size:32px}
+  .model-admin-page .admin-header>div>p:last-child{font-size:14px}
+  .model-admin-page .admin-eyebrow{font-size:12px}
+  .model-admin-page .admin-button{font-size:14px}
+  .model-admin-page .admin-button.compact{font-size:13px}
+  .model-admin-page .admin-metrics article{min-height:96px;padding:16px 18px}
+  .model-admin-page .admin-metrics span{font-size:13px}
+  .model-admin-page .admin-metrics strong{margin:7px 0 5px;font-size:24px}
+  .model-admin-page .admin-metrics small{font-size:12px}
+
+  .model-admin-page .model-overview-grid{flex-basis:210px}
+  .model-admin-page .champion-card,.model-admin-page .dataset-card{height:210px}
+  .model-admin-page .champion-card{padding:14px 20px}
+  .model-admin-page .champion-card h2{font-size:26px}
+  .model-admin-page .champion-card p,.model-admin-page .dataset-card>p{font-size:13px}
+  .model-admin-page .champion-card dl{margin-top:8px}
+  .model-admin-page .champion-card dl div{padding:8px}
+  .model-admin-page .champion-card dt,.model-admin-page .champion-card dd{font-size:12px}
+  .model-admin-page .traffic-ring{width:120px;height:120px;flex-basis:120px}
+  .model-admin-page .traffic-ring strong{font-size:30px}
+  .model-admin-page .traffic-ring span{font-size:12px}
+  .model-admin-page .dataset-card{padding:14px 18px}
+  .model-admin-page .dataset-card h2{font-size:22px}
+  .model-admin-page .dataset-card dl{margin:7px 0 8px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+  .model-admin-page .dataset-card dl div{padding:8px 10px;border:0;border-radius:8px;display:grid;gap:4px;background:#19191f}
+  .model-admin-page .dataset-card dt,.model-admin-page .dataset-card dd{font-size:12px}
+  .model-admin-page .dataset-card dd{max-width:100%}
+
+  .model-admin-page .workflow-rail{flex-basis:70px}
+  .model-admin-page .workflow-rail small{font-size:12px}
+  .model-admin-page .workflow-rail strong{font-size:14px}
+  .model-admin-page .workflow-rail span{font-size:12px}
+  .model-admin-page .panel-title h2{font-size:20px}
+  .model-admin-page .panel-title small{font-size:13px}
+  .model-admin-page table{font-size:13px}
+  .model-admin-page th{font-size:12px}
+  .model-admin-page .table-run-button{font-size:13px}
+  .model-admin-page .recommendation{font-size:12px}
+  .model-admin-page .metric-pairs span{font-size:12px}
+  .model-admin-page .metric-pairs strong{font-size:17px}
+  .model-admin-page .review-note{font-size:13px}
+  .model-admin-page .model-detail-loading strong{font-size:14px}
+  .model-admin-page .model-detail-loading span{font-size:12px}
+}
+
 @media(max-width:1280px){
   .admin-page{padding:28px 26px 44px}.rule-workspace{grid-template-columns:180px minmax(430px,1fr)}.verify-panel{grid-column:1/-1;display:grid;grid-template-columns:240px 1fr}.verify-panel .panel-title{grid-column:1/-1}.verify-actions{grid-template-columns:repeat(4,1fr)}
   .model-workspace{grid-template-columns:1fr}.model-detail{min-height:380px}
