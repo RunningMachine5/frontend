@@ -175,7 +175,7 @@ export function ModelManagementPage() {
 
   return (
     <AppLayout activeNav="model">
-      <section className="admin-page">
+      <section className="admin-page model-admin-page">
         <header className="admin-header">
           <div><p className="admin-eyebrow">MODEL OPERATIONS</p><h1>모델 관리</h1><p>학습 데이터셋 생성부터 후보 모델 검토와 운영 배포까지 관리합니다.</p></div>
           <div className="admin-actions">
