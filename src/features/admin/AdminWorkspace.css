@@ -172,8 +172,8 @@
   .model-admin-page .admin-metrics strong{margin:7px 0 5px;font-size:24px}
   .model-admin-page .admin-metrics small{font-size:12px}
 
-  .model-admin-page .model-overview-grid{flex-basis:210px}
-  .model-admin-page .champion-card,.model-admin-page .dataset-card{height:210px}
+  .model-admin-page .model-overview-grid{flex-basis:220px}
+  .model-admin-page .champion-card,.model-admin-page .dataset-card{height:220px}
   .model-admin-page .champion-card{padding:14px 20px}
   .model-admin-page .champion-card h2{font-size:26px}
   .model-admin-page .champion-card p,.model-admin-page .dataset-card>p{font-size:13px}
@@ -183,12 +183,13 @@
   .model-admin-page .traffic-ring{width:120px;height:120px;flex-basis:120px}
   .model-admin-page .traffic-ring strong{font-size:30px}
   .model-admin-page .traffic-ring span{font-size:12px}
-  .model-admin-page .dataset-card{padding:14px 18px}
+  .model-admin-page .dataset-card{padding:12px 18px}
   .model-admin-page .dataset-card h2{font-size:22px}
-  .model-admin-page .dataset-card dl{margin:7px 0 8px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
-  .model-admin-page .dataset-card dl div{padding:8px 10px;border:0;border-radius:8px;display:grid;gap:4px;background:#19191f}
+  .model-admin-page .dataset-card dl{margin:4px 0 6px;display:block}
+  .model-admin-page .dataset-card dl div{padding:4px 0;border-top:1px solid #393943;border-radius:0;display:flex;justify-content:space-between;gap:12px;background:transparent}
   .model-admin-page .dataset-card dt,.model-admin-page .dataset-card dd{font-size:12px}
-  .model-admin-page .dataset-card dd{max-width:100%}
+  .model-admin-page .dataset-card dd{max-width:65%}
+  .model-admin-page .dataset-card .admin-button{min-height:34px;font-size:13px}
 
   .model-admin-page .workflow-rail{flex-basis:70px}
   .model-admin-page .workflow-rail small{font-size:12px}
