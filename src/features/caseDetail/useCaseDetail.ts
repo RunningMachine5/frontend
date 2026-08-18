@@ -1,7 +1,10 @@
 import { useEffect, useState } from "react";
 
-import { fetchCaseDetail } from "./caseDetailApi";
-import type { CaseDetailResponse } from "./caseDetailTypes";
+import { fetchCaseDetail, saveCaseReview } from "./caseDetailApi";
+import type {
+  CaseDetailResponse,
+  CaseReviewUpsertRequest,
+} from "./caseDetailTypes";
 
 type CaseDetailState = {
   detail: CaseDetailResponse | null;
@@ -15,6 +18,8 @@ export function useCaseDetail(transactionId: number) {
     isLoading: true,
     errorMessage: null,
   });
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -40,5 +45,38 @@ export function useCaseDetail(transactionId: number) {
     };
   }, [transactionId]);
 
-  return state;
+  async function saveReview(
+    caseId: string,
+    request: CaseReviewUpsertRequest,
+  ) {
+    setIsSaving(true);
+    setSaveError(null);
+
+    try {
+      const review = await saveCaseReview(caseId, request);
+      setState((current) => current.detail ? {
+        ...current,
+        detail: {
+          ...current.detail,
+          review: {
+            status: "AVAILABLE",
+            data: review,
+            error_message: null,
+          },
+        },
+      } : current);
+      return review;
+    } catch (error) {
+      setSaveError(
+        error instanceof Error
+          ? error.message
+          : "최종 판정 저장에 실패했습니다.",
+      );
+      throw error;
+    } finally {
+      setIsSaving(false);
+    }
+  }
+
+  return { ...state, isSaving, saveError, saveReview };
 }
