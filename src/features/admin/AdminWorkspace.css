@@ -96,7 +96,7 @@
   .admin-eyebrow{margin-bottom:4px;font-size:11px}
   .admin-page .status{min-height:25px;padding:0 9px;font-size:11px}
 
-  .rule-workspace{min-height:0;flex:1;grid-template-columns:200px minmax(500px,1fr) clamp(340px,23vw,400px);gap:8px}
+  .rule-workspace{min-height:0;flex:1;grid-template-columns:200px minmax(500px,1fr) clamp(320px,20vw,350px);gap:8px}
   .version-panel,.rule-editor,.verify-panel{min-height:0}
   .version-panel{display:flex;flex-direction:column}
   .version-list{min-height:0;padding:8px;gap:6px;overflow-y:auto;scrollbar-gutter:stable}
@@ -231,6 +231,10 @@
   .model-admin-page .model-detail-loading{min-height:0;padding:16px}
   .model-admin-page .model-detail-loading strong{font-size:13px}
   .model-admin-page .model-detail-loading span{font-size:11px}
+}
+
+@media(min-width:1800px) and (min-height:700px){
+  .component-list{grid-template-columns:repeat(3,minmax(0,1fr))}
 }
 
 @media(max-width:1280px){
