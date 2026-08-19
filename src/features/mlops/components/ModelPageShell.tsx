@@ -32,7 +32,7 @@ export function ModelPageShell({
   return (
     <AppLayout activeNav="model">
       <section className="admin-page model-section-page">
-        <header className="admin-header">
+        <header className="app-page-header admin-header">
           <PageHeading eyebrow="MODEL OPERATIONS" title={title} />
           {actions && <div className="admin-actions">{actions}</div>}
         </header>

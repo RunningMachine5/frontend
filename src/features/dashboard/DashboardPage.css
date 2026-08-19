@@ -3,7 +3,6 @@
 /* 1920×1080에서는 네 영역이 화면 높이를 나눠 가져 페이지 스크롤을 만들지 않는다. */
 @media(min-width:1440px) and (min-height:800px){
   .dashboard-content{height:100vh;position:relative;padding:20px 28px;display:grid;grid-template-rows:72px 108px minmax(0,.85fr) minmax(0,1fr);gap:10px;overflow:hidden}
-  .dashboard-header{min-height:0;align-items:center}
   .header-actions{padding-top:0}
   .refresh-error{position:absolute;z-index:2;top:73px;right:28px;margin:0;padding:5px 9px;border-radius:6px;background:#392027}
   .metric-grid{height:100%;margin:0;gap:10px}
