@@ -1,3 +1,5 @@
+// 모델 운영 화면이 사용하는 관리자 API 호출을 한곳에 모은다.
+
 import { adminRequest } from "../admin/adminApi";
 import type {
   DatasetVersion,

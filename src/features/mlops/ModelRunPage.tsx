@@ -115,6 +115,9 @@ export function ModelRunPage() {
 
   const decide = (decision: "APPROVE" | "REJECT") => runAction(async () => {
     if (!run) return "";
+    if (decision === "REJECT" && !window.confirm(`Run #${run.id} 후보를 거절할까요?`)) {
+      return "후보 검토를 계속할 수 있습니다.";
+    }
     const reason = decision === "APPROVE"
       ? "관리자 화면에서 운영 모델과 후보 지표를 비교함"
       : "관리자 검토에서 후보를 거절함";
@@ -248,8 +251,8 @@ export function ModelRunPage() {
 
               {["STAGED", "DEPLOYMENT_FAILED"].includes(run.status) && (
                 <form className="run-smoke-form" onSubmit={(event) => { event.preventDefault(); void promote(); }}>
-                  <label><span>검증 거래 ID</span><input min="1" onChange={(event) => setTransactionId(event.target.value)} required type="number" value={transactionId} /></label>
-                  <label><span>같은 거래의 raw51 Feature JSON</span><textarea onChange={(event) => setFeatureJson(event.target.value)} required spellCheck={false} value={featureJson} /></label>
+                  <label><span>검증 거래 ID</span><input autoComplete="off" min="1" name="verification-transaction-id" onChange={(event) => setTransactionId(event.target.value)} required type="number" value={transactionId} /></label>
+                  <label><span>같은 거래의 raw51 Feature JSON</span><textarea autoComplete="off" name="verification-features" onChange={(event) => setFeatureJson(event.target.value)} required spellCheck={false} value={featureJson} /></label>
                   <button className="admin-button primary" disabled={isBusy} type="submit">검증 후 100% 전환</button>
                 </form>
               )}

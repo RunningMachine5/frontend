@@ -1,3 +1,5 @@
+// 모델 학습·배포·Serving 화면이 Backend와 주고받는 데이터 구조를 정의한다.
+
 export type DatasetVersion = {
   id: number;
   version: string;

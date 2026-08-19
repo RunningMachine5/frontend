@@ -90,7 +90,7 @@ export function ModelMonitoringPage() {
 
       <section className="monitoring-freshness">
         <div>
-          <i className={serving?.reconciling ? "changing" : serving ? "online" : undefined} />
+          <i aria-hidden="true" className={serving?.reconciling ? "changing" : serving ? "online" : undefined} />
           <span>{serving?.reconciling ? "트래픽 전환 중" : serving ? "Serving 정상" : "Serving 확인 불가"}</span>
           <strong>{latestRevision ?? "Ready 리비전 없음"}</strong>
           <em>{serving ? `${trafficPercent}% 트래픽` : "—"}</em>
@@ -100,7 +100,7 @@ export function ModelMonitoringPage() {
           <span>Cloud Monitoring 특성상 최대 {monitoring?.data_delay_seconds ?? 120}초 늦게 표시될 수 있습니다.</span>
         </p>
         <button className="admin-button compact" disabled={isRefreshing} onClick={() => void load()} type="button">
-          {isRefreshing ? "갱신 중" : "지금 갱신"}
+          {isRefreshing ? "갱신 중…" : "지금 갱신"}
         </button>
       </section>
 

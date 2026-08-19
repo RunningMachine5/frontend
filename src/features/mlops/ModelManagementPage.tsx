@@ -1,6 +1,6 @@
 // 모델 운영의 현재 상태와 담당자가 처리할 Run을 한 화면에 요약한다.
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, type CSSProperties } from "react";
 import { Link } from "react-router-dom";
 
 import { ModelPageShell } from "./components/ModelPageShell";
@@ -122,9 +122,20 @@ export function ModelManagementPage() {
                 : productionRun ? `운영 Run #${productionRun.id}` : "운영 모델 없음"}</h2>
               <p>실제 거래 요청을 처리하는 모델과 최근 추론 신호입니다.</p>
             </div>
-            <strong className={serving?.reconciling ? "accent" : serving ? "positive" : ""}>
-              {serving?.reconciling ? "트래픽 전환 중" : serving ? "정상 운영" : "상태 확인 불가"}
-            </strong>
+            <div className="production-live-state">
+              <strong className={serving?.reconciling ? "accent" : serving ? "positive" : ""}>
+                {serving?.reconciling ? "트래픽 전환 중" : serving ? "정상 운영" : "상태 확인 불가"}
+              </strong>
+              <div
+                aria-label={`Ready 리비전 운영 트래픽 ${serving ? `${trafficPercent}%` : "확인 불가"}`}
+                className={`traffic-ring compact ${serving?.reconciling ? "changing" : ""}`}
+                role="img"
+                style={{ "--traffic": `${trafficPercent * 3.6}deg` } as CSSProperties}
+              >
+                <strong>{serving ? `${trafficPercent}%` : "—"}</strong>
+                <span>운영 트래픽</span>
+              </div>
+            </div>
           </div>
           <dl className="production-facts">
             <div><dt>Feature 계약</dt><dd>{productionDetails?.tags.feature_contract ?? "—"}</dd></div>
