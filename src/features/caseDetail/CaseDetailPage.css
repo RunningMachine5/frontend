@@ -1,4 +1,4 @@
-:root { color: #f5f4f8; background: #121217; font-family: Inter, "Noto Sans KR", system-ui, sans-serif; }
+:root { color: #f5f4f8; background: #121217; font-family: var(--font-brand); }
 * { box-sizing: border-box; }
 body { margin: 0; background: #121217; }
 .case-shell { min-height: 100vh; display: flex; background: #121217; color: #f5f4f8; }
