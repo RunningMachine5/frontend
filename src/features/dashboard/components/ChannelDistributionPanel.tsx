@@ -4,7 +4,7 @@ import { formatMoney, formatNumber } from "../dashboardFormatters";
 function ChannelBubbles({ items }: { items: DistributionItem[] }) {
   const topItems = [...items].sort((a, b) => b.count - a.count).slice(0, 4);
   const maxCount = Math.max(...topItems.map((item) => item.count), 1);
-  const positions = [{ left: "18%", top: "48%" }, { left: "48%", top: "34%" }, { left: "72%", top: "53%" }, { left: "58%", top: "73%" }];
+  const positions = [{ left: "22%", top: "48%" }, { left: "52%", top: "32%" }, { left: "79%", top: "52%" }, { left: "61%", top: "74%" }];
 
   return <div className="bubble-stage">
     {topItems.map((item, index) => {
