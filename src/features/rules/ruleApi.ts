@@ -5,7 +5,6 @@ import type {
   RuleReplay,
   RuleSet,
   RuleSetSummary,
-  RuleTestResult,
   RuleValidation,
 } from "./ruleTypes";
 
@@ -50,12 +49,6 @@ export const replayRuleSet = (id: number) =>
   adminRequest<RuleReplay>(`/rule-sets/${id}/replay`, {
     method: "POST",
     body: JSON.stringify({ sample_size: 100, detail_limit: 20 }),
-  });
-
-export const testRuleSet = (id: number, rawData: unknown) =>
-  adminRequest<RuleTestResult>(`/rule-sets/${id}/test`, {
-    method: "POST",
-    body: JSON.stringify({ raw_data: rawData }),
   });
 
 export const activateRuleSet = (id: number) =>

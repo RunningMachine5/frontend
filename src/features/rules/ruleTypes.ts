@@ -57,16 +57,6 @@ export type RuleValidation = {
   issues: { path: string; message: string }[];
 };
 
-export type RuleTestResult = {
-  rule_set_version: number;
-  type_scores: {
-    type_code: string;
-    display_name: string;
-    score: number;
-    matched_components: string[];
-  }[];
-};
-
 export type RuleReplay = {
   requested_count: number;
   selected_count: number;
