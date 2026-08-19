@@ -173,23 +173,20 @@ export function RuleManagementPage() {
             <h1>룰 규칙 관리</h1>
             <p>사기유형별 조건과 가중치를 수정하고 운영 반영 전 영향을 비교합니다.</p>
           </div>
-          <div className="admin-actions rule-header-actions">
+          <div className="admin-actions">
             <button className="admin-button" onClick={() => setDialog("features")} type="button">Feature 목록</button>
-            <div>
-              <button
-                className="admin-button primary"
-                disabled={Boolean(draftSet) || isBusy}
-                onClick={() => void runAction(async () => {
-                  const created = await createRuleDraft(activeSet?.id);
-                  await refresh();
-                  await loadRuleSet(created.id);
-                  setWorkspaceTab("edit");
-                  setNotice(`DRAFT v${created.version}을 만들었습니다.`);
-                })}
-                type="button"
-              >새 DRAFT 만들기</button>
-              {draftSet && <small>DRAFT v{draftSet.version} 편집을 완료하거나 폐기해야 새로 만들 수 있습니다.</small>}
-            </div>
+            <button
+              className="admin-button primary"
+              disabled={Boolean(draftSet) || isBusy}
+              onClick={() => void runAction(async () => {
+                const created = await createRuleDraft(activeSet?.id);
+                await refresh();
+                await loadRuleSet(created.id);
+                setWorkspaceTab("edit");
+                setNotice(`DRAFT v${created.version}을 만들었습니다.`);
+              })}
+              type="button"
+            >새 DRAFT 만들기</button>
           </div>
         </header>
 
