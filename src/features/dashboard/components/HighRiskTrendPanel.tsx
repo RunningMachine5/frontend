@@ -17,7 +17,8 @@ function TrendChart({ points }: { points: PriorityTrendPoint[] }) {
   const lastPoint = coordinates[coordinates.length - 1];
   const area = coordinates.length ? `${padding.left},${padding.top + chartHeight} ${line} ${lastPoint.x},${padding.top + chartHeight}` : "";
 
-  return <div className="trend-chart-wrap"><svg aria-label="날짜별 고위험 이상거래 발생 추이" className="trend-chart" viewBox={`0 0 ${width} ${height}`} role="img">
+  return <div className="trend-chart-wrap">
+    <svg aria-label="날짜별 고위험 이상거래 발생 추이" className="trend-chart" viewBox={`0 0 ${width} ${height}`} role="img">
     <defs><linearGradient id="priority-area" x1="0" x2="0" y1="0" y2="1"><stop offset="0%" stopColor="#b640be" stopOpacity="0.42" /><stop offset="100%" stopColor="#b640be" stopOpacity="0" /></linearGradient></defs>
     {[0, 0.33, 0.66, 1].map((ratio) => {
       const y = padding.top + chartHeight * ratio;
@@ -26,14 +27,21 @@ function TrendChart({ points }: { points: PriorityTrendPoint[] }) {
     {area && <polygon fill="url(#priority-area)" points={area} />}
     {line && <polyline fill="none" points={line} stroke="#b640be" strokeLinecap="round" strokeLinejoin="round" strokeWidth="4" />}
     {coordinates.map(({ x, y, point }) => <g key={point.date}><circle cx={x} cy={y} fill="#121217" r="5" stroke="#b640be" strokeWidth="3" /><text className="chart-value" textAnchor="middle" x={x} y={y - 12}>{point.total_count}</text><text className="chart-axis" textAnchor="middle" x={x} y={height - 7}>{point.date}</text></g>)}
-  </svg></div>;
+    </svg>
+  </div>;
 }
 
 export function HighRiskTrendPanel({ points }: { points: PriorityTrendPoint[] }) {
   const peak = Math.max(...points.map((point) => point.total_count), 0);
   return <article className="panel priority-panel">
-    <div className="panel-head"><div><h2>고위험 이상거래 발생 추이</h2><p className="panel-caption">HIGH 이상 거래의 일별 집중도를 확인합니다</p></div><span className="trend-badge"><i />최고 {formatNumber(peak)}건</span></div>
-    <div className="chart-legend"><span><i />VERY_HIGH + HIGH</span><em>거래 건수 (건)</em></div>
+    <div className="panel-head">
+      <div><h2>고위험 이상거래 발생 추이</h2><p className="panel-caption">HIGH 이상 거래의 일별 집중도를 확인합니다</p></div>
+      <div className="trend-panel-meta">
+        <span className="trend-series-label"><i />VERY_HIGH + HIGH</span>
+        <span>거래 건수 (건)</span>
+        <strong>최고 {formatNumber(peak)}건</strong>
+      </div>
+    </div>
     <TrendChart points={points} />
   </article>;
 }
