@@ -17,7 +17,7 @@ body { margin: 0; background: #121217; }
 
 /* 분석 카드 두 줄이 화면 안에서 같은 높이를 나눠 갖도록 한다. */
 @media(min-width:1440px) and (min-height:800px){
-  .case-content{height:100vh;max-width:none;padding:18px 24px;display:flex;flex-direction:column;overflow:hidden}
+  .case-content{height:100vh;max-width:none;padding:20px 28px;display:flex;flex-direction:column;overflow:hidden}
   .case-header{min-height:60px;flex:0 0 60px;padding-bottom:12px}
   .case-header h1{font-size:26px}
   .case-hero{min-height:82px;flex:0 0 82px;margin:10px 0;padding:11px 15px}

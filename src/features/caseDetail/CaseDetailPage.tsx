@@ -242,7 +242,7 @@ export function CaseDetailPage() {
   return (
     <AppLayout activeNav="case">
       <section className="case-content">
-        <header className="case-header">
+        <header className="app-page-header case-header">
           <PageHeading eyebrow="CASE INVESTIGATION" title="FDS 이상거래 분석" />
         </header>
 
