@@ -13,6 +13,9 @@ import { CaseDetailPage } from "./features/caseDetail/CaseDetailPage";
 import { ChatbotPage } from "./features/chatbot/ChatbotPage";
 import { DashboardPage } from "./features/dashboard/DashboardPage";
 import { ModelManagementPage } from "./features/mlops/ModelManagementPage";
+import { ModelMonitoringPage } from "./features/mlops/ModelMonitoringPage";
+import { ModelRunPage } from "./features/mlops/ModelRunPage";
+import { ModelTrainingPage } from "./features/mlops/ModelTrainingPage";
 import { QueuePage } from "./features/queue/QueuePage";
 import { RuleManagementPage } from "./features/rules/RuleManagementPage";
 
@@ -29,7 +32,7 @@ function MonitoringPages() {
   if (hash === "#case") return <CaseDetailPage />;
   if (hash === "#queue") return <QueuePage />;
   if (hash === "#rules") return <RuleManagementPage />;
-  if (hash === "#model") return <ModelManagementPage />;
+  if (hash === "#model") return <Navigate to="/models" replace />;
   return <DashboardPage />;
 }
 
@@ -38,6 +41,10 @@ export function App() {
     <Routes>
       <Route path="/" element={<MonitoringPages />} />
       <Route path="/chat/:chatSessionId" element={<ChatbotPage />} />
+      <Route path="/models" element={<ModelManagementPage />} />
+      <Route path="/models/training" element={<ModelTrainingPage />} />
+      <Route path="/models/runs/:runId" element={<ModelRunPage />} />
+      <Route path="/models/monitoring" element={<ModelMonitoringPage />} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );

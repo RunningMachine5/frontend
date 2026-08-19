@@ -1,10 +1,14 @@
+// 모델 운영 화면이 사용하는 관리자 API 호출을 한곳에 모은다.
+
 import { adminRequest } from "../admin/adminApi";
 import type {
   DatasetVersion,
   InferencePerformance,
   ModelDetails,
   ServingStatus,
+  ServingMonitoring,
   TrainingActionResult,
+  TrainingReconcileResult,
   TrainingRun,
 } from "./mlopsTypes";
 
@@ -19,6 +23,9 @@ export const buildDataset = (version: string, gcsUri: string) =>
 
 export const fetchTrainingRuns = () =>
   adminRequest<TrainingRun[]>("/mlops/training/runs");
+
+export const fetchTrainingRun = (runId: number) =>
+  adminRequest<TrainingRun>(`/mlops/training/runs/${runId}`);
 
 export const startTraining = (datasetId: number) =>
   adminRequest<TrainingActionResult>("/mlops/training/runs", {
@@ -43,6 +50,16 @@ export const fetchServingStatus = () =>
 
 export const fetchInferencePerformance = () =>
   adminRequest<InferencePerformance>("/mlops/serving/performance");
+
+export const fetchServingMonitoring = (windowMinutes: number) =>
+  adminRequest<ServingMonitoring>(
+    `/mlops/serving/monitoring?window_minutes=${windowMinutes}`,
+  );
+
+export const reconcileTrainingRun = (runId: number) =>
+  adminRequest<TrainingReconcileResult>(`/mlops/training/runs/${runId}/reconcile`, {
+    method: "POST",
+  });
 
 export const promoteModel = (
   runId: number,
