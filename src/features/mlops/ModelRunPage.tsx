@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 
+import { AdminAlert } from "../admin/AdminAlert";
 import { ModelPageShell } from "./components/ModelPageShell";
 import {
   actionGuide,
@@ -164,8 +165,8 @@ export function ModelRunPage() {
       description="한 Run의 학습 결과를 운영 모델과 비교하고 현재 단계의 작업만 진행합니다."
       title={run ? `Run #${run.id} 상세` : "Run 상세"}
     >
-      {error && <div className="admin-alert error" role="alert">{error}</div>}
-      {notice && <div className="admin-alert success" role="status">{notice}</div>}
+      {error && <AdminAlert message={error} onDismiss={() => setError(null)} tone="error" />}
+      {notice && <AdminAlert message={notice} onDismiss={() => setNotice(null)} tone="success" />}
 
       {!run && isLoading ? (
         <div aria-label="Run 상세 정보 로딩" className="run-detail-skeleton">

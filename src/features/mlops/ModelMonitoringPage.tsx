@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 
+import { AdminAlert } from "../admin/AdminAlert";
 import { MetricChart } from "./components/MetricChart";
 import { ModelPageShell } from "./components/ModelPageShell";
 import { formatClock, latestRevisionTraffic, resourceName } from "./modelOperations";
@@ -86,7 +87,7 @@ export function ModelMonitoringPage() {
       description="Cloud Run 인스턴스·요청·지연·자원 사용률을 1분 단위로 확인합니다."
       title="Serving 성능 모니터링"
     >
-      {error && <div className="admin-alert error" role="alert">{error}</div>}
+      {error && <AdminAlert message={error} onDismiss={() => setError(null)} tone="error" />}
 
       <section className="monitoring-freshness">
         <div>
