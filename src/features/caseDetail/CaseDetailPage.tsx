@@ -244,6 +244,10 @@ export function CaseDetailPage() {
       <section className="case-content">
         <header className="app-page-header case-header">
           <PageHeading eyebrow="CASE INVESTIGATION" title="FDS 이상거래 분석" />
+          <div className="case-wing-rail" aria-label="사건 보조 패널">
+            <button className={openWing === "chat" ? "case-wing-tab active" : "case-wing-tab"} onClick={() => setOpenWing(openWing === "chat" ? null : "chat")} type="button">사건 소통</button>
+            <button className={openWing === "review" ? "case-wing-tab active" : "case-wing-tab"} onClick={() => setOpenWing(openWing === "review" ? null : "review")} type="button">최종 판정</button>
+          </div>
         </header>
 
         <section className="case-hero">
@@ -285,11 +289,6 @@ export function CaseDetailPage() {
           </article>
         </section>
       </section>
-
-      <div className="case-wing-rail" aria-label="사건 보조 패널">
-        <button className={openWing === "chat" ? "case-wing-tab active" : "case-wing-tab"} onClick={() => setOpenWing(openWing === "chat" ? null : "chat")} type="button">사건 소통</button>
-        <button className={openWing === "review" ? "case-wing-tab active" : "case-wing-tab"} onClick={() => setOpenWing(openWing === "review" ? null : "review")} type="button">최종 판정</button>
-      </div>
 
       {openWing && (
         <aside className="case-wing-drawer" aria-label={openWing === "chat" ? "사건 소통 및 처리 이력" : "최종 판정 및 처리"}>
