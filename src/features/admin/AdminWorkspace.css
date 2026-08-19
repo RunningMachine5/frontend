@@ -157,63 +157,72 @@
   .model-detail-loading{min-height:0;padding:20px}
 
   /*
-   * 모델 운영 화면은 숫자와 상태를 멀리서도 빠르게 훑는 화면이다.
-   * 남는 데스크톱 공간을 활용해 룰 편집 화면보다 한 단계 큰 글자 체계를 쓴다.
+   * 모델 상세를 주 작업 영역으로 두고 위쪽 요약 정보는 한눈에 읽히는 크기로 줄인다.
+   * 내용 배치도 함께 압축해 데스크톱에서는 패널과 페이지에 세로 스크롤이 생기지 않는다.
    */
-  .model-admin-page .admin-header h1{font-size:32px}
-  .model-admin-page .admin-header>div>p:last-child{font-size:14px}
-  .model-admin-page .admin-eyebrow{font-size:12px}
-  .model-admin-page .admin-button{font-size:14px}
-  .model-admin-page .admin-button.compact{font-size:13px}
-  .model-admin-page .admin-metrics article{min-height:96px;padding:16px 18px}
-  .model-admin-page .admin-metrics span{font-size:13px}
-  .model-admin-page .admin-metrics strong{margin:7px 0 5px;font-size:24px}
-  .model-admin-page .admin-metrics small{font-size:12px}
+  .model-admin-page{height:100vh;min-height:0;overflow:hidden}
+  .model-admin-page .admin-header{min-height:54px;padding-bottom:6px}
+  .model-admin-page .admin-header h1{font-size:27px}
+  .model-admin-page .admin-header>div>p:last-child{font-size:12px;line-height:1.3}
+  .model-admin-page .admin-eyebrow{font-size:10px}
+  .model-admin-page .admin-button{font-size:13px}
+  .model-admin-page .admin-button.compact{font-size:12px}
 
-  .model-admin-page .model-overview-grid{flex-basis:220px}
-  .model-admin-page .champion-card,.model-admin-page .dataset-card{height:220px}
-  .model-admin-page .champion-card{padding:14px 20px}
-  .model-admin-page .champion-card h2{font-size:26px}
-  .model-admin-page .champion-card p,.model-admin-page .dataset-card>p{font-size:13px}
-  .model-admin-page .champion-card dl{margin-top:8px}
-  .model-admin-page .champion-card dl div{padding:8px}
-  .model-admin-page .champion-card dt,.model-admin-page .champion-card dd{font-size:12px}
-  .model-admin-page .traffic-ring{width:120px;height:120px;flex-basis:120px}
-  .model-admin-page .traffic-ring strong{font-size:30px}
-  .model-admin-page .traffic-ring span{font-size:12px}
-  .model-admin-page .dataset-card{padding:12px 18px}
-  .model-admin-page .dataset-card h2{font-size:22px}
-  .model-admin-page .dataset-card dl{margin:4px 0 6px;display:block}
-  .model-admin-page .dataset-card dl div{padding:4px 0;border-top:1px solid #393943;border-radius:0;display:flex;justify-content:space-between;gap:12px;background:transparent}
-  .model-admin-page .dataset-card dt,.model-admin-page .dataset-card dd{font-size:12px}
+  .model-admin-page .admin-metrics{margin:7px 0}
+  .model-admin-page .admin-metrics article{min-height:70px;padding:8px 12px}
+  .model-admin-page .admin-metrics span{font-size:11px}
+  .model-admin-page .admin-metrics strong{margin:3px 0;font-size:18px;line-height:1.15}
+  .model-admin-page .admin-metrics small{font-size:10px}
+
+  .model-admin-page .model-overview-grid{flex-basis:clamp(132px,17vh,154px)}
+  .model-admin-page .champion-card,.model-admin-page .dataset-card{height:auto;min-height:0}
+  .model-admin-page .champion-card{padding:8px 14px;gap:12px}
+  .model-admin-page .champion-card h2{margin:4px 0 2px;font-size:20px}
+  .model-admin-page .champion-card p,.model-admin-page .dataset-card>p{display:none}
+  .model-admin-page .champion-card dl{margin-top:4px}
+  .model-admin-page .champion-card dl div{padding:5px}
+  .model-admin-page .champion-card dt,.model-admin-page .champion-card dd{font-size:10px}
+  .model-admin-page .traffic-ring{width:84px;height:84px;flex-basis:84px}
+  .model-admin-page .traffic-ring strong{font-size:22px}
+  .model-admin-page .traffic-ring span{font-size:9px}
+  .model-admin-page .dataset-card{padding:5px 12px}
+  .model-admin-page .dataset-card h2{margin:1px 0 2px;font-size:16px}
+  .model-admin-page .dataset-card dl{margin:2px 0;display:block}
+  .model-admin-page .dataset-card dl div{padding:2px 0;border-top:1px solid #393943;border-radius:0;display:flex;justify-content:space-between;gap:12px;background:transparent}
+  .model-admin-page .dataset-card dt,.model-admin-page .dataset-card dd{font-size:10px}
   .model-admin-page .dataset-card dd{max-width:65%}
-  .model-admin-page .dataset-card .admin-button{min-height:34px;font-size:13px}
+  .model-admin-page .dataset-card .admin-button{min-height:28px;font-size:11px}
 
-  .model-admin-page .workflow-rail{flex-basis:70px}
-  .model-admin-page .workflow-rail small{font-size:12px}
-  .model-admin-page .workflow-rail strong{font-size:14px}
-  .model-admin-page .workflow-rail span{font-size:12px}
-  .model-admin-page .panel-title h2{font-size:20px}
-  .model-admin-page .panel-title small{font-size:13px}
-  .model-admin-page table{font-size:13px}
-  .model-admin-page th{font-size:12px}
-  .model-admin-page .table-run-button{font-size:13px}
-  .model-admin-page .recommendation{font-size:12px}
-  .model-admin-page .metric-pairs span{font-size:12px}
-  .model-admin-page .metric-pairs strong{font-size:17px}
-  .model-admin-page .review-note{font-size:13px}
-  .model-admin-page .model-detail-loading strong{font-size:14px}
-  .model-admin-page .model-detail-loading span{font-size:12px}
+  .model-admin-page .workflow-rail{flex-basis:clamp(40px,5vh,46px);margin:5px 0;padding:4px}
+  .model-admin-page .workflow-rail div{padding:3px 8px;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:6px}
+  .model-admin-page .workflow-rail small{font-size:9px}
+  .model-admin-page .workflow-rail strong{overflow:hidden;font-size:11px;text-overflow:ellipsis;white-space:nowrap}
+  .model-admin-page .workflow-rail span{font-size:9px;white-space:nowrap}
 
-  /*
-   * 학습 Run은 패널 안에 세로 스크롤을 따로 만들지 않는다.
-   * Run이 많아지면 페이지 전체가 자연스럽게 길어져 목록을 한 번에 읽을 수 있다.
-   */
-  .model-admin-page{height:auto;min-height:100vh;overflow:visible}
-  .model-admin-page .model-workspace{min-height:clamp(300px,34vh,420px);flex:1 0 auto}
-  .model-admin-page .runs-panel,.model-admin-page .model-detail{min-height:clamp(300px,34vh,420px)}
-  .model-admin-page .model-detail{overflow:visible;scrollbar-gutter:auto}
-  .model-admin-page .admin-table-wrap{min-height:auto;flex:none;overflow-x:auto;overflow-y:visible;scrollbar-gutter:auto}
+  .model-admin-page .panel-title{padding:10px 12px}
+  .model-admin-page .panel-title h2{font-size:18px}
+  .model-admin-page .panel-title small{font-size:11px}
+  .model-admin-page .recommendation{padding:5px 7px;font-size:10px}
+  .model-admin-page .model-workspace{min-height:0;flex:1 1 auto}
+  .model-admin-page .runs-panel,.model-admin-page .model-detail{height:auto;min-height:0}
+  .model-admin-page .model-detail{overflow:hidden;scrollbar-gutter:auto}
+  .model-admin-page .admin-table-wrap{min-height:0;flex:1;overflow-x:auto;overflow-y:visible;scrollbar-gutter:auto}
+  .model-admin-page table{font-size:12px}
+  .model-admin-page th,.model-admin-page td{padding:9px 10px}
+  .model-admin-page th{font-size:11px}
+  .model-admin-page .table-run-button{font-size:12px}
+  .model-admin-page .metric-pairs{grid-template-columns:repeat(3,minmax(0,1fr));padding:6px;gap:5px}
+  .model-admin-page .metric-pairs div{padding:7px 8px}
+  .model-admin-page .metric-pairs span{font-size:10px}
+  .model-admin-page .metric-pairs strong{margin-top:4px;font-size:15px}
+  .model-admin-page .review-note{margin:0 6px 6px;padding:7px 8px;display:flex;align-items:center;gap:8px;font-size:11px;line-height:1.35}
+  .model-admin-page .review-note strong{flex:0 0 auto;margin:0}
+  .model-admin-page .model-actions{padding:6px;gap:5px}
+  .model-admin-page .model-actions .admin-button{min-height:34px;font-size:12px}
+  .model-admin-page .model-actions .admin-button.wide{grid-column:auto}
+  .model-admin-page .model-detail-loading{min-height:0;padding:16px}
+  .model-admin-page .model-detail-loading strong{font-size:13px}
+  .model-admin-page .model-detail-loading span{font-size:11px}
 }
 
 @media(max-width:1280px){
