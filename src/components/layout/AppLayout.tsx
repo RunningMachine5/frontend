@@ -10,14 +10,14 @@ type AppLayoutProps = {
 const navigation = [
   { id: "dashboard", label: "이상거래 감시", href: "/#main" },
   { id: "analysis", label: "이상거래 분석", href: "/#queue" },
-  { id: "rules", label: "룰 규칙 관리", href: "/#rules" },
+  { id: "rules", label: "룰 관리", href: "/#rules" },
   { id: "model", label: "모델 관리", href: "/models" },
 ] as const;
 
 const pageTitles = {
   dashboard: "이상거래 감시",
   analysis: "이상거래 분석",
-  rules: "룰 규칙 관리",
+  rules: "룰 관리",
   model: "모델 관리",
 } as const;
 
@@ -39,7 +39,7 @@ export function AppLayout({ activeNav, children }: AppLayoutProps) {
           <BrandMark />
           <span className="app-brand-copy"><b>FDShield</b><small>FRAUD DETECTION SYSTEM</small></span>
         </a>
-        <p className="app-nav-title">MONITORING</p>
+        <p className="app-nav-title">OPERATIONS</p>
         <nav>
           {navigation.map((item) => (
             <a className={item.id === activeNav ? "active" : undefined} href={item.href} key={item.id}>

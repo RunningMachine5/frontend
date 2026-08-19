@@ -31,7 +31,7 @@ export function ModelPageShell({
     <AppLayout activeNav="model">
       <section className="admin-page model-section-page">
         <header className="app-page-header admin-header">
-          <PageHeading eyebrow="MODEL OPERATIONS" title="모델 관리" />
+          <PageHeading eyebrow="MODEL MANAGEMENT" title="모델 관리" />
           {actions && <div className="admin-actions">{actions}</div>}
         </header>
         <nav aria-label="모델 관리 메뉴" className="model-section-nav">
