@@ -240,7 +240,7 @@
  * 1920 운영 화면은 정보량을 유지하되 8~10px 보조문구를 읽기 쉬운 크기로 올린다.
  * 카드 구조나 색은 그대로 두고 룰·모델 관리 화면의 글자 위계만 맞춘다.
  */
-@media(min-width:1600px) and (min-height:800px){
+@media(min-width:1600px){
   .rule-admin-page .admin-header>div>p:last-child,
   .model-section-page .admin-header>div>p:last-child{font-size:14px;line-height:1.5}
   .rule-admin-page .admin-eyebrow,
