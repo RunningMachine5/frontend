@@ -12,14 +12,32 @@ import {
 } from "./modelOperations";
 import {
   buildDataset,
+  deleteDataset,
+  fetchDatasetPreview,
   fetchDatasets,
   fetchTrainingRuns,
   reconcileTrainingRun,
   startTraining,
 } from "./mlopsApi";
-import type { DatasetVersion, TrainingRun } from "./mlopsTypes";
+import type {
+  DatasetPeriodSummary,
+  DatasetVersion,
+  TrainingRun,
+} from "./mlopsTypes";
 
 const TRAINING_REFRESH_MS = 5_000;
+const MIN_DATASET_PERIOD_START = "2026-08-01";
+
+const todayInputValue = () => {
+  const today = new Date();
+  const year = today.getFullYear();
+  const month = String(today.getMonth() + 1).padStart(2, "0");
+  const day = String(today.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
+
+const formatPeriodDate = (value: string | null) =>
+  value ? value.replaceAll("-", ".") : "기간 정보 없음";
 
 export function ModelTrainingPage() {
   const navigate = useNavigate();
@@ -27,6 +45,12 @@ export function ModelTrainingPage() {
   const [runs, setRuns] = useState<TrainingRun[]>([]);
   const [dialog, setDialog] = useState<"dataset" | "training" | null>(null);
   const [trainingDatasetId, setTrainingDatasetId] = useState<number | null>(null);
+  const [periodStart, setPeriodStart] = useState(MIN_DATASET_PERIOD_START);
+  const [periodEnd, setPeriodEnd] = useState(todayInputValue);
+  const [periodPreview, setPeriodPreview] = useState<DatasetPeriodSummary | null>(null);
+  const [previewError, setPreviewError] = useState<string | null>(null);
+  const [isPreviewLoading, setIsPreviewLoading] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<DatasetVersion | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isBusy, setIsBusy] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
@@ -41,7 +65,11 @@ export function ModelTrainingPage() {
       ]);
       setDatasets(datasetRows);
       setRuns(trainingRows);
-      setTrainingDatasetId((current) => current ?? datasetRows[0]?.id ?? null);
+      setTrainingDatasetId((current) => (
+        current && datasetRows.some((dataset) => dataset.id === current)
+          ? current
+          : datasetRows[0]?.id ?? null
+      ));
       setError(null);
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "학습 이력을 불러오지 못했습니다.");
@@ -65,13 +93,47 @@ export function ModelTrainingPage() {
   }, [hasActiveRun, load]);
 
   useEffect(() => {
-    if (!dialog) return;
+    if (!dialog && !deleteTarget) return;
     const close = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setDialog(null);
+      if (event.key === "Escape") {
+        setDialog(null);
+        setDeleteTarget(null);
+      }
     };
     window.addEventListener("keydown", close);
     return () => window.removeEventListener("keydown", close);
-  }, [dialog]);
+  }, [deleteTarget, dialog]);
+
+  useEffect(() => {
+    if (dialog !== "dataset") return;
+    if (!periodStart || !periodEnd || periodStart > periodEnd) {
+      setPeriodPreview(null);
+      setPreviewError("시작일과 종료일을 확인하세요.");
+      return;
+    }
+
+    let cancelled = false;
+    setIsPreviewLoading(true);
+    setPeriodPreview(null);
+    setPreviewError(null);
+    void fetchDatasetPreview(periodStart, periodEnd)
+      .then((summary) => {
+        if (!cancelled) setPeriodPreview(summary);
+      })
+      .catch((cause) => {
+        if (cancelled) return;
+        setPeriodPreview(null);
+        setPreviewError(
+          cause instanceof Error ? cause.message : "기간 집계를 불러오지 못했습니다.",
+        );
+      })
+      .finally(() => {
+        if (!cancelled) setIsPreviewLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [dialog, periodEnd, periodStart]);
 
   const runAction = async (action: () => Promise<void>) => {
     setIsBusy(true);
@@ -87,9 +149,18 @@ export function ModelTrainingPage() {
   };
 
   const createDataset = () => runAction(async () => {
-    const created = await buildDataset();
+    const created = await buildDataset(periodStart, periodEnd);
     setDialog(null);
     setNotice(`${created.version} 데이터셋을 생성했습니다.`);
+    await load();
+  });
+
+  const removeDataset = () => runAction(async () => {
+    if (!deleteTarget) return;
+    const deletedVersion = deleteTarget.version;
+    await deleteDataset(deleteTarget.id);
+    setDeleteTarget(null);
+    setNotice(`${deletedVersion} 데이터셋을 삭제했습니다.`);
     await load();
   });
 
@@ -111,10 +182,30 @@ export function ModelTrainingPage() {
     navigate(`/models/runs/${runId}`);
   };
 
+  const usedDatasetIds = new Set(runs.map((run) => run.dataset_version_id));
+
   return (
     <ModelPageShell
       activeSection="training"
-      actions={<><button className="admin-button" onClick={() => setDialog("dataset")} type="button">새 데이터셋</button><button className="admin-button primary" disabled={datasets.length === 0} onClick={() => setDialog("training")} type="button">학습 실행</button></>}
+      actions={(
+        <>
+          <button
+            className="admin-button"
+            onClick={() => setDialog("dataset")}
+            type="button"
+          >
+            새 데이터셋
+          </button>
+          <button
+            className="admin-button primary"
+            disabled={datasets.length === 0}
+            onClick={() => setDialog("training")}
+            type="button"
+          >
+            학습 실행
+          </button>
+        </>
+      )}
       title="학습 · Run 관리"
     >
       {error && <AdminAlert message={error} onDismiss={() => setError(null)} tone="error" />}
@@ -129,13 +220,69 @@ export function ModelTrainingPage() {
           <div className="dataset-ledger-list">
             {datasets.length === 0 && !isLoading ? (
               <div className="model-empty-state"><strong>데이터셋이 없습니다.</strong><span>새 버전을 만들어 학습을 준비하세요.</span></div>
-            ) : datasets.map((dataset, index) => (
-              <article className={index === 0 ? "latest" : undefined} key={dataset.id}>
-                <header><strong>{dataset.version}</strong>{index === 0 && <em>최신</em>}</header>
-                <dl><div><dt>행 수</dt><dd>{dataset.row_count.toLocaleString("ko-KR")}</dd></div><div><dt>생성</dt><dd>{formatDate(dataset.created_at)}</dd></div></dl>
-                <small title={dataset.gcs_uri}>{dataset.gcs_uri.replace(/^gs:\/\/[^/]+\//, "GCS · ")}</small>
-              </article>
-            ))}
+            ) : datasets.map((dataset, index) => {
+              const labeledCount = (
+                dataset.period_normal_count + dataset.period_fraud_count
+              );
+              const normalPercent = labeledCount === 0
+                ? 0
+                : (dataset.period_normal_count / labeledCount) * 100;
+              const isUsed = usedDatasetIds.has(dataset.id);
+
+              return (
+                <article className={index === 0 ? "latest" : undefined} key={dataset.id}>
+                  <header className="dataset-card-header">
+                    <div>
+                      <strong title={dataset.version}>{dataset.version}</strong>
+                      <span className="dataset-card-badges">
+                        {index === 0 && <em>최신</em>}
+                        {isUsed && <em className="used">학습 사용됨</em>}
+                      </span>
+                    </div>
+                    <button
+                      aria-label={`${dataset.version} 삭제`}
+                      className="dataset-delete-button"
+                      disabled={isUsed || isBusy}
+                      onClick={() => setDeleteTarget(dataset)}
+                      title={isUsed ? "학습 이력이 연결된 데이터셋입니다." : "데이터셋 삭제"}
+                      type="button"
+                    >
+                      삭제
+                    </button>
+                  </header>
+
+                  <p className="dataset-period">
+                    <span>추가 라벨 기간</span>
+                    <strong>
+                      {dataset.period_start && dataset.period_end
+                        ? `${formatPeriodDate(dataset.period_start)} – ${formatPeriodDate(dataset.period_end)}`
+                        : "직접 등록된 데이터셋"}
+                    </strong>
+                  </p>
+
+                  <dl>
+                    <div><dt>전체 행</dt><dd>{dataset.row_count.toLocaleString("ko-KR")}</dd></div>
+                    <div className="normal"><dt>기간 정상</dt><dd>{dataset.period_normal_count.toLocaleString("ko-KR")}</dd></div>
+                    <div className="fraud"><dt>기간 사기</dt><dd>{dataset.period_fraud_count.toLocaleString("ko-KR")}</dd></div>
+                    <div><dt>생성</dt><dd>{formatDate(dataset.created_at)}</dd></div>
+                  </dl>
+
+                  {labeledCount > 0 && (
+                    <div
+                      aria-label={`정상 ${dataset.period_normal_count}건, 사기 ${dataset.period_fraud_count}건`}
+                      className="dataset-label-mix"
+                      role="img"
+                    >
+                      <span className="normal" style={{ width: `${normalPercent}%` }} />
+                      <span className="fraud" style={{ width: `${100 - normalPercent}%` }} />
+                    </div>
+                  )}
+                  <small title={dataset.gcs_uri}>
+                    {dataset.gcs_uri.replace(/^gs:\/\/[^/]+\//, "GCS · ")}
+                  </small>
+                </article>
+              );
+            })}
           </div>
         </aside>
 
@@ -194,7 +341,147 @@ export function ModelTrainingPage() {
         </article>
       </section>
 
-      {dialog === "dataset" && <div className="admin-dialog-backdrop" onMouseDown={() => setDialog(null)} role="presentation"><section aria-modal="true" className="admin-dialog" onMouseDown={(event) => event.stopPropagation()} role="dialog"><header><div><p className="admin-eyebrow">DATASET VERSION</p><h2>새 학습 데이터셋</h2></div><button onClick={() => setDialog(null)} type="button">닫기</button></header><p className="dialog-help">기존 train1 학습 데이터와 DB의 확정 라벨을 합칩니다. 버전명과 GCS 객체 경로는 생성 시각을 기준으로 자동 결정됩니다.</p><button className="admin-button primary" disabled={isBusy} onClick={() => void createDataset()} type="button">{isBusy ? "생성 중…" : "데이터셋 생성"}</button></section></div>}
+      {dialog === "dataset" && (
+        <div
+          className="admin-dialog-backdrop"
+          onMouseDown={() => setDialog(null)}
+          role="presentation"
+        >
+          <section
+            aria-labelledby="dataset-dialog-title"
+            aria-modal="true"
+            className="admin-dialog dataset-dialog"
+            onMouseDown={(event) => event.stopPropagation()}
+            role="dialog"
+          >
+            <header>
+              <div>
+                <p className="admin-eyebrow">DATASET VERSION</p>
+                <h2 id="dataset-dialog-title">새 학습 데이터셋</h2>
+              </div>
+              <button onClick={() => setDialog(null)} type="button">닫기</button>
+            </header>
+
+            <form
+              className="dataset-build-form"
+              onSubmit={(event) => {
+                event.preventDefault();
+                void createDataset();
+              }}
+            >
+              <p className="dialog-help">
+                기본 데이터(2026.01.01 – 2026.07.31)에 선택 기간의 판정 완료 거래를
+                합쳐 새 GCS 파일을 만듭니다.
+              </p>
+
+              <div className="dataset-period-fields">
+                <label>
+                  <span>시작일</span>
+                  <input
+                    min={MIN_DATASET_PERIOD_START}
+                    onChange={(event) => setPeriodStart(event.target.value)}
+                    type="date"
+                    value={periodStart}
+                  />
+                </label>
+                <label>
+                  <span>종료일</span>
+                  <input
+                    min={periodStart || MIN_DATASET_PERIOD_START}
+                    onChange={(event) => setPeriodEnd(event.target.value)}
+                    type="date"
+                    value={periodEnd}
+                  />
+                </label>
+              </div>
+
+              <section aria-live="polite" className="dataset-preview">
+                <div className="dataset-preview-title">
+                  <strong>선택 기간의 판정 완료 데이터</strong>
+                  {periodPreview && <span>{periodPreview.labeled_count.toLocaleString("ko-KR")}건</span>}
+                </div>
+                {isPreviewLoading ? (
+                  <p>라벨 건수를 확인하고 있습니다…</p>
+                ) : previewError ? (
+                  <p className="error">{previewError}</p>
+                ) : periodPreview ? (
+                  <dl>
+                    <div><dt>전체 라벨</dt><dd>{periodPreview.labeled_count.toLocaleString("ko-KR")}</dd></div>
+                    <div className="normal"><dt>정상</dt><dd>{periodPreview.normal_count.toLocaleString("ko-KR")}</dd></div>
+                    <div className="fraud"><dt>사기</dt><dd>{periodPreview.fraud_count.toLocaleString("ko-KR")}</dd></div>
+                  </dl>
+                ) : null}
+              </section>
+
+              <p className="dataset-name-guide">
+                파일명에 기간과 정상·사기 건수가 자동 기록됩니다.
+              </p>
+              <button
+                className="admin-button primary"
+                disabled={
+                  isBusy
+                  || isPreviewLoading
+                  || !periodPreview
+                  || periodPreview.labeled_count === 0
+                }
+                type="submit"
+              >
+                {isBusy ? "생성 중…" : "이 기간으로 데이터셋 생성"}
+              </button>
+            </form>
+          </section>
+        </div>
+      )}
+
+      {deleteTarget && (
+        <div
+          className="admin-dialog-backdrop"
+          onMouseDown={() => setDeleteTarget(null)}
+          role="presentation"
+        >
+          <section
+            aria-labelledby="dataset-delete-title"
+            aria-modal="true"
+            className="admin-dialog dataset-delete-dialog"
+            onMouseDown={(event) => event.stopPropagation()}
+            role="dialog"
+          >
+            <header>
+              <div>
+                <p className="admin-eyebrow">DELETE DATASET</p>
+                <h2 id="dataset-delete-title">데이터셋 삭제</h2>
+              </div>
+              <button onClick={() => setDeleteTarget(null)} type="button">닫기</button>
+            </header>
+            <p className="dataset-delete-copy">
+              GCS 파일과 데이터셋 목록 기록이 함께 삭제됩니다. 이 작업은 되돌릴 수
+              없습니다.
+            </p>
+            <div className="dataset-delete-summary">
+              <strong>{deleteTarget.version}</strong>
+              <small>{deleteTarget.gcs_uri}</small>
+            </div>
+            <div className="dialog-actions">
+              <button
+                className="admin-button"
+                disabled={isBusy}
+                onClick={() => setDeleteTarget(null)}
+                type="button"
+              >
+                취소
+              </button>
+              <button
+                className="admin-button danger-button"
+                disabled={isBusy}
+                onClick={() => void removeDataset()}
+                type="button"
+              >
+                {isBusy ? "삭제 중…" : "GCS에서도 삭제"}
+              </button>
+            </div>
+          </section>
+        </div>
+      )}
       {dialog === "training" && <div className="admin-dialog-backdrop" onMouseDown={() => setDialog(null)} role="presentation"><section aria-modal="true" className="admin-dialog" onMouseDown={(event) => event.stopPropagation()} role="dialog"><header><div><p className="admin-eyebrow">CLOUD RUN JOB</p><h2>학습 실행</h2></div><button onClick={() => setDialog(null)} type="button">닫기</button></header><label><span>학습 데이터셋</span><select autoComplete="off" name="training-dataset" onChange={(event) => setTrainingDatasetId(Number(event.target.value))} value={trainingDatasetId ?? ""}>{datasets.map((dataset) => <option key={dataset.id} value={dataset.id}>{dataset.version} · {dataset.row_count.toLocaleString("ko-KR")}행</option>)}</select></label><p className="dialog-help">학습은 비동기로 실행되며 완료 후 후보 검토 단계로 이동합니다.</p><button className="admin-button primary" disabled={!trainingDatasetId || isBusy} onClick={() => void launchTraining()} type="button">학습 시작</button></section></div>}
     </ModelPageShell>
   );
