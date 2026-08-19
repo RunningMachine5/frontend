@@ -1,7 +1,7 @@
 // 학습 데이터셋 버전과 Cloud Run 학습 실행 이력을 관리한다.
 
 import { useCallback, useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 import { ModelPageShell } from "./components/ModelPageShell";
 import {
@@ -21,11 +21,10 @@ import type { DatasetVersion, TrainingRun } from "./mlopsTypes";
 const TRAINING_REFRESH_MS = 5_000;
 
 export function ModelTrainingPage() {
+  const navigate = useNavigate();
   const [datasets, setDatasets] = useState<DatasetVersion[]>([]);
   const [runs, setRuns] = useState<TrainingRun[]>([]);
   const [dialog, setDialog] = useState<"dataset" | "training" | null>(null);
-  const [datasetVersion, setDatasetVersion] = useState("");
-  const [datasetUri, setDatasetUri] = useState("");
   const [trainingDatasetId, setTrainingDatasetId] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isBusy, setIsBusy] = useState(false);
@@ -87,10 +86,8 @@ export function ModelTrainingPage() {
   };
 
   const createDataset = () => runAction(async () => {
-    const created = await buildDataset(datasetVersion, datasetUri);
+    const created = await buildDataset();
     setDialog(null);
-    setDatasetVersion("");
-    setDatasetUri("");
     setNotice(`${created.version} 데이터셋을 생성했습니다.`);
     await load();
   });
@@ -108,6 +105,10 @@ export function ModelTrainingPage() {
     setNotice(`Run #${run.id} 상태 확인: ${result.execution_outcome}`);
     await load();
   });
+
+  const openRun = (runId: number) => {
+    navigate(`/models/runs/${runId}`);
+  };
 
   return (
     <ModelPageShell
@@ -140,7 +141,7 @@ export function ModelTrainingPage() {
 
         <article className="admin-panel training-runs-panel">
           <div className="panel-title split">
-            <div><p className="admin-eyebrow">TRAINING RUNS</p><h2>학습 실행 이력</h2><small>진행 중 Run만 5초마다 자동 갱신합니다.</small></div>
+            <div><p className="admin-eyebrow">TRAINING RUNS</p><h2>학습 실행 이력</h2><small>행을 선택하면 Run 상세를 열고, 진행 중 Run만 5초마다 갱신합니다.</small></div>
             <button className="admin-button compact" disabled={isLoading || isBusy} onClick={() => void load(true)} type="button">상태 새로고침</button>
           </div>
           <div className="admin-table-wrap">
@@ -148,13 +149,42 @@ export function ModelTrainingPage() {
               <thead><tr><th>Run</th><th>데이터셋</th><th>상태</th><th>실행 시각</th><th>실패 원인</th><th>작업</th></tr></thead>
               <tbody>
                 {runs.map((run) => (
-                  <tr key={run.id}>
-                    <td><Link className="table-run-button" to={`/models/runs/${run.id}`}>#{run.id}</Link></td>
+                  <tr
+                    aria-label={`Run #${run.id} 상세 보기`}
+                    className="training-run-row"
+                    key={run.id}
+                    onClick={() => openRun(run.id)}
+                    onKeyDown={(event) => {
+                      if (event.target !== event.currentTarget) return;
+                      if (event.key === "Enter" || event.key === " ") {
+                        event.preventDefault();
+                        openRun(run.id);
+                      }
+                    }}
+                    tabIndex={0}
+                  >
+                    <td><strong className="run-id-label">#{run.id}</strong></td>
                     <td>{datasets.find((dataset) => dataset.id === run.dataset_version_id)?.version ?? `#${run.dataset_version_id}`}</td>
                     <td><em className={`status ${run.status.toLowerCase()}`}>{STATUS_LABELS[run.status]}</em></td>
                     <td>{formatDate(run.created_at)}</td>
                     <td className="run-error-cell" title={run.error_message ?? undefined}>{run.error_message ?? "—"}</td>
-                    <td>{["REQUESTED", "RUNNING"].includes(run.status) ? <button className="table-action-button" disabled={isBusy} onClick={() => void reconcile(run)} type="button">상태 확인</button> : <Link className="table-action-link" to={`/models/runs/${run.id}`}>상세 보기</Link>}</td>
+                    <td>
+                      {["REQUESTED", "RUNNING"].includes(run.status) ? (
+                        <button
+                          className="table-action-button"
+                          disabled={isBusy}
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            void reconcile(run);
+                          }}
+                          type="button"
+                        >
+                          상태 확인
+                        </button>
+                      ) : (
+                        <span aria-hidden="true" className="row-open-hint">열기 →</span>
+                      )}
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -164,7 +194,7 @@ export function ModelTrainingPage() {
         </article>
       </section>
 
-      {dialog === "dataset" && <div className="admin-dialog-backdrop" onMouseDown={() => setDialog(null)} role="presentation"><section aria-modal="true" className="admin-dialog" onMouseDown={(event) => event.stopPropagation()} role="dialog"><header><div><p className="admin-eyebrow">DATASET VERSION</p><h2>새 학습 데이터셋</h2></div><button onClick={() => setDialog(null)} type="button">닫기</button></header><label><span>버전 이름</span><input autoComplete="off" name="dataset-version" onChange={(event) => setDatasetVersion(event.target.value)} placeholder="train-labeled-20260819-v1…" value={datasetVersion} /></label><label><span>새 GCS 객체 위치</span><input autoComplete="off" name="dataset-gcs-uri" onChange={(event) => setDatasetUri(event.target.value)} placeholder="gs://bucket/versions/train-labeled-v1.csv…" spellCheck={false} value={datasetUri} /></label><p className="dialog-help">기존 원본 CSV와 DB의 확정 라벨 거래를 합쳐 새 불변 객체를 생성합니다.</p><button className="admin-button primary" disabled={!datasetVersion || !datasetUri || isBusy} onClick={() => void createDataset()} type="button">데이터셋 생성</button></section></div>}
+      {dialog === "dataset" && <div className="admin-dialog-backdrop" onMouseDown={() => setDialog(null)} role="presentation"><section aria-modal="true" className="admin-dialog" onMouseDown={(event) => event.stopPropagation()} role="dialog"><header><div><p className="admin-eyebrow">DATASET VERSION</p><h2>새 학습 데이터셋</h2></div><button onClick={() => setDialog(null)} type="button">닫기</button></header><p className="dialog-help">기존 train1 학습 데이터와 DB의 확정 라벨을 합칩니다. 버전명과 GCS 객체 경로는 생성 시각을 기준으로 자동 결정됩니다.</p><button className="admin-button primary" disabled={isBusy} onClick={() => void createDataset()} type="button">{isBusy ? "생성 중…" : "데이터셋 생성"}</button></section></div>}
       {dialog === "training" && <div className="admin-dialog-backdrop" onMouseDown={() => setDialog(null)} role="presentation"><section aria-modal="true" className="admin-dialog" onMouseDown={(event) => event.stopPropagation()} role="dialog"><header><div><p className="admin-eyebrow">CLOUD RUN JOB</p><h2>학습 실행</h2></div><button onClick={() => setDialog(null)} type="button">닫기</button></header><label><span>학습 데이터셋</span><select autoComplete="off" name="training-dataset" onChange={(event) => setTrainingDatasetId(Number(event.target.value))} value={trainingDatasetId ?? ""}>{datasets.map((dataset) => <option key={dataset.id} value={dataset.id}>{dataset.version} · {dataset.row_count.toLocaleString("ko-KR")}행</option>)}</select></label><p className="dialog-help">학습은 비동기로 실행되며 완료 후 후보 검토 단계로 이동합니다.</p><button className="admin-button primary" disabled={!trainingDatasetId || isBusy} onClick={() => void launchTraining()} type="button">학습 시작</button></section></div>}
     </ModelPageShell>
   );

@@ -15,10 +15,9 @@ import type {
 export const fetchDatasets = () =>
   adminRequest<DatasetVersion[]>("/mlops/datasets");
 
-export const buildDataset = (version: string, gcsUri: string) =>
+export const buildDataset = () =>
   adminRequest<DatasetVersion>("/mlops/datasets/build", {
     method: "POST",
-    body: JSON.stringify({ version, gcs_uri: gcsUri }),
   });
 
 export const fetchTrainingRuns = () =>

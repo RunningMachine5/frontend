@@ -98,7 +98,7 @@ export function ModelManagementPage() {
   return (
     <ModelPageShell
       activeSection="overview"
-      actions={<Link className="admin-button primary" to="/models/training">새 학습 준비</Link>}
+      actions={<Link className="admin-button primary model-overview-action" to="/models/training">새 학습 준비</Link>}
       description="운영 모델, Serving 상태와 지금 처리해야 할 Run을 확인합니다."
       title="모델 운영 현황"
     >
@@ -115,12 +115,20 @@ export function ModelManagementPage() {
             </div>
             <small>{updatedAt ? `${formatClock(updatedAt)} 갱신` : "상태 확인 중"}</small>
           </header>
-          <div className="production-command-main">
-            <div>
-              <h2>{productionDetails?.model_version
-                ? `운영 모델 v${productionDetails.model_version}`
-                : productionRun ? `운영 Run #${productionRun.id}` : "운영 모델 없음"}</h2>
-              <p>실제 거래 요청을 처리하는 모델과 최근 추론 신호입니다.</p>
+          <div className="production-overview">
+            <div className="production-overview-copy">
+              <div className="production-command-main">
+                <h2>{productionDetails?.model_version
+                  ? `운영 모델 v${productionDetails.model_version}`
+                  : productionRun ? `운영 Run #${productionRun.id}` : "운영 모델 없음"}</h2>
+                <p>실제 거래 요청을 처리하는 모델과 최근 추론 신호입니다.</p>
+              </div>
+              <dl className="production-facts">
+                <div><dt>Feature 계약</dt><dd>{productionDetails?.tags.feature_contract ?? "—"}</dd></div>
+                <div><dt>결정 임계값</dt><dd>{productionDetails?.params.decision_threshold ?? "—"}</dd></div>
+                <div><dt>Ready 리비전</dt><dd title={latestRevision ?? undefined}>{latestRevision ?? "—"}</dd></div>
+                <div><dt>운영 트래픽</dt><dd>{serving ? `${trafficPercent}%` : "—"}</dd></div>
+              </dl>
             </div>
             <div className="production-live-state">
               <strong className={serving?.reconciling ? "accent" : serving ? "positive" : ""}>
@@ -137,12 +145,6 @@ export function ModelManagementPage() {
               </div>
             </div>
           </div>
-          <dl className="production-facts">
-            <div><dt>Feature 계약</dt><dd>{productionDetails?.tags.feature_contract ?? "—"}</dd></div>
-            <div><dt>결정 임계값</dt><dd>{productionDetails?.params.decision_threshold ?? "—"}</dd></div>
-            <div><dt>Ready 리비전</dt><dd title={latestRevision ?? undefined}>{latestRevision ?? "—"}</dd></div>
-            <div><dt>운영 트래픽</dt><dd>{serving ? `${trafficPercent}%` : "—"}</dd></div>
-          </dl>
           <section aria-label="최근 온라인 추론" className="overview-inference-strip">
             <div><span>최근 {performance?.window_minutes ?? 5}분 추론</span><strong>{performance?.inference_count.toLocaleString("ko-KR") ?? "—"}<small>건</small></strong></div>
             <div><span>응답 P95</span><strong>{performance?.p95_latency_ms ?? "—"}<small>ms</small></strong></div>

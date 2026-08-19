@@ -16,6 +16,7 @@ import { ModelManagementPage } from "./features/mlops/ModelManagementPage";
 import { ModelMonitoringPage } from "./features/mlops/ModelMonitoringPage";
 import { ModelRunPage } from "./features/mlops/ModelRunPage";
 import { ModelTrainingPage } from "./features/mlops/ModelTrainingPage";
+import { TransactionLabelingPage } from "./features/mlops/TransactionLabelingPage";
 import { QueuePage } from "./features/queue/QueuePage";
 import { RuleManagementPage } from "./features/rules/RuleManagementPage";
 
@@ -42,6 +43,7 @@ export function App() {
       <Route path="/" element={<MonitoringPages />} />
       <Route path="/chat/:chatSessionId" element={<ChatbotPage />} />
       <Route path="/models" element={<ModelManagementPage />} />
+      <Route path="/models/labeling" element={<TransactionLabelingPage />} />
       <Route path="/models/training" element={<ModelTrainingPage />} />
       <Route path="/models/runs/:runId" element={<ModelRunPage />} />
       <Route path="/models/monitoring" element={<ModelMonitoringPage />} />
