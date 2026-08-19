@@ -9,7 +9,6 @@ import {
   fetchRuleSets,
   replayRuleSet,
   saveRule,
-  testRuleSet,
   validateRuleSet,
 } from "./ruleApi";
 import type {
@@ -19,7 +18,6 @@ import type {
   RuleReplay,
   RuleSet,
   RuleSetSummary,
-  RuleTestResult,
   RuleValidation,
 } from "./ruleTypes";
 import "../admin/AdminWorkspace.css";
@@ -47,9 +45,7 @@ export function RuleManagementPage() {
   const [features, setFeatures] = useState<RuleFeature[]>([]);
   const [validation, setValidation] = useState<RuleValidation | null>(null);
   const [replay, setReplay] = useState<RuleReplay | null>(null);
-  const [testResult, setTestResult] = useState<RuleTestResult | null>(null);
-  const [testJson, setTestJson] = useState("{}");
-  const [dialog, setDialog] = useState<"features" | "rule" | "test" | null>(null);
+  const [dialog, setDialog] = useState<"features" | "rule" | null>(null);
   const [isBusy, setIsBusy] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -131,14 +127,6 @@ export function RuleManagementPage() {
     setNotice("가중치 변경을 DRAFT에 저장했습니다.");
   });
 
-  const runTest = () => runAction(async () => {
-    if (!selectedSet) return;
-    const result = await testRuleSet(selectedSet.id, JSON.parse(testJson));
-    setTestResult(result);
-    setDialog(null);
-    setNotice("입력 데이터 1건으로 룰 점수를 계산했습니다.");
-  });
-
   return (
     <AppLayout activeNav="rules">
       <section className="admin-page rule-admin-page">
@@ -210,14 +198,11 @@ export function RuleManagementPage() {
                 <div className="panel-title"><p className="admin-eyebrow">VERIFY & COMPARE</p><h2>운영 반영 전 확인</h2></div>
                 <ol className="verify-steps">
                   <li><span>1. 규칙 검증</span><em className={validation?.valid ? "positive" : ""}>{validation ? (validation.valid ? "통과" : `${validation.issues.length}건`) : "대기"}</em></li>
-                  <li><span>2. 단건 테스트</span><em>{testResult ? "완료" : "입력 필요"}</em></li>
-                  <li><span>3. Replay 비교</span><em className={replay ? "accent" : ""}>{replay ? "완료" : "대기"}</em></li>
+                  <li><span>2. Replay 비교</span><em className={replay ? "accent" : ""}>{replay ? "완료" : "대기"}</em></li>
                 </ol>
                 {replay && <div className="replay-result"><strong>Replay 결과 · 표본 {replay.selected_count}건</strong><dl><div><dt>점수 변경 거래</dt><dd>{replay.score_changed_transaction_count}건</dd></div><div><dt>평균 최대 변화</dt><dd>{Math.max(0, ...replay.type_summaries.map((item) => Math.abs(item.average_score_delta ?? 0))).toFixed(3)}</dd></div><div><dt>근거 변경</dt><dd>{replay.evidence_changed_transaction_count}건</dd></div><div><dt>평가 오류</dt><dd>{replay.error_count}건</dd></div></dl></div>}
-                {testResult && <div className="test-result"><strong>단건 점수</strong>{testResult.type_scores.map((item) => <span key={item.type_code}>{item.display_name}<b>{item.score.toFixed(2)}</b></span>)}</div>}
                 <div className="verify-actions">
                   <button className="admin-button" disabled={!selectedSet || isBusy} onClick={() => runAction(async () => { if (selectedSet) setValidation(await validateRuleSet(selectedSet.id)); })} type="button">검증 실행</button>
-                  <button className="admin-button" disabled={!selectedSet || isBusy} onClick={() => setDialog("test")} type="button">단건 테스트</button>
                   <button className="admin-button" disabled={selectedSet?.status !== "DRAFT" || isBusy} onClick={() => runAction(async () => { if (selectedSet) setReplay(await replayRuleSet(selectedSet.id)); })} type="button">Replay 비교</button>
                   <button className="admin-button primary" disabled={selectedSet?.status !== "DRAFT" || !validation?.valid || isBusy} onClick={() => { if (selectedSet && window.confirm(`DRAFT v${selectedSet.version}을 운영 룰셋으로 활성화할까요?`)) void runAction(async () => { await activateRuleSet(selectedSet.id); await refresh(); setNotice("DRAFT를 ACTIVE 룰셋으로 반영했습니다."); }); }} type="button">DRAFT 활성화</button>
                 </div>
@@ -225,7 +210,6 @@ export function RuleManagementPage() {
             </section>
         {dialog === "features" && <div className="admin-dialog-backdrop" role="presentation" onMouseDown={() => setDialog(null)}><section aria-modal="true" className="admin-dialog feature-dialog" onMouseDown={(event) => event.stopPropagation()} role="dialog"><header><div><p className="admin-eyebrow">RULE FEATURES</p><h2>사용 가능한 Feature</h2></div><button onClick={() => setDialog(null)} type="button">닫기</button></header><div className="feature-list">{features.map((feature) => <article key={feature.field}><strong>{feature.display_name}</strong><code>{feature.field}</code><span>{feature.value_type} · {feature.derived ? "파생값" : "원본값"}</span></article>)}</div></section></div>}
         {dialog === "rule" && editingRule && <div className="admin-dialog-backdrop" role="presentation" onMouseDown={() => setDialog(null)}><section aria-modal="true" className="admin-dialog" onMouseDown={(event) => event.stopPropagation()} role="dialog"><header><div><p className="admin-eyebrow">FRAUD TYPE</p><h2>사기유형 정보</h2></div><button onClick={() => setDialog(null)} type="button">닫기</button></header><label><span>유형 코드</span><input disabled value={editingRule.type_code} /></label><label><span>표시 이름</span><input disabled={selectedSet?.status !== "DRAFT"} onChange={(event) => setEditingRule({ ...editingRule, display_name: event.target.value })} value={editingRule.display_name} /></label><label><span>설명</span><textarea className="short-textarea" disabled={selectedSet?.status !== "DRAFT"} onChange={(event) => setEditingRule({ ...editingRule, description: event.target.value })} value={editingRule.description ?? ""} /></label><label className="checkbox-field"><input checked={editingRule.enabled} disabled={selectedSet?.status !== "DRAFT"} onChange={(event) => setEditingRule({ ...editingRule, enabled: event.target.checked })} type="checkbox" /><span>실시간 점수 계산에 이 유형 포함</span></label><button className="admin-button primary" disabled={selectedSet?.status !== "DRAFT" || isBusy} onClick={() => { setDialog(null); void saveCurrentRule(); }} type="button">유형 정보 저장</button></section></div>}
-        {dialog === "test" && <div className="admin-dialog-backdrop" role="presentation" onMouseDown={() => setDialog(null)}><section aria-modal="true" className="admin-dialog" onMouseDown={(event) => event.stopPropagation()} role="dialog"><header><div><p className="admin-eyebrow">ONE TRANSACTION</p><h2>단건 룰 테스트</h2></div><button onClick={() => setDialog(null)} type="button">닫기</button></header><label className="json-field"><span>raw51 Feature JSON</span><textarea onChange={(event) => setTestJson(event.target.value)} spellCheck={false} value={testJson} /></label><button className="admin-button primary" disabled={isBusy} onClick={() => void runTest()} type="button">점수 계산</button></section></div>}
       </section>
     </AppLayout>
   );
