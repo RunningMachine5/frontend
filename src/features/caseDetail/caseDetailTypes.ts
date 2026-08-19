@@ -83,12 +83,19 @@ export type ChatMessageView = {
   sent_at: string;
 };
 
+export type ChatFraudTypeScore = {
+  type_code: string;
+  display_name: string;
+  score: number;
+};
+
 export type ChatView = {
   chat_session_id: string;
   status: string;
   created_at: string | null;
   completed_at: string | null;
   messages: ChatMessageView[];
+  type_scores?: ChatFraudTypeScore[];
 };
 
 export type ChatSessionStatusValue =
@@ -107,11 +114,7 @@ export type TransactionChatSessionStatus = {
 export type TransactionChatSessionDetail = TransactionChatSessionStatus & {
   completed_at: string | null;
   messages: ChatMessageView[];
-  type_scores: Array<{
-    type_code: string;
-    display_name: string;
-    score: number;
-  }>;
+  type_scores: ChatFraudTypeScore[];
 };
 
 export type ReviewDecision = "CONFIRMED_FRAUD" | "FALSE_POSITIVE" | "ON_HOLD";
