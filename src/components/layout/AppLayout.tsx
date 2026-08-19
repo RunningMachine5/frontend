@@ -8,14 +8,14 @@ type AppLayoutProps = {
 };
 
 const navigation = [
-  { id: "dashboard", label: "이상거래 현황", href: "/#main" },
+  { id: "dashboard", label: "이상거래 감시", href: "/#main" },
   { id: "analysis", label: "이상거래 분석", href: "/#queue" },
   { id: "rules", label: "룰 규칙 관리", href: "/#rules" },
   { id: "model", label: "모델 관리", href: "/models" },
 ] as const;
 
 const pageTitles = {
-  dashboard: "이상거래 현황",
+  dashboard: "이상거래 감시",
   analysis: "이상거래 분석",
   rules: "룰 규칙 관리",
   model: "모델 관리",
@@ -35,7 +35,7 @@ export function AppLayout({ activeNav, children }: AppLayoutProps) {
     <main className="app-layout">
       <a className="app-skip-link" href="#app-content">본문으로 건너뛰기</a>
       <aside className="app-sidebar">
-        <a aria-label="FDShield 이상거래 현황" className="app-brand" href="/#main">
+        <a aria-label="FDShield 이상거래 감시" className="app-brand" href="/#main">
           <BrandMark />
           <span className="app-brand-copy"><b>FDShield</b><small>FRAUD DETECTION SYSTEM</small></span>
         </a>
@@ -49,7 +49,7 @@ export function AppLayout({ activeNav, children }: AppLayoutProps) {
         </nav>
         <div className="app-system-status"><i />데이터 스트림 연결됨<small>SSE 실시간 갱신</small></div>
       </aside>
-      <a aria-label="FDShield 이상거래 현황" className="app-mobile-brand" href="/#main">
+      <a aria-label="FDShield 이상거래 감시" className="app-mobile-brand" href="/#main">
         <BrandMark />
         <b>FDShield</b>
       </a>
