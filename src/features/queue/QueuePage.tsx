@@ -1,6 +1,7 @@
 import { type FormEvent, useMemo, useState } from "react";
 
 import { AppLayout } from "../../components/layout/AppLayout";
+import { LiveStatus } from "../../components/layout/LiveStatus";
 import { PageHeading } from "../../components/layout/PageHeading";
 import { PAGE_SIZE } from "./queueApi";
 import type { CaseListItem, QueueSearchFilters } from "./queueTypes";
@@ -103,7 +104,7 @@ export function QueuePage() {
   }
 
   return <AppLayout activeNav="queue"><section className="queue-content">
-    <header className="app-page-header queue-header"><PageHeading eyebrow="CASE QUEUE" title="FDS 이상거래 검색" /><div className="queue-live"><i />실시간 데이터 수신</div></header>
+    <header className="app-page-header queue-header"><PageHeading eyebrow="CASE QUEUE" title="FDS 이상거래 검색" /><LiveStatus label="실시간 데이터 수신" /></header>
     <form className="queue-filter" onSubmit={submitSearch}>
       <label>거래 ID<input min="1" onChange={(event) => setDraftFilters((current) => ({ ...current, transactionId: event.target.value }))} placeholder="예: 1453" type="number" value={draftFilters.transactionId} /></label>
       <label>IP 주소<input onChange={(event) => setDraftFilters((current) => ({ ...current, ipAddress: event.target.value }))} placeholder="예: 203.0.113.10" value={draftFilters.ipAddress} /></label>

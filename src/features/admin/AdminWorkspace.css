@@ -16,7 +16,7 @@
 .admin-eyebrow{margin:0 0 5px;color:#c548cf;font-size:11px;font-weight:800;letter-spacing:.14em}
 .admin-actions{display:flex;gap:10px;padding-top:5px}
 
-.admin-button{min-height:42px;padding:0 17px;border:1px solid #454551;border-radius:10px;background:#202028;color:#f1f1f7;font-size:12px;font-weight:700;transition:border-color .16s ease,background .16s ease,transform .16s ease}
+.admin-button{min-height:42px;padding:0 17px;border:1px solid #454551;border-radius:10px;display:inline-flex;align-items:center;justify-content:center;background:#202028;color:#f1f1f7;font-size:12px;font-weight:700;transition:border-color .16s ease,background .16s ease,transform .16s ease}
 .admin-button:hover:not(:disabled){border-color:#6d6d7c;background:#272730}
 .admin-button:active:not(:disabled){transform:translateY(1px)}
 .admin-button:focus-visible,.admin-page input:focus-visible,.admin-page textarea:focus-visible,.admin-page select:focus-visible,.version-list button:focus-visible,.rule-tabs button:focus-visible,.rule-section-nav button:focus-visible{outline:2px solid #cf5bd7;outline-offset:2px}
@@ -149,7 +149,7 @@
 
 /* 모델 관리는 역할별 화면을 나누되 같은 운영 콘솔 구조를 사용한다. */
 .model-section-page{min-height:100vh;box-sizing:border-box}
-.model-overview-action{min-height:48px;padding:0 22px;display:inline-flex;align-items:center;justify-content:center;font-size:14px;white-space:nowrap}
+.model-overview-action{white-space:nowrap}
 .model-section-nav{height:46px;flex:0 0 46px;border-bottom:1px solid #34343e;display:flex;align-items:flex-end;gap:6px}
 .model-section-nav a{height:38px;padding:0 16px;border-radius:8px 8px 0 0;display:flex;align-items:center;color:#888c99;font-size:12px;font-weight:700;text-decoration:none}
 .model-section-nav a:hover{color:#f1f1f7;background:#202028}
