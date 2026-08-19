@@ -5,12 +5,28 @@ export type DatasetVersion = {
   version: string;
   gcs_uri: string;
   row_count: number;
+  period_start: string | null;
+  period_end: string | null;
+  period_normal_count: number;
+  period_fraud_count: number;
   created_at: string;
   build?: {
     source_row_count: number;
     confirmed_label_count: number;
     appended_label_count: number;
+    normal_count: number;
+    fraud_count: number;
   };
+};
+
+export type DatasetPeriodSummary = {
+  base_period_start: string;
+  base_period_end: string;
+  period_start: string;
+  period_end: string;
+  labeled_count: number;
+  normal_count: number;
+  fraud_count: number;
 };
 
 export type TrainingStatus =

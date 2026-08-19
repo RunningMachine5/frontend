@@ -2,6 +2,7 @@
 
 import { adminRequest } from "../admin/adminApi";
 import type {
+  DatasetPeriodSummary,
   DatasetVersion,
   InferencePerformance,
   ModelDetails,
@@ -15,9 +16,24 @@ import type {
 export const fetchDatasets = () =>
   adminRequest<DatasetVersion[]>("/mlops/datasets");
 
-export const buildDataset = () =>
+const datasetPeriodBody = (periodStart: string, periodEnd: string) =>
+  JSON.stringify({ period_start: periodStart, period_end: periodEnd });
+
+export const fetchDatasetPreview = (periodStart: string, periodEnd: string) =>
+  adminRequest<DatasetPeriodSummary>("/mlops/datasets/preview", {
+    method: "POST",
+    body: datasetPeriodBody(periodStart, periodEnd),
+  });
+
+export const buildDataset = (periodStart: string, periodEnd: string) =>
   adminRequest<DatasetVersion>("/mlops/datasets/build", {
     method: "POST",
+    body: datasetPeriodBody(periodStart, periodEnd),
+  });
+
+export const deleteDataset = (datasetId: number) =>
+  adminRequest<void>(`/mlops/datasets/${datasetId}`, {
+    method: "DELETE",
   });
 
 export const fetchTrainingRuns = () =>
