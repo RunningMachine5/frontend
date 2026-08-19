@@ -50,11 +50,9 @@ export function DashboardPage() {
       {errorMessage && <p className="refresh-error">최근 갱신 실패: {errorMessage}</p>}
 
       <DashboardSummaryCards summary={data.summary} />
-      <section className="top-grid">
+      <section className="dashboard-monitoring-grid">
         <HighRiskTrendPanel points={data.priority_trend} />
         <RiskGradeDistributionPanel items={data.risk_grade_distribution} summary={data.summary} />
-      </section>
-      <section className="bottom-grid">
         <div className="left-panels">
           <SuspiciousTrendPanel points={data.suspicious_trend} />
           <ChannelDistributionPanel items={data.channel_distribution} totalCount={data.summary.suspicious_transaction_count} />
