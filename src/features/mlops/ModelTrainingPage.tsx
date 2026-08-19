@@ -1,7 +1,7 @@
 // 학습 데이터셋 버전과 Cloud Run 학습 실행 이력을 관리한다.
 
 import { useCallback, useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 import { ModelPageShell } from "./components/ModelPageShell";
 import {
@@ -21,6 +21,7 @@ import type { DatasetVersion, TrainingRun } from "./mlopsTypes";
 const TRAINING_REFRESH_MS = 5_000;
 
 export function ModelTrainingPage() {
+  const navigate = useNavigate();
   const [datasets, setDatasets] = useState<DatasetVersion[]>([]);
   const [runs, setRuns] = useState<TrainingRun[]>([]);
   const [dialog, setDialog] = useState<"dataset" | "training" | null>(null);
@@ -109,6 +110,10 @@ export function ModelTrainingPage() {
     await load();
   });
 
+  const openRun = (runId: number) => {
+    navigate(`/models/runs/${runId}`);
+  };
+
   return (
     <ModelPageShell
       activeSection="training"
@@ -140,7 +145,7 @@ export function ModelTrainingPage() {
 
         <article className="admin-panel training-runs-panel">
           <div className="panel-title split">
-            <div><p className="admin-eyebrow">TRAINING RUNS</p><h2>학습 실행 이력</h2><small>진행 중 Run만 5초마다 자동 갱신합니다.</small></div>
+            <div><p className="admin-eyebrow">TRAINING RUNS</p><h2>학습 실행 이력</h2><small>행을 선택하면 Run 상세를 열고, 진행 중 Run만 5초마다 갱신합니다.</small></div>
             <button className="admin-button compact" disabled={isLoading || isBusy} onClick={() => void load(true)} type="button">상태 새로고침</button>
           </div>
           <div className="admin-table-wrap">
@@ -148,13 +153,42 @@ export function ModelTrainingPage() {
               <thead><tr><th>Run</th><th>데이터셋</th><th>상태</th><th>실행 시각</th><th>실패 원인</th><th>작업</th></tr></thead>
               <tbody>
                 {runs.map((run) => (
-                  <tr key={run.id}>
-                    <td><Link className="table-run-button" to={`/models/runs/${run.id}`}>#{run.id}</Link></td>
+                  <tr
+                    aria-label={`Run #${run.id} 상세 보기`}
+                    className="training-run-row"
+                    key={run.id}
+                    onClick={() => openRun(run.id)}
+                    onKeyDown={(event) => {
+                      if (event.target !== event.currentTarget) return;
+                      if (event.key === "Enter" || event.key === " ") {
+                        event.preventDefault();
+                        openRun(run.id);
+                      }
+                    }}
+                    tabIndex={0}
+                  >
+                    <td><strong className="run-id-label">#{run.id}</strong></td>
                     <td>{datasets.find((dataset) => dataset.id === run.dataset_version_id)?.version ?? `#${run.dataset_version_id}`}</td>
                     <td><em className={`status ${run.status.toLowerCase()}`}>{STATUS_LABELS[run.status]}</em></td>
                     <td>{formatDate(run.created_at)}</td>
                     <td className="run-error-cell" title={run.error_message ?? undefined}>{run.error_message ?? "—"}</td>
-                    <td>{["REQUESTED", "RUNNING"].includes(run.status) ? <button className="table-action-button" disabled={isBusy} onClick={() => void reconcile(run)} type="button">상태 확인</button> : <Link className="table-action-link" to={`/models/runs/${run.id}`}>상세 보기</Link>}</td>
+                    <td>
+                      {["REQUESTED", "RUNNING"].includes(run.status) ? (
+                        <button
+                          className="table-action-button"
+                          disabled={isBusy}
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            void reconcile(run);
+                          }}
+                          type="button"
+                        >
+                          상태 확인
+                        </button>
+                      ) : (
+                        <span aria-hidden="true" className="row-open-hint">열기 →</span>
+                      )}
+                    </td>
                   </tr>
                 ))}
               </tbody>
