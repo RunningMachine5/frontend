@@ -1,0 +1,25 @@
+/* 앱 전역 폰트. KBFGText(public/fonts) 를 모든 화면의 기본 서체로 깔아준다.
+   폰트 스택 자체는 토큰(--font-brand)이 정의하고, 여기서는 적용만 한다. */
+
+html,
+body,
+#root {
+  font-family: var(--font-brand);
+}
+
+/* 폼 요소는 기본적으로 폰트를 상속하지 않아 따로 지정한다. */
+button,
+input,
+textarea,
+select,
+optgroup {
+  font-family: inherit;
+}
+
+/* 코드·수치처럼 고정폭이 필요한 자리만 예외로 둔다. */
+code,
+kbd,
+pre,
+samp {
+  font-family: Consolas, "SF Mono", Menlo, monospace;
+}

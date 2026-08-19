@@ -4,7 +4,7 @@
   padding:34px 44px 54px;
   color:#f1f1f7;
   background:#121217;
-  font-family:"Noto Sans KR","Apple SD Gothic Neo",Arial,sans-serif;
+  font-family:var(--font-brand);
 }
 :root{color-scheme:dark}
 

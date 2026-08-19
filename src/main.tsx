@@ -9,6 +9,7 @@ import "./styles/tokens/fonts.css";
 import "./styles/tokens/colors.css";
 import "./styles/tokens/effects.css";
 import "./styles/tokens/spacing.css";
+import "./styles/global.css";
 import "./styles/chatbot.css";
 
 createRoot(document.getElementById("root")!).render(
