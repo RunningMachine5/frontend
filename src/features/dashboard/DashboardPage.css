@@ -111,5 +111,11 @@
   .suspicious-panel-meta{width:100%;justify-content:space-between;flex-wrap:wrap}
   .risk-row{grid-template-columns:82px minmax(70px,1fr)}
   .risk-detail{grid-column:2;white-space:normal}
-  .agent-row{grid-template-columns:minmax(100px,1fr) minmax(70px,1.2fr) 28px}
+  .agent-panel-head{display:grid;grid-template-columns:minmax(0,1fr);gap:10px}
+  .agent-panel-head h2{overflow-wrap:anywhere}
+  .agent-panel-head>.status-badge{justify-self:end}
+  .agent-row{grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"label value" "bar bar";gap:5px 10px}
+  .agent-row>span{grid-area:label;min-width:0;line-height:1.35;overflow-wrap:anywhere}
+  .agent-row>.bar-track{grid-area:bar}
+  .agent-row>strong{grid-area:value}
 }
