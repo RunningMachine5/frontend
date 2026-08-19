@@ -17,6 +17,8 @@ body { margin: 0; background: #121217; }
 
 .case-header .case-wing-rail{position:static;display:flex;align-items:center;gap:8px}
 .case-header .case-wing-tab{min-width:92px;min-height:38px;padding:0 14px}
+.case-hero .risk-chip{padding:7px 12px;grid-template-columns:auto minmax(0,1fr);grid-template-rows:auto auto;align-items:center;align-content:center;column-gap:9px;row-gap:2px}
+.case-hero .risk-chip span{grid-column:1/-1}
 
 /* 긴 대응 문구와 체크 항목은 같은 카드 안에서 위아래로 충분한 폭을 사용한다. */
 .guide-checklist-card{grid-template-columns:minmax(0,1fr)}
