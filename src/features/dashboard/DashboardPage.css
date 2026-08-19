@@ -20,3 +20,46 @@
   .agent-summary{min-height:92px;margin-top:12px;padding:13px 16px}
   .agent-summary p{margin:6px 0 8px}
 }
+
+/* 중간 화면에서는 카드 크기를 먼저 줄이고, 좁아지면 열을 접어 가로 잘림을 막는다. */
+@media(min-width:821px) and (max-width:1439px){
+  .dashboard-content{width:100%;padding:24px}
+  .dashboard-header{min-height:88px;align-items:center}
+  .header-actions{padding-top:0}
+  .metric-grid{gap:10px;margin:18px 0 14px}
+  .metric-card{min-height:108px;padding:16px 14px 13px 18px}
+  .metric-card>strong{font-size:24px}
+  .top-grid{grid-template-columns:minmax(0,1.65fr) minmax(280px,1fr);gap:12px}
+  .bottom-grid{grid-template-columns:minmax(300px,.82fr) minmax(0,1.18fr);gap:12px;margin-top:12px}
+  .left-panels{gap:12px}
+  .panel{padding:16px}
+  .risk-list{margin-top:20px;gap:13px}
+  .risk-row{grid-template-columns:84px minmax(70px,1fr);gap:8px}
+  .risk-detail{grid-column:2;white-space:normal;line-height:1.35}
+  .agent-row{grid-template-columns:120px minmax(80px,1fr) 28px;gap:10px}
+}
+
+@media(max-width:1180px){
+  .dashboard-content{padding:24px 22px 40px}
+  .metric-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .top-grid,.bottom-grid{grid-template-columns:minmax(0,1fr)}
+  .left-panels{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .risk-row{grid-template-columns:104px minmax(130px,1fr) 110px}
+  .risk-detail{grid-column:auto;white-space:nowrap}
+}
+
+@media(max-width:960px){
+  .dashboard-header{min-height:0;padding-bottom:16px;align-items:flex-start;flex-direction:column}
+  .header-actions{padding-top:0}
+  .metric-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .left-panels{grid-template-columns:minmax(0,1fr)}
+}
+
+@media(max-width:620px){
+  .dashboard-content{padding:20px 16px 88px}
+  .metric-grid{grid-template-columns:minmax(0,1fr)}
+  .panel{padding:15px}
+  .risk-row{grid-template-columns:82px minmax(70px,1fr)}
+  .risk-detail{grid-column:2;white-space:normal}
+  .agent-row{grid-template-columns:minmax(100px,1fr) minmax(70px,1.2fr) 28px}
+}
