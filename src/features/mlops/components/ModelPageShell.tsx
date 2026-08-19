@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 import { Link } from "react-router-dom";
 
 import { AppLayout } from "../../../components/layout/AppLayout";
+import { PageHeading } from "../../../components/layout/PageHeading";
 import "../../admin/AdminWorkspace.css";
 
 type ModelSection = "overview" | "labeling" | "training" | "monitoring";
@@ -11,7 +12,6 @@ type ModelSection = "overview" | "labeling" | "training" | "monitoring";
 type ModelPageShellProps = {
   activeSection: ModelSection;
   title: string;
-  description: string;
   actions?: ReactNode;
   children: ReactNode;
 };
@@ -26,7 +26,6 @@ const sections: { id: ModelSection; label: string; to: string }[] = [
 export function ModelPageShell({
   activeSection,
   title,
-  description,
   actions,
   children,
 }: ModelPageShellProps) {
@@ -34,11 +33,7 @@ export function ModelPageShell({
     <AppLayout activeNav="model">
       <section className="admin-page model-section-page">
         <header className="admin-header">
-          <div>
-            <p className="admin-eyebrow">MODEL OPERATIONS</p>
-            <h1>{title}</h1>
-            <p>{description}</p>
-          </div>
+          <PageHeading eyebrow="MODEL OPERATIONS" title={title} />
           {actions && <div className="admin-actions">{actions}</div>}
         </header>
         <nav aria-label="모델 관리 메뉴" className="model-section-nav">

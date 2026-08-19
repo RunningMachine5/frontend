@@ -100,7 +100,6 @@ export function ModelManagementPage() {
     <ModelPageShell
       activeSection="overview"
       actions={<Link className="admin-button primary model-overview-action" to="/models/training">새 학습 준비</Link>}
-      description="운영 모델, Serving 상태와 지금 처리해야 할 Run을 확인합니다."
       title="모델 운영 현황"
     >
       {error && <AdminAlert message={error} onDismiss={() => setError(null)} tone="error" />}

@@ -115,7 +115,6 @@ export function ModelTrainingPage() {
     <ModelPageShell
       activeSection="training"
       actions={<><button className="admin-button" onClick={() => setDialog("dataset")} type="button">새 데이터셋</button><button className="admin-button primary" disabled={datasets.length === 0} onClick={() => setDialog("training")} type="button">학습 실행</button></>}
-      description="확정 라벨 데이터셋을 버전으로 만들고 Cloud Run 학습 진행 상태를 추적합니다."
       title="학습 · Run 관리"
     >
       {error && <AdminAlert message={error} onDismiss={() => setError(null)} tone="error" />}

@@ -1,4 +1,5 @@
 import { AppLayout } from "../../components/layout/AppLayout";
+import { PageHeading } from "../../components/layout/PageHeading";
 import { AgentInsightPanel } from "./components/AgentInsightPanel";
 import { ChannelDistributionPanel } from "./components/ChannelDistributionPanel";
 import { DashboardSummaryCards } from "./components/DashboardSummaryCards";
@@ -44,7 +45,7 @@ export function DashboardPage() {
 
   return <AppLayout activeNav="dashboard">
     <div className="dashboard-content" id="main">
-      <header className="dashboard-header"><div><p className="eyebrow">LIVE OPERATIONS</p><h1>FDS 통합 모니터링</h1><p>실시간 위험 신호와 분석 결과를 한 화면에서 확인합니다</p></div><div className="header-actions"><div className="live-pill"><i />SSE 실시간 연결됨</div></div></header>
+      <header className="dashboard-header"><PageHeading eyebrow="LIVE OPERATIONS" title="FDS 통합 모니터링" /><div className="header-actions"><div className="live-pill"><i />SSE 실시간 연결됨</div></div></header>
       {errorMessage && <p className="refresh-error">최근 갱신 실패: {errorMessage}</p>}
 
       <DashboardSummaryCards summary={data.summary} />
