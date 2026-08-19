@@ -43,10 +43,6 @@ function formatExpression(expression: RuleExpression): string {
   return `${expression.field ?? "field"} ${expression.operator} ${value}`;
 }
 
-function formatPercent(value: number | null) {
-  return value === null ? "—" : `${(value * 100).toFixed(1)}%`;
-}
-
 export function RuleManagementPage() {
   const [summaries, setSummaries] = useState<RuleSetSummary[]>([]);
   const [selectedSet, setSelectedSet] = useState<RuleSet | null>(null);
@@ -112,7 +108,6 @@ export function RuleManagementPage() {
   const activeSet = summaries.find((set) => set.status === "ACTIVE");
   const draftSet = summaries.find((set) => set.status === "DRAFT");
   const componentTotal = editingRule?.components.reduce((sum, item) => sum + item.weight, 0) ?? 0;
-  const enabledRules = selectedSet?.rules.filter((rule) => rule.enabled).length ?? 0;
   const runAction = async (action: () => Promise<void>) => {
     setIsBusy(true);
     setError(null);
@@ -178,37 +173,51 @@ export function RuleManagementPage() {
             <h1>룰 규칙 관리</h1>
             <p>사기유형별 조건과 가중치를 수정하고 운영 반영 전 영향을 비교합니다.</p>
           </div>
-          <div className="admin-actions rule-header-actions">
+          <div className="admin-actions">
             <button className="admin-button" onClick={() => setDialog("features")} type="button">Feature 목록</button>
-            <div>
-              <button
-                className="admin-button primary"
-                disabled={Boolean(draftSet) || isBusy}
-                onClick={() => void runAction(async () => {
-                  const created = await createRuleDraft(activeSet?.id);
-                  await refresh();
-                  await loadRuleSet(created.id);
-                  setWorkspaceTab("edit");
-                  setNotice(`DRAFT v${created.version}을 만들었습니다.`);
-                })}
-                type="button"
-              >새 DRAFT 만들기</button>
-              {draftSet && <small>DRAFT v{draftSet.version} 편집을 완료하거나 폐기해야 새로 만들 수 있습니다.</small>}
-            </div>
+            <button
+              className="admin-button primary"
+              disabled={Boolean(draftSet) || isBusy}
+              onClick={() => void runAction(async () => {
+                const created = await createRuleDraft(activeSet?.id);
+                await refresh();
+                await loadRuleSet(created.id);
+                setWorkspaceTab("edit");
+                setNotice(`DRAFT v${created.version}을 만들었습니다.`);
+              })}
+              type="button"
+            >새 DRAFT 만들기</button>
           </div>
         </header>
 
-        {error && <div className="admin-alert error" role="alert">{error}</div>}
-        {notice && <div className="admin-alert success" role="status">{notice}</div>}
+        {error && (
+          <div className="admin-alert error dismissible">
+            <span role="alert">{error}</span>
+            <button
+              aria-label="오류 알림 닫기"
+              className="admin-alert-dismiss"
+              onClick={() => setError(null)}
+              type="button"
+            >
+              <span aria-hidden="true">×</span>
+            </button>
+          </div>
+        )}
+        {notice && (
+          <div className="admin-alert success dismissible">
+            <span role="status">{notice}</span>
+            <button
+              aria-label="성공 알림 닫기"
+              className="admin-alert-dismiss"
+              onClick={() => setNotice(null)}
+              type="button"
+            >
+              <span aria-hidden="true">×</span>
+            </button>
+          </div>
+        )}
 
-        <section className="admin-metrics">
-          <article><span>운영 룰셋</span><strong className="positive">{activeSet ? `ACTIVE v${activeSet.version}` : "없음"}</strong><small>{formatDate(activeSet?.activated_at ?? null)} 활성화</small></article>
-          <article><span>관리 사기유형</span><strong>{enabledRules}종</strong><small>선택 룰셋의 활성 유형</small></article>
-          <article><span>DRAFT 상태</span><strong className="accent">{draftSet ? `v${draftSet.version} 편집 중` : "대기 중"}</strong><small>{draftSet ? "운영 반영 전 검토" : "새 DRAFT 생성 가능"}</small></article>
-          <article><span>최근 Replay</span><strong>{replay ? `${replay.changed_transaction_count}건 변경` : "미실행"}</strong><small>{replay ? `평가 ${replay.evaluated_count}건 · 변경률 ${formatPercent(replay.changed_transaction_rate)}` : "검증 및 영향 비교에서 실행"}</small></article>
-        </section>
-
-        <nav aria-label="룰 관리 작업" className="rule-workspace-switch" role="tablist">
+        <nav aria-label="룰 관리 메뉴" className="rule-section-nav" role="tablist">
           <button
             aria-controls="rule-edit-workspace"
             aria-selected={workspaceTab === "edit"}
@@ -218,8 +227,7 @@ export function RuleManagementPage() {
             role="tab"
             type="button"
           >
-            <span><strong>룰 편집</strong><small>버전과 가중치 관리</small></span>
-            <em>{draftSet ? `DRAFT v${draftSet.version}` : "준비"}</em>
+            룰 편집
           </button>
           <button
             aria-controls="rule-verify-workspace"
@@ -230,8 +238,7 @@ export function RuleManagementPage() {
             role="tab"
             type="button"
           >
-            <span><strong>검증 및 영향 비교</strong><small>ACTIVE 대비 Replay</small></span>
-            <em className={replay || validation?.valid ? "complete" : ""}>{replay ? "Replay 완료" : validation?.valid ? "검증 통과" : "대기"}</em>
+            검증 및 영향 비교
           </button>
         </nav>
 
