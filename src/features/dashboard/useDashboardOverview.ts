@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 
 import {
     fetchDashboardOverview,
+    generateDashboardInsight,
     type DashOverviewParams,
 } from "./DashboardOverviewApi";
 import type { DashboardOverviewResponse } from "./dashboardOverviewTypes";
@@ -19,13 +20,27 @@ export function useDashboardOverview(params: DashOverviewParams){
         let isActive = true;
         let refreshTimer: number | null = null;
 
-        async function loadOverview(){
+        async function loadOverview(generateIfMissing = false){
             try {
                 const overview = await fetchDashboardOverview(params);
 
-                if (isActive) {
-                    setData(overview);
-                    setErrorMessage(null);
+                if (!isActive) {
+                    return;
+                }
+
+                setData(overview);
+                setErrorMessage(null);
+
+                // 첫 조회에 해당 기간 요약이 없을 때만 한 번 생성한다.
+                if (generateIfMissing && overview.agent_insight === null) {
+                    const insight = await generateDashboardInsight(params);
+
+                    if (isActive) {
+                        setData({
+                            ...overview,
+                            agent_insight: insight,
+                        });
+                    }
                 }
             }catch(error){
                 if(isActive){
@@ -54,7 +69,7 @@ export function useDashboardOverview(params: DashOverviewParams){
         }
 
         // 화면 첫 진입 시 overview 조회
-        void loadOverview();
+        void loadOverview(true);
 
         // SSE 연결
         const eventSource = new EventSource("/api/dashboard/events");
