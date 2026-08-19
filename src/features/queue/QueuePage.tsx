@@ -101,6 +101,30 @@ function ScatterChart({ rows }: { rows: CaseListItem[] }) {
   </div>;
 }
 
+function MobileCaseList({ rows, startIndex }: { rows: CaseListItem[]; startIndex: number }) {
+  if (rows.length === 0) {
+    return <div className="queue-mobile-list"><div className="queue-empty">검색 조건에 맞는 의심 거래가 없습니다.</div></div>;
+  }
+
+  return <div className="queue-mobile-list">
+    {rows.map((row, index) => <article className="queue-mobile-card" key={row.transaction_id}>
+      <header>
+        <div><span>#{startIndex + index}</span><strong>TX-{row.transaction_id}</strong></div>
+        <span className={`grade ${row.risk_grade?.toLowerCase() ?? "empty"}`}>{row.risk_grade ?? "데이터 없음"}</span>
+      </header>
+      <dl>
+        <div className="wide"><dt>거래 시각</dt><dd>{formatDateTime(row.transaction_datetime)}</dd></div>
+        <div><dt>거래 금액</dt><dd>{row.transaction_amount.toLocaleString()}원</dd></div>
+        <div><dt>위험점수</dt><dd>{row.risk_score ?? "데이터 없음"}</dd></div>
+        <div className="wide"><dt>IP</dt><dd>{row.ip_address ?? "데이터 없음"}</dd></div>
+        <div><dt>예상 사기유형</dt><dd>{row.primary_fraud_type ?? "데이터 없음"}</dd></div>
+        <div><dt>상태</dt><dd>{reviewStatus(row.review_status)}</dd></div>
+      </dl>
+      <a className="queue-mobile-detail" href="#case" onClick={() => selectTransaction(row.transaction_id)}>상세 분석</a>
+    </article>)}
+  </div>;
+}
+
 export function QueuePage() {
   const [draftFilters, setDraftFilters] = useState(EMPTY_FILTERS);
   const [filters, setFilters] = useState<QueueSearchFilters>({ ...EMPTY_FILTERS, page: 1 });
@@ -140,6 +164,7 @@ export function QueuePage() {
     {isLoading ? <div className="queue-state">처리 목록을 불러오는 중...</div> : errorMessage ? <div className="queue-state">오류: {errorMessage}</div> : <>
       <section className="queue-panel scatter-panel"><div className="queue-panel-head"><div><p>RISK DISTRIBUTION</p><h2>최근 의심 거래 위험도 분포</h2></div><span>점 클릭 시 상세 이동</span></div><ScatterChart rows={rows} /></section>
       <section className="queue-panel queue-table-panel"><div className="queue-panel-head"><div><p>CASE LIST</p><h2>이상거래 검색 결과</h2></div><span>{totalCount}건</span></div><div className="queue-table-wrap"><table><thead><tr><th>순위</th><th>거래 ID</th><th>거래 시각</th><th>IP</th><th>거래 금액</th><th>위험등급</th><th>위험점수</th><th>예상 사기유형</th><th>상태</th><th /></tr></thead><tbody>{rows.map((row, index) => <tr key={row.transaction_id}><td>{(filters.page - 1) * pageSize + index + 1}</td><td>TX-{row.transaction_id}</td><td>{formatDateTime(row.transaction_datetime)}</td><td>{row.ip_address ?? "데이터 없음"}</td><td>{row.transaction_amount.toLocaleString()}원</td><td><span className={`grade ${row.risk_grade?.toLowerCase() ?? "empty"}`}>{row.risk_grade ?? "데이터 없음"}</span></td><td>{row.risk_score ?? "데이터 없음"}</td><td>{row.primary_fraud_type ?? "데이터 없음"}</td><td>{reviewStatus(row.review_status)}</td><td><a className="queue-detail" href="#case" onClick={() => selectTransaction(row.transaction_id)}>보기</a></td></tr>)}</tbody></table>{rows.length === 0 && <div className="queue-empty">검색 조건에 맞는 의심 거래가 없습니다.</div>}</div>
+        <MobileCaseList rows={rows} startIndex={(filters.page - 1) * pageSize + 1} />
         <nav aria-label="처리 목록 페이지" className="queue-pagination"><button disabled={filters.page === 1} onClick={() => movePage(filters.page - 1)} type="button">이전</button><span>{filters.page} / {totalPages}</span><button disabled={filters.page >= totalPages} onClick={() => movePage(filters.page + 1)} type="button">다음</button></nav>
       </section>
     </>}
