@@ -3,14 +3,13 @@ import type { ReactNode } from "react";
 import "./AppLayout.css";
 
 type AppLayoutProps = {
-  activeNav: "dashboard" | "queue" | "case" | "rules" | "model";
+  activeNav: "dashboard" | "analysis" | "rules" | "model";
   children: ReactNode;
 };
 
 const navigation = [
   { id: "dashboard", label: "통합 모니터링", href: "/#main" },
-  { id: "queue", label: "이상거래 탐색", href: "/#queue" },
-  { id: "case", label: "이상거래 분석", href: "/#case" },
+  { id: "analysis", label: "이상거래 분석", href: "/#queue" },
   { id: "rules", label: "룰 규칙 관리", href: "/#rules" },
   { id: "model", label: "모델 관리", href: "/models" },
 ] as const;

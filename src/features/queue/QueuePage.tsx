@@ -129,7 +129,7 @@ export function QueuePage() {
     setFilters((current) => ({ ...current, page }));
   }
 
-  return <AppLayout activeNav="queue"><section className="queue-content">
+  return <AppLayout activeNav="analysis"><section className="queue-content">
     <header className="app-page-header queue-header"><PageHeading eyebrow="CASE QUEUE" title="FDS 이상거래 검색" /><LiveStatus label="실시간 데이터 수신" /></header>
     <form className="queue-filter" onSubmit={submitSearch}>
       <label>거래 ID<input min="1" onChange={(event) => setDraftFilters((current) => ({ ...current, transactionId: event.target.value }))} placeholder="예: 1453" type="number" value={draftFilters.transactionId} /></label>

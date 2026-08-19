@@ -173,11 +173,11 @@ export function CaseDetailPage() {
   }, [detail]);
 
   if (transactionId === null) {
-    return <AppLayout activeNav="case"><main className="case-state">처리 페이지에서 분석할 거래를 먼저 선택해주세요.</main></AppLayout>;
+    return <AppLayout activeNav="analysis"><main className="case-state">처리 페이지에서 분석할 거래를 먼저 선택해주세요.</main></AppLayout>;
   }
-  if (isLoading) return <AppLayout activeNav="case"><main className="case-state">사건 상세 정보를 불러오는 중...</main></AppLayout>;
+  if (isLoading) return <AppLayout activeNav="analysis"><main className="case-state">사건 상세 정보를 불러오는 중...</main></AppLayout>;
   if (errorMessage || !detail) {
-    return <AppLayout activeNav="case"><main className="case-state">오류: {errorMessage ?? "표시할 사건 데이터가 없습니다."}</main></AppLayout>;
+    return <AppLayout activeNav="analysis"><main className="case-state">오류: {errorMessage ?? "표시할 사건 데이터가 없습니다."}</main></AppLayout>;
   }
 
   const caseId = detail.case_id;
@@ -240,7 +240,7 @@ export function CaseDetailPage() {
   }
 
   return (
-    <AppLayout activeNav="case">
+    <AppLayout activeNav="analysis">
       <section className="case-content">
         <header className="app-page-header case-header">
           <PageHeading eyebrow="CASE INVESTIGATION" title="FDS 이상거래 분석" />
