@@ -30,7 +30,10 @@ export async function fetchTransactionLabelQueue(query: QueueQuery) {
 
   const response = await fetch(`/transactions/label-queue?${params}`);
   if (!response.ok) {
-    throw new Error(await errorMessage(response, "라벨링 거래를 불러오지 못했습니다."));
+    throw new Error(await errorMessage(
+      response,
+      "라벨링 거래를 불러오지 못했습니다. 목록 새로고침을 눌러 다시 시도하세요.",
+    ));
   }
   return response.json() as Promise<TransactionLabelQueueResponse>;
 }
@@ -45,7 +48,7 @@ export async function saveTransactionLabel(
     body: JSON.stringify({ confirmed_is_fraud: confirmedIsFraud }),
   });
   if (!response.ok) {
-    throw new Error(await errorMessage(response, "거래 판정을 저장하지 못했습니다."));
+    throw new Error(await errorMessage(response, "거래 판정을 저장하지 못했습니다. 다시 시도하세요."));
   }
 }
 
@@ -54,6 +57,6 @@ export async function clearTransactionLabel(transactionId: number) {
     method: "DELETE",
   });
   if (!response.ok) {
-    throw new Error(await errorMessage(response, "거래 판정을 지우지 못했습니다."));
+    throw new Error(await errorMessage(response, "거래 판정을 지우지 못했습니다. 다시 시도하세요."));
   }
 }

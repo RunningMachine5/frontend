@@ -227,9 +227,11 @@ export function TransactionLabelingPage() {
             <form onSubmit={search}>
               <input
                 aria-label="거래 ID 검색"
+                autoComplete="off"
                 inputMode="numeric"
+                name="transaction-id"
                 onChange={(event) => setSearchText(event.target.value)}
-                placeholder="거래 ID 검색"
+                placeholder="거래 ID 검색…"
                 type="search"
                 value={searchText}
               />
@@ -238,6 +240,8 @@ export function TransactionLabelingPage() {
             <label>
               <span>ML 예측</span>
               <select
+                autoComplete="off"
+                name="prediction-filter"
                 onChange={(event) => {
                   setPrediction(event.target.value as TransactionPredictionFilter);
                   setPage(1);
