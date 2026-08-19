@@ -2,6 +2,10 @@
 
 .dashboard-content{overflow-y:auto}
 .bubble strong{max-width:calc(100% - 8px);overflow-wrap:normal;word-break:keep-all}
+.metric-card-head{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.metric-card-head>span{color:#9ca1b0;font-size:13px;font-weight:500}
+.metric-card-head small{min-width:0;margin:0;justify-content:flex-end;gap:7px;text-align:right}
+.metric-card-head small i{flex:0 0 6px}
 .trend-chart-wrap{position:relative}
 .trend-panel-meta{display:flex;align-items:center;justify-content:flex-end;gap:10px;color:#9ca1b0;font-size:10px;white-space:nowrap}
 .trend-panel-meta strong{padding:5px 10px;border-radius:14px;background:#1d3b2e;color:#3ec887;font-size:11px}
@@ -10,11 +14,11 @@
 
 /* 데스크톱에서는 네 영역이 현재 브라우저 높이를 나눠 사용한다. */
 @media(min-width:1440px) and (min-height:800px){
-  .dashboard-content{height:100vh;position:relative;padding:20px 28px;display:grid;grid-template-rows:72px 108px minmax(0,.72fr) minmax(0,1.28fr);gap:10px;overflow:hidden}
+  .dashboard-content{height:100vh;position:relative;padding:20px 28px;display:grid;grid-template-rows:72px 90px minmax(0,.72fr) minmax(0,1.28fr);gap:10px;overflow:hidden}
   .header-actions{padding-top:0}
   .refresh-error{position:absolute;z-index:2;top:73px;right:28px;margin:0;padding:5px 9px;border-radius:6px;background:#392027}
   .metric-grid{height:100%;margin:0;gap:10px}
-  .metric-card{height:100%;min-height:0;padding:14px 18px}
+  .metric-card{height:100%;min-height:0;padding:12px 18px}
   .metric-card>strong{margin-top:4px;font-size:25px}
   .metric-card small{margin-top:4px}
   .top-grid,.bottom-grid{height:100%;min-height:0;gap:10px;margin:0}

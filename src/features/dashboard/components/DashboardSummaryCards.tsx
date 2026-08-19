@@ -14,7 +14,8 @@ export function DashboardSummaryCards({ summary }: { summary: DashboardOverviewS
 
   return <section className="metric-grid">
     {metrics.map((metric, index) => <article className={`metric-card ${metricColors[index]}`} key={metric.label}>
-      <span>{metric.label}</span><strong>{metric.value}</strong><small><i />{metric.note}</small>
+      <div className="metric-card-head"><span>{metric.label}</span><small><i />{metric.note}</small></div>
+      <strong>{metric.value}</strong>
     </article>)}
   </section>;
 }
