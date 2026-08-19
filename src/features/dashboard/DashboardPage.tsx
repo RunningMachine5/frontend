@@ -31,8 +31,13 @@ function SuspiciousTrendPanel({ points }: { points: SuspiciousTrendPoint[] }) {
   const amount = points.reduce((sum, point) => sum + point.suspicious_amount, 0);
 
   return <article className="panel suspicious-panel">
-    <div className="panel-head"><div><h2>선택 기간 의심 거래 추이</h2><p className="panel-caption">의심 건수와 의심 금액을 함께 확인합니다</p></div><span className="trend-badge positive">선택 기간 기준</span></div>
-    <div className="mini-chart-meta"><span>의심 금액</span><strong>{formatCompactMoney(amount)}</strong></div>
+    <div className="panel-head">
+      <div><h2>선택 기간 의심 거래 추이</h2><p className="panel-caption">의심 건수와 의심 금액을 함께 확인합니다</p></div>
+      <div className="suspicious-panel-meta">
+        <span className="trend-badge positive">선택 기간 기준</span>
+        <div className="suspicious-amount"><span>의심 금액</span><strong>{formatCompactMoney(amount)}</strong></div>
+      </div>
+    </div>
     <div className="mini-bars">{points.map((point) => <div className="mini-bar-column" key={point.date}><strong>{point.suspicious_count}</strong><div className="mini-bar-area"><span className="mini-bar" style={{ height: `${Math.max((point.suspicious_count / maxCount) * 100, 4)}%` }} /></div><span>{point.date}</span></div>)}</div>
   </article>;
 }
