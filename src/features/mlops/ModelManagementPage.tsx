@@ -180,7 +180,7 @@ export function ModelManagementPage() {
         </article>
         <article>
           <span>Cloud Monitoring</span>
-          <strong>준실시간 인프라 지표</strong>
+          <strong>인프라 지표</strong>
           <small>인스턴스·요청·지연·자원 사용률은 별도 화면에서 확인합니다.</small>
           <Link to="/models/monitoring">성능 모니터링 열기</Link>
         </article>
