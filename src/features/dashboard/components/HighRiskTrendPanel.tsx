@@ -32,7 +32,7 @@ function TrendChart({ points }: { points: PriorityTrendPoint[] }) {
 export function HighRiskTrendPanel({ points }: { points: PriorityTrendPoint[] }) {
   const peak = Math.max(...points.map((point) => point.total_count), 0);
   return <article className="panel priority-panel">
-    <div className="panel-head"><div><h2>고위험 이상거래 발생 추이</h2><p className="panel-caption">HIGH 이상 거래의 일별 집중도를 확인합니다</p></div><span className="trend-badge"><i />최고 {formatNumber(peak)}건</span></div>
+    <div className="panel-head"><div><div className="panel-title-row"><h2>고위험 이상거래 발생 추이</h2><span className="trend-badge"><i />최고 {formatNumber(peak)}건</span></div><p className="panel-caption">HIGH 이상 거래의 일별 집중도를 확인합니다</p></div></div>
     <div className="chart-legend"><span><i />VERY_HIGH + HIGH</span><em>거래 건수 (건)</em></div>
     <TrendChart points={points} />
   </article>;
