@@ -1,6 +1,7 @@
 import { adminRequest } from "../admin/adminApi";
 import type {
   DatasetVersion,
+  InferencePerformance,
   ModelDetails,
   ServingStatus,
   TrainingActionResult,
@@ -39,6 +40,9 @@ export const decideModel = (
 
 export const fetchServingStatus = () =>
   adminRequest<ServingStatus>("/mlops/serving/status");
+
+export const fetchInferencePerformance = () =>
+  adminRequest<InferencePerformance>("/mlops/serving/performance");
 
 export const promoteModel = (
   runId: number,

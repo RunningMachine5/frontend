@@ -6,13 +6,14 @@ import {
   completeDeployment,
   decideModel,
   fetchDatasets,
+  fetchInferencePerformance,
   fetchModelDetails,
   fetchServingStatus,
   fetchTrainingRuns,
   promoteModel,
   startTraining,
 } from "./mlopsApi";
-import type { DatasetVersion, ModelDetails, ServingStatus, TrainingRun } from "./mlopsTypes";
+import type { DatasetVersion, InferencePerformance, ModelDetails, ServingStatus, TrainingRun } from "./mlopsTypes";
 import "../admin/AdminWorkspace.css";
 
 const STATUS_LABELS: Record<string, string> = {
@@ -22,6 +23,7 @@ const STATUS_LABELS: Record<string, string> = {
 };
 
 const SERVING_REFRESH_MS = 5_000;
+const PERFORMANCE_REFRESH_MS = 2_000;
 const LATEST_TRAFFIC_TYPE = "TRAFFIC_TARGET_ALLOCATION_TYPE_LATEST";
 const ACTION_REQUIRED_STATUSES = new Set(["CANDIDATE", "STAGED", "PROMOTING", "FAILED", "DEPLOYMENT_FAILED"]);
 const COMPARISON_METRICS = [
@@ -106,6 +108,7 @@ export function ModelManagementPage() {
   const [productionDetails, setProductionDetails] = useState<ModelDetails | null>(null);
   const [serving, setServing] = useState<ServingStatus | null>(null);
   const [servingUpdatedAt, setServingUpdatedAt] = useState<Date | null>(null);
+  const [performance, setPerformance] = useState<InferencePerformance | null>(null);
   const [dialog, setDialog] = useState<"dataset" | "training" | "promotion" | null>(null);
   const [datasetVersion, setDatasetVersion] = useState("");
   const [datasetUri, setDatasetUri] = useState("");
@@ -178,9 +181,17 @@ export function ModelManagementPage() {
     }
   }, []);
 
+  const loadPerformance = useCallback(async () => {
+    try {
+      setPerformance(await fetchInferencePerformance());
+    } catch {
+      // 일시적인 조회 실패에는 마지막으로 확인한 성능을 그대로 보여준다.
+    }
+  }, []);
+
   const refresh = useCallback(async () => {
-    await Promise.all([loadLists(selectedRunId), loadServing()]);
-  }, [loadLists, loadServing, selectedRunId]);
+    await Promise.all([loadLists(selectedRunId), loadServing(), loadPerformance()]);
+  }, [loadLists, loadPerformance, loadServing, selectedRunId]);
 
   useEffect(() => {
     void loadLists();
@@ -204,6 +215,29 @@ export function ModelManagementPage() {
   }, [loadLists, loadServing]);
 
   useEffect(() => {
+    let isActive = true;
+    let refreshTimer: number | null = null;
+
+    async function pollPerformance() {
+      if (document.visibilityState === "visible") {
+        await loadPerformance();
+      }
+      if (isActive) {
+        refreshTimer = window.setTimeout(
+          () => void pollPerformance(),
+          PERFORMANCE_REFRESH_MS,
+        );
+      }
+    }
+
+    void pollPerformance();
+    return () => {
+      isActive = false;
+      if (refreshTimer !== null) window.clearTimeout(refreshTimer);
+    };
+  }, [loadPerformance]);
+
+  useEffect(() => {
     if (!dialog) return;
     const closeOnEscape = (event: KeyboardEvent) => {
       if (event.key === "Escape") setDialog(null);
@@ -217,6 +251,7 @@ export function ModelManagementPage() {
   const latestRun = runs[0] ?? null;
   const trafficPercent = serving ? latestRevisionTraffic(serving) : 0;
   const latestRevision = resourceName(serving?.latest_ready_revision);
+  const isTrafficChanging = Boolean(serving?.reconciling || latestRun?.status === "PROMOTING");
   const actionRequiredRuns = runs.filter((run) => ACTION_REQUIRED_STATUSES.has(run.status));
   const recommendation = details?.tags.promotion_recommendation ?? "NOT_AVAILABLE";
   const selectedDataset = datasets.find((dataset) => dataset.id === selectedRun?.dataset_version_id);
@@ -352,8 +387,15 @@ export function ModelManagementPage() {
 
           <section className="model-overview-grid">
             <article className="admin-panel champion-card">
-              <div><em className="status production">{productionRun ? "PRODUCTION" : "미배포"}</em><h2>{productionDetails?.model_version ? `운영 모델 v${productionDetails.model_version}` : productionRun ? `운영 모델 Run #${productionRun.id}` : "운영 모델 없음"}</h2><p>현재 운영 트래픽에 연결된 모델과 MLflow alias 정보를 확인합니다.</p><dl><div><dt>Feature 계약</dt><dd>{productionDetails?.tags.feature_contract ?? "—"}</dd></div><div><dt>결정 임계값</dt><dd>{productionDetails?.params.decision_threshold ?? "—"}</dd></div><div><dt>MLflow Alias</dt><dd>{productionRun ? "champion" : "—"}</dd></div></dl></div>
-              <div aria-label={`최신 배포 리비전 트래픽 ${serving ? `${trafficPercent}%` : "확인 불가"}`} className={`traffic-ring${serving?.reconciling ? " changing" : ""}`} role="img" style={{ "--traffic": `${trafficPercent * 3.6}deg` } as CSSProperties}><strong>{serving ? `${trafficPercent}%` : "—"}</strong><span>배포 대상 트래픽</span></div>
+              <div className="champion-copy"><em className="status production">{productionRun ? "PRODUCTION" : "미배포"}</em><h2>{productionDetails?.model_version ? `운영 모델 v${productionDetails.model_version}` : productionRun ? `운영 모델 Run #${productionRun.id}` : "운영 모델 없음"}</h2><p>현재 운영 트래픽에 연결된 모델과 MLflow alias 정보를 확인합니다.</p><dl><div><dt>Feature 계약</dt><dd>{productionDetails?.tags.feature_contract ?? "—"}</dd></div><div><dt>결정 임계값</dt><dd>{productionDetails?.params.decision_threshold ?? "—"}</dd></div><div><dt>MLflow Alias</dt><dd>{productionRun ? "champion" : "—"}</dd></div></dl></div>
+              {isTrafficChanging ? <div aria-label={`최신 배포 리비전 트래픽 ${serving ? `${trafficPercent}%` : "확인 불가"}`} className="traffic-ring changing" role="img" style={{ "--traffic": `${trafficPercent * 3.6}deg` } as CSSProperties}><strong>{serving ? `${trafficPercent}%` : "—"}</strong><span>운영 전환</span></div> : <section aria-label="최근 온라인 추론 성능" className="inference-monitor">
+                <header><strong><i aria-hidden="true" />LIVE INFERENCE</strong><small>최근 {performance?.window_minutes ?? 5}분 · 2초 갱신</small></header>
+                <dl>
+                  <div><dt>추론 건수</dt><dd>{performance ? performance.inference_count.toLocaleString("ko-KR") : "—"}<small>건</small></dd></div>
+                  <div><dt>P95 응답</dt><dd>{performance?.p95_latency_ms ?? "—"}<small>ms</small></dd></div>
+                  <div><dt>마지막 추론</dt><dd>{performance?.latest_inference_at ? formatClock(new Date(performance.latest_inference_at)) : "대기 중"}</dd></div>
+                </dl>
+              </section>}
             </article>
             <article className="admin-panel dataset-card">
               <p className="admin-eyebrow">LATEST DATASET</p><h2>{latestDataset?.version ?? "생성된 데이터셋 없음"}</h2><p>확정 라벨 거래를 원본 학습 데이터에 합친 불변 버전입니다.</p>
