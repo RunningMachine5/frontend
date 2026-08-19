@@ -4,17 +4,17 @@
 .bubble strong{max-width:calc(100% - 8px);overflow-wrap:normal;word-break:keep-all}
 
 /* 1920×1080에서는 네 영역이 화면 높이를 나눠 가져 페이지 스크롤을 만들지 않는다. */
-@media(min-width:1680px) and (min-height:960px){
-  .dashboard-content{height:100vh;position:relative;padding:20px 28px;display:grid;grid-template-rows:72px 96px minmax(0,.82fr) minmax(0,1.18fr);gap:10px;overflow:hidden}
+@media(min-width:1440px) and (min-height:800px){
+  .dashboard-content{height:100vh;position:relative;padding:20px 28px;display:grid;grid-template-rows:72px 108px minmax(0,.72fr) minmax(0,1.28fr);gap:10px;overflow:hidden}
   .header-actions{padding-top:0}
   .refresh-error{position:absolute;z-index:2;top:73px;right:28px;margin:0;padding:5px 9px;border-radius:6px;background:#392027}
   .metric-grid{height:100%;margin:0;gap:10px}
-  .metric-card{height:100%;min-height:0;padding:12px 18px}
+  .metric-card{height:100%;min-height:0;padding:14px 18px}
   .metric-card>strong{margin-top:4px;font-size:25px}
   .metric-card small{margin-top:4px}
   .top-grid,.bottom-grid{height:100%;min-height:0;gap:10px;margin:0}
-  .bottom-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
-  .left-panels{display:contents}
+  .bottom-grid{grid-template-columns:minmax(0,1.12fr) minmax(0,1fr)}
+  .left-panels{height:100%;min-height:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:minmax(0,1fr);gap:10px}
   .panel{height:100%;min-height:0;padding:14px 18px;overflow:hidden}
   .trend-chart-wrap{height:calc(100% - 58px);min-height:170px}
   .risk-list{margin-top:20px;gap:14px}
@@ -23,12 +23,14 @@
   .mini-chart-meta{align-self:flex-end;margin-top:14px}
   .mini-bars,.bubble-stage{height:auto;min-height:0;flex:1}
   .mini-bars{margin-top:8px}
+  .mini-bar-column{min-width:0}
+  .mini-bar-area{max-width:100%}
   .bubble-stage{margin-top:8px}
-  .agent-bars{margin-top:12px;gap:10px}
-  .agent-row{grid-template-columns:minmax(130px,.8fr) minmax(90px,1fr) auto;gap:10px}
+  .agent-bars{margin-top:10px;gap:8px}
+  .agent-row{grid-template-columns:minmax(170px,.72fr) minmax(120px,1fr) auto;gap:12px}
   .agent-empty{min-height:0;flex:1}
-  .agent-summary{min-height:92px;margin-top:auto;padding:13px 16px}
-  .agent-summary p{margin:6px 0 8px}
+  .agent-summary{min-height:92px;margin-top:auto;padding:11px 16px}
+  .agent-summary p{margin:5px 0 6px}
 }
 
 /* 중간 화면에서는 카드 크기를 먼저 줄이고, 좁아지면 열을 접어 가로 잘림을 막는다. */
