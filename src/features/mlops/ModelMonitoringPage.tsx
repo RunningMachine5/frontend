@@ -84,7 +84,6 @@ export function ModelMonitoringPage() {
           ))}
         </div>
       )}
-      title="Serving 성능 모니터링"
     >
       {error && <AdminAlert message={error} onDismiss={() => setError(null)} tone="error" />}
 

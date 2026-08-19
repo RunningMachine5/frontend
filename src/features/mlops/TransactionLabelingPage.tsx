@@ -194,7 +194,6 @@ export function TransactionLabelingPage() {
           {isLoading ? "갱신 중…" : "목록 새로고침"}
         </button>
       )}
-      title="거래 라벨링"
     >
       {error && <div className="admin-alert error" role="alert">{error}</div>}
       {notice && <div className="admin-alert success" role="status">{notice}</div>}
