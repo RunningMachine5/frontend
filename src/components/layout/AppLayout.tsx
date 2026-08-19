@@ -8,8 +8,8 @@ type AppLayoutProps = {
 };
 
 const navigation = [
-  { id: "dashboard", label: "메인 화면", href: "/#main" },
-  { id: "queue", label: "처리 페이지", href: "/#queue" },
+  { id: "dashboard", label: "통합 모니터링", href: "/#main" },
+  { id: "queue", label: "이상거래 탐색", href: "/#queue" },
   { id: "case", label: "이상거래 분석", href: "/#case" },
   { id: "rules", label: "룰 규칙 관리", href: "/#rules" },
   { id: "model", label: "모델 관리", href: "/models" },
