@@ -198,8 +198,32 @@ export function RuleManagementPage() {
           </div>
         </header>
 
-        {error && <div className="admin-alert error" role="alert">{error}</div>}
-        {notice && <div className="admin-alert success" role="status">{notice}</div>}
+        {error && (
+          <div className="admin-alert error dismissible">
+            <span role="alert">{error}</span>
+            <button
+              aria-label="오류 알림 닫기"
+              className="admin-alert-dismiss"
+              onClick={() => setError(null)}
+              type="button"
+            >
+              <span aria-hidden="true">×</span>
+            </button>
+          </div>
+        )}
+        {notice && (
+          <div className="admin-alert success dismissible">
+            <span role="status">{notice}</span>
+            <button
+              aria-label="성공 알림 닫기"
+              className="admin-alert-dismiss"
+              onClick={() => setNotice(null)}
+              type="button"
+            >
+              <span aria-hidden="true">×</span>
+            </button>
+          </div>
+        )}
 
         <section className="admin-metrics">
           <article><span>운영 룰셋</span><strong className="positive">{activeSet ? `ACTIVE v${activeSet.version}` : "없음"}</strong><small>{formatDate(activeSet?.activated_at ?? null)} 활성화</small></article>

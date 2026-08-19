@@ -33,6 +33,11 @@
 .admin-dialog input,.admin-dialog select{height:42px;padding:0 12px}
 
 .admin-alert{margin:15px 0 -1px;padding:11px 14px;border-radius:9px;font-size:12px;line-height:1.5}
+.admin-alert.dismissible{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:7px 8px 7px 14px}
+.admin-alert.dismissible>span:first-child{min-width:0;overflow-wrap:anywhere}
+.admin-alert-dismiss{display:grid;place-items:center;flex:0 0 auto;width:28px;height:28px;padding:0;border:0;border-radius:6px;background:transparent;color:inherit;font:inherit;font-size:19px;line-height:1;cursor:pointer}
+.admin-alert-dismiss:hover{background:rgb(255 255 255 / 7%)}
+.admin-alert-dismiss:focus-visible{outline:2px solid currentColor;outline-offset:1px}
 .admin-alert.error{border:1px solid #68313b;background:#281a20;color:#ff9da4}
 .admin-alert.success{border:1px solid #285d48;background:#17261f;color:#8ee0b7}
 .admin-metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:22px 0 16px}
