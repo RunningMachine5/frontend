@@ -44,6 +44,7 @@ function toChatView(
     created_at: previous?.created_at ?? chat.messages[0]?.sent_at ?? null,
     completed_at: chat.completed_at,
     messages: chat.messages,
+    type_scores: chat.type_scores,
   };
 }
 
