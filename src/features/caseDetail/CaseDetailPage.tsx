@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 
 import { AppLayout } from "../../components/layout/AppLayout";
+import { PageHeading } from "../../components/layout/PageHeading";
 import type {
   CaseReviewUpsertRequest,
   ReviewDecision,
@@ -242,7 +243,7 @@ export function CaseDetailPage() {
     <AppLayout activeNav="case">
       <section className="case-content">
         <header className="case-header">
-          <div><p className="case-eyebrow">CASE INVESTIGATION</p><h1>FDS 이상거래 분석</h1></div>
+          <PageHeading eyebrow="CASE INVESTIGATION" title="FDS 이상거래 분석" />
         </header>
 
         <section className="case-hero">

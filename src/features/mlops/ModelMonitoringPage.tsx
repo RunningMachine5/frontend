@@ -84,7 +84,6 @@ export function ModelMonitoringPage() {
           ))}
         </div>
       )}
-      description="Cloud Run 인스턴스·요청·지연·자원 사용률을 1분 단위로 확인합니다."
       title="Serving 성능 모니터링"
     >
       {error && <AdminAlert message={error} onDismiss={() => setError(null)} tone="error" />}

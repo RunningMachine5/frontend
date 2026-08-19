@@ -194,7 +194,6 @@ export function TransactionLabelingPage() {
           {isLoading ? "갱신 중…" : "목록 새로고침"}
         </button>
       )}
-      description="ML 예측을 참고하되 담당자가 정상·사기 여부를 직접 확정합니다. 확정 결과는 다음 학습 데이터셋에 반영됩니다."
       title="거래 라벨링"
     >
       {error && <div className="admin-alert error" role="alert">{error}</div>}

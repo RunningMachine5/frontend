@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 
 import { AppLayout } from "../../components/layout/AppLayout";
+import { PageHeading } from "../../components/layout/PageHeading";
 import {
   activateRuleSet,
   createRuleDraft,
@@ -168,11 +169,7 @@ export function RuleManagementPage() {
     <AppLayout activeNav="rules">
       <section className="admin-page rule-admin-page">
         <header className="admin-header">
-          <div>
-            <p className="admin-eyebrow">RULE GOVERNANCE</p>
-            <h1>룰 규칙 관리</h1>
-            <p>사기유형별 조건과 가중치를 수정하고 운영 반영 전 영향을 비교합니다.</p>
-          </div>
+          <PageHeading eyebrow="RULE GOVERNANCE" title="룰 규칙 관리" />
           <div className="admin-actions">
             <button className="admin-button" onClick={() => setDialog("features")} type="button">Feature 목록</button>
             <button

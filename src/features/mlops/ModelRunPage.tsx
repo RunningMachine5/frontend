@@ -162,7 +162,6 @@ export function ModelRunPage() {
     <ModelPageShell
       activeSection="training"
       actions={<Link className="admin-button" to="/models/training">학습 이력으로</Link>}
-      description="한 Run의 학습 결과를 운영 모델과 비교하고 현재 단계의 작업만 진행합니다."
       title={run ? `Run #${run.id} 상세` : "Run 상세"}
     >
       {error && <AdminAlert message={error} onDismiss={() => setError(null)} tone="error" />}
