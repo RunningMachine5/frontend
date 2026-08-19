@@ -27,6 +27,7 @@
   .case-main-grid { grid-template-columns: 1fr; }
   .case-hero { grid-template-columns: 1fr; }
   .case-header { align-items: flex-start; }
-  .case-wing-rail { top: auto; bottom: 20px; }
+  .case-header .case-wing-rail { width: 100%; display: grid; grid-template-columns: 1fr 1fr; }
+  .case-header .case-wing-tab { width: 100%; }
   .case-wing-drawer { top: 30px; bottom: 16px; }
 }

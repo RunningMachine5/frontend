@@ -5,7 +5,7 @@ import type { CaseListItem, QueueSearchFilters } from "./queueTypes";
 
 const REFRESH_DEBOUNCE_MS = 500;
 
-export function useQueue(filters: QueueSearchFilters) {
+export function useQueue(filters: QueueSearchFilters, pageSize: number) {
   const [rows, setRows] = useState<CaseListItem[]>([]);
   const [totalCount, setTotalCount] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
@@ -19,7 +19,7 @@ export function useQueue(filters: QueueSearchFilters) {
       if (showLoading) setIsLoading(true);
 
       try {
-        const result = await fetchQueueRows(filters);
+        const result = await fetchQueueRows(filters, pageSize);
         if (!active) return;
         setRows(result.items);
         setTotalCount(result.total_count);
@@ -49,7 +49,7 @@ export function useQueue(filters: QueueSearchFilters) {
       if (refreshTimer !== null) window.clearTimeout(refreshTimer);
       eventSource.close();
     };
-  }, [filters]);
+  }, [filters, pageSize]);
 
   return { rows, totalCount, isLoading, errorMessage };
 }

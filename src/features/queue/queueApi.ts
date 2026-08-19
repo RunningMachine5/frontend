@@ -1,16 +1,14 @@
 import type { ApiResponse } from "../dashboard/dashboardOverviewTypes";
 import type { CaseListResponse, QueueSearchFilters } from "./queueTypes";
 
-const PAGE_SIZE = 10;
-
 function appendDateTime(params: URLSearchParams, key: string, value: string) {
   if (value) params.set(key, new Date(value).toISOString());
 }
 
-export async function fetchQueueRows(filters: QueueSearchFilters) {
+export async function fetchQueueRows(filters: QueueSearchFilters, pageSize: number) {
   const params = new URLSearchParams({
     page: String(filters.page),
-    page_size: String(PAGE_SIZE),
+    page_size: String(pageSize),
   });
 
   if (filters.transactionId.trim()) {
@@ -31,5 +29,3 @@ export async function fetchQueueRows(filters: QueueSearchFilters) {
 
   return body.data;
 }
-
-export { PAGE_SIZE };
