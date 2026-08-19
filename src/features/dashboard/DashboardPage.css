@@ -100,13 +100,15 @@
   .dashboard-header{min-height:0;padding-bottom:16px;align-items:flex-start;flex-direction:column}
   .header-actions{padding-top:0}
   .metric-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
-  .left-panels{grid-template-columns:minmax(0,1fr)}
+  .dashboard-monitoring-grid>.left-panels{grid-template-columns:minmax(0,1fr)}
 }
 
 @media(max-width:620px){
   .dashboard-content{padding:20px 16px 88px}
   .metric-grid{grid-template-columns:minmax(0,1fr)}
   .panel{padding:15px}
+  .suspicious-panel .panel-head{display:grid;grid-template-columns:minmax(0,1fr);gap:10px}
+  .suspicious-panel-meta{width:100%;justify-content:space-between;flex-wrap:wrap}
   .risk-row{grid-template-columns:82px minmax(70px,1fr)}
   .risk-detail{grid-column:2;white-space:normal}
   .agent-row{grid-template-columns:minmax(100px,1fr) minmax(70px,1.2fr) 28px}
