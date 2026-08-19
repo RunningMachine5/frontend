@@ -2,6 +2,7 @@
 
 import type {
     ApiResponse,
+    DashboardAgentInsight,
     DashboardOverviewResponse
 } from "./dashboardOverviewTypes";
 
@@ -30,4 +31,23 @@ export async function fetchDashboardOverview(
 
     // 공통 응답의 data만 꺼내서 반환함
     return result.data;
+}
+
+export async function generateDashboardInsight(
+    params: DashOverviewParams,
+): Promise<DashboardAgentInsight> {
+    const response = await fetch("/api/dashboard/insights/generate", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({
+            period_start: params.periodStart,
+            period_end: params.periodEnd,
+        }),
+    });
+
+    if (!response.ok) {
+        throw new Error("AI 요약 생성에 실패함");
+    }
+
+    return response.json();
 }
