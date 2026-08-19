@@ -23,6 +23,9 @@ export const createRuleDraft = (sourceId?: number) =>
     body: JSON.stringify(sourceId ? { source_rule_set_id: sourceId } : {}),
   });
 
+export const deleteRuleDraft = (id: number) =>
+  adminRequest<void>(`/rule-sets/${id}`, { method: "DELETE" });
+
 export const saveRule = (ruleSetId: number, rule: FraudRule) =>
   adminRequest<FraudRule>(`/rule-sets/${ruleSetId}/rules/${rule.id}`, {
     method: "PUT",
@@ -45,10 +48,10 @@ export const saveRule = (ruleSetId: number, rule: FraudRule) =>
 export const validateRuleSet = (id: number) =>
   adminRequest<RuleValidation>(`/rule-sets/${id}/validate`, { method: "POST" });
 
-export const replayRuleSet = (id: number) =>
+export const replayRuleSet = (id: number, sampleSize = 100, detailLimit = 20) =>
   adminRequest<RuleReplay>(`/rule-sets/${id}/replay`, {
     method: "POST",
-    body: JSON.stringify({ sample_size: 100, detail_limit: 20 }),
+    body: JSON.stringify({ sample_size: sampleSize, detail_limit: detailLimit }),
   });
 
 export const activateRuleSet = (id: number) =>
