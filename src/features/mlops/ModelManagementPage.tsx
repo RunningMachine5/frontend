@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState, type CSSProperties } from "react";
 import { Link } from "react-router-dom";
 
+import { AdminAlert } from "../admin/AdminAlert";
 import { ModelPageShell } from "./components/ModelPageShell";
 import {
   ACTION_REQUIRED_STATUSES,
@@ -102,7 +103,7 @@ export function ModelManagementPage() {
       description="운영 모델, Serving 상태와 지금 처리해야 할 Run을 확인합니다."
       title="모델 운영 현황"
     >
-      {error && <div className="admin-alert error" role="alert">{error}</div>}
+      {error && <AdminAlert message={error} onDismiss={() => setError(null)} tone="error" />}
 
       <section className="model-command-grid">
         <article className="admin-panel production-command">

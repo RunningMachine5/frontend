@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
+import { AdminAlert } from "../admin/AdminAlert";
 import { ModelPageShell } from "./components/ModelPageShell";
 import {
   ACTIVE_RUN_STATUSES,
@@ -117,8 +118,8 @@ export function ModelTrainingPage() {
       description="확정 라벨 데이터셋을 버전으로 만들고 Cloud Run 학습 진행 상태를 추적합니다."
       title="학습 · Run 관리"
     >
-      {error && <div className="admin-alert error" role="alert">{error}</div>}
-      {notice && <div className="admin-alert success" role="status">{notice}</div>}
+      {error && <AdminAlert message={error} onDismiss={() => setError(null)} tone="error" />}
+      {notice && <AdminAlert message={notice} onDismiss={() => setNotice(null)} tone="success" />}
 
       <section className="training-workspace">
         <aside className="admin-panel dataset-ledger">
