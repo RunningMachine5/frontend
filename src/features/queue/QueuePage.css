@@ -12,11 +12,11 @@
   .queue-summary{min-height:56px;flex:0 0 56px;margin-bottom:8px}
   .queue-summary div{padding:8px 16px}
   .queue-panel{min-height:0;padding:12px 15px}
-  .scatter-panel{min-height:292px;flex:0 0 292px;margin-bottom:8px}
+  .scatter-panel{min-height:280px;flex:0 0 280px;margin-bottom:8px}
   .queue-scatter{margin-top:8px}
-  .scatter-scale,.scatter-plot{height:182px}
-  .scatter-scale span{height:60px}
-  .scatter-plot{background:repeating-linear-gradient(to bottom,transparent 0,transparent 59px,#343440 60px)}
+  .scatter-scale,.scatter-plot{height:170px}
+  .scatter-scale span{height:56px}
+  .scatter-plot{background:repeating-linear-gradient(to bottom,transparent 0,transparent 55px,#343440 56px)}
   .queue-table-panel{flex:1;display:flex;flex-direction:column;padding-bottom:8px;overflow:hidden}
   .queue-table-wrap{min-height:0;flex:1;margin-top:8px;overflow:auto;scrollbar-gutter:stable}
   .queue-table-wrap th,.queue-table-wrap td{padding:8px}
