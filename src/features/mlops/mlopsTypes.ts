@@ -47,7 +47,13 @@ export type ServingStatus = {
   reconciling: boolean;
   latest_created_revision: string | null;
   latest_ready_revision: string | null;
-  traffic: { revisionName?: string; percent?: number; tag?: string }[];
+  traffic: {
+    type?: string;
+    revision?: string;
+    percent?: number;
+    tag?: string;
+    uri?: string;
+  }[];
 };
 
 export type TrainingActionResult = {
