@@ -75,7 +75,7 @@ export function TransactionLabelingPage() {
   const [notice, setNotice] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const load = useCallback(async () => {
+  const load = useCallback(async (nextSelectedId?: number) => {
     setIsLoading(true);
     try {
       const result = await fetchTransactionLabelQueue({
@@ -86,11 +86,12 @@ export function TransactionLabelingPage() {
         pageSize: PAGE_SIZE,
       });
       setData(result);
-      setSelectedId((current) => (
-        result.items.some((item) => item.transaction_id === current)
-          ? current
-          : result.items[0]?.transaction_id ?? null
-      ));
+      setSelectedId((current) => {
+        const candidate = nextSelectedId ?? current;
+        return result.items.some((item) => item.transaction_id === candidate)
+          ? candidate
+          : result.items[0]?.transaction_id ?? null;
+      });
       setError(null);
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "라벨링 거래를 불러오지 못했습니다.");
@@ -109,22 +110,30 @@ export function TransactionLabelingPage() {
   );
   const totalPages = Math.max(1, Math.ceil((data?.total_count ?? 0) / PAGE_SIZE));
 
-  const moveToNext = () => {
+  const nextTransactionId = () => {
     if (!selected || !data || data.items.length < 2) {
-      setNotice("현재 목록에서 다음 거래가 없습니다.");
-      return;
+      return undefined;
     }
     const currentIndex = data.items.findIndex(
       (item) => item.transaction_id === selected.transaction_id,
     );
-    const next = data.items[(currentIndex + 1) % data.items.length];
-    setSelectedId(next.transaction_id);
+    return data.items[(currentIndex + 1) % data.items.length].transaction_id;
+  };
+
+  const moveToNext = () => {
+    const nextId = nextTransactionId();
+    setNotice(null);
+    if (nextId === undefined) {
+      setNotice("현재 목록에서 다음 거래가 없습니다.");
+      return;
+    }
+    setSelectedId(nextId);
   };
 
   const saveLabel = async (confirmedIsFraud: boolean) => {
     if (!selected) return;
     const transaction = selected;
-    moveToNext();
+    const nextId = nextTransactionId();
     setIsSaving(true);
     setNotice(null);
     setError(null);
@@ -133,7 +142,8 @@ export function TransactionLabelingPage() {
       setNotice(
         `TX-${transaction.transaction_id}을 ${confirmedIsFraud ? "사기" : "정상"} 거래로 확정했습니다.`,
       );
-      await load();
+      // 저장이 성공한 뒤에만 다음 거래로 이동한다.
+      await load(nextId);
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "거래 판정을 저장하지 못했습니다.");
     } finally {
@@ -141,15 +151,9 @@ export function TransactionLabelingPage() {
     }
   };
 
-  const reviewLater = async () => {
-    if (!selected) return;
-    if (selected.confirmed_is_fraud === null) {
-      moveToNext();
-      return;
-    }
-
+  const clearLabel = async () => {
+    if (!selected || selected.confirmed_is_fraud === null) return;
     const transaction = selected;
-    moveToNext();
     setIsSaving(true);
     setNotice(null);
     setError(null);
@@ -348,8 +352,16 @@ export function TransactionLabelingPage() {
                 >
                   사기 확정
                 </button>
-                <button className="label-action later" disabled={isSaving} onClick={() => void reviewLater()} type="button">
+                <button className="label-action later" disabled={isSaving} onClick={moveToNext} type="button">
                   다음에 확인
+                </button>
+                <button
+                  className="label-action clear"
+                  disabled={isSaving || selected.confirmed_is_fraud === null}
+                  onClick={() => void clearLabel()}
+                  type="button"
+                >
+                  확정 취소
                 </button>
               </section>
 
