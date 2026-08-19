@@ -37,7 +37,7 @@ export function AppLayout({ activeNav, children }: AppLayoutProps) {
       <aside className="app-sidebar">
         <a aria-label="FDShield 통합 모니터링" className="app-brand" href="/#main">
           <BrandMark />
-          <span className="app-brand-copy"><b>FDShield</b><small>FRAUD DEFENSE SYSTEM</small></span>
+          <span className="app-brand-copy"><b>FDShield</b><small>FRAUD DETECTION SYSTEM</small></span>
         </a>
         <p className="app-nav-title">MONITORING</p>
         <nav>
