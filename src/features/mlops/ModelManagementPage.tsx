@@ -24,6 +24,14 @@ const STATUS_LABELS: Record<string, string> = {
 const SERVING_REFRESH_MS = 5_000;
 const LATEST_TRAFFIC_TYPE = "TRAFFIC_TARGET_ALLOCATION_TYPE_LATEST";
 const ACTION_REQUIRED_STATUSES = new Set(["CANDIDATE", "STAGED", "PROMOTING", "FAILED", "DEPLOYMENT_FAILED"]);
+const COMPARISON_METRICS = [
+  { label: "PR-AUC", keys: ["validation_pr_auc"], lowerIsBetter: false },
+  { label: "ROC-AUC", keys: ["validation_roc_auc"], lowerIsBetter: false },
+  { label: "Recall", keys: ["validation_recall"], lowerIsBetter: false },
+  { label: "F1 Score", keys: ["validation_f1"], lowerIsBetter: false },
+  { label: "Precision", keys: ["validation_precision"], lowerIsBetter: false },
+  { label: "FPR", keys: ["validation_fpr"], lowerIsBetter: true },
+] as const;
 
 function formatDate(value: string) {
   return new Intl.DateTimeFormat("ko-KR", { month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" }).format(new Date(value));
@@ -36,6 +44,30 @@ function metric(details: ModelDetails | null, ...keys: string[]) {
 
 function metricText(value: number | null) {
   return value === null ? "—" : value.toFixed(4);
+}
+
+function metricDeltaText(value: number | null) {
+  if (value === null) return "—";
+  if (value === 0) return "0.0000";
+  return `${value > 0 ? "+" : ""}${value.toFixed(4)}`;
+}
+
+function actionGuide(run: TrainingRun | null, isCurrentProduction: boolean) {
+  if (!run) return "학습 Run을 선택하면 현재 가능한 작업을 안내합니다.";
+
+  switch (run.status) {
+    case "CANDIDATE": return "후보 지표를 검토한 뒤 승인하거나 거절할 수 있습니다.";
+    case "STAGED": return "0% 후보 검증이 준비됐습니다. 실제 거래로 검증한 뒤 운영 전환을 요청하세요.";
+    case "DEPLOYMENT_FAILED": return "이전 배포가 실패했습니다. 예측 검증 후 운영 전환을 다시 요청할 수 있습니다.";
+    case "PROMOTING": return "트래픽 전환이 진행 중입니다. 완료된 뒤 배포 상태를 확인하세요.";
+    case "PRODUCTION": return isCurrentProduction
+      ? "현재 운영 중인 모델입니다. 승인·전환 작업은 후보 Run에서만 진행할 수 있습니다."
+      : "이전에 운영했던 모델입니다. 현재 운영 모델과 성능을 비교할 수 있지만 다시 승인할 수는 없습니다.";
+    case "REJECTED": return "거절된 후보입니다. 다시 사용하려면 새 학습을 실행해야 합니다.";
+    case "REQUESTED": return "학습 실행을 기다리는 중이라 아직 검토할 수 없습니다.";
+    case "RUNNING": return "학습이 끝나 CANDIDATE가 되면 지표를 검토할 수 있습니다.";
+    default: return "실패한 학습입니다. 실행 로그를 확인한 뒤 새 학습을 시작하세요.";
+  }
 }
 
 function resourceName(value: string | null | undefined) {
@@ -188,6 +220,10 @@ export function ModelManagementPage() {
   const actionRequiredRuns = runs.filter((run) => ACTION_REQUIRED_STATUSES.has(run.status));
   const recommendation = details?.tags.promotion_recommendation ?? "NOT_AVAILABLE";
   const selectedDataset = datasets.find((dataset) => dataset.id === selectedRun?.dataset_version_id);
+  const isCurrentProduction = Boolean(selectedRun && productionRun && selectedRun.id === productionRun.id);
+  const canReview = selectedRun?.status === "CANDIDATE";
+  const canPromote = selectedRun ? ["STAGED", "DEPLOYMENT_FAILED"].includes(selectedRun.status) : false;
+  const canComplete = selectedRun?.status === "PROMOTING";
 
   const nextAction = (() => {
     if (!latestDataset) return { label: "데이터셋 생성", detail: "학습에 사용할 데이터 버전을 먼저 준비하세요.", tone: "accent" };
@@ -333,20 +369,42 @@ export function ModelManagementPage() {
           <section className="model-workspace">
             <article className="admin-panel runs-panel">
               <div className="panel-title split"><div><p className="admin-eyebrow">TRAINING RUNS</p><h2>학습 실행 이력</h2><small>행을 선택하면 MLflow 원본 지표와 배포 상태를 조회합니다.</small></div><button className="admin-button compact" disabled={isBusy || isListsLoading || isServingLoading} onClick={() => void refresh()} type="button">{isListsLoading || isServingLoading ? "새로고침 중..." : "상태 새로고침"}</button></div>
-              <div className="admin-table-wrap"><table><thead><tr><th>Run</th><th>데이터셋</th><th>상태</th><th>MLflow Run</th><th>실행 시각</th></tr></thead><tbody>{runs.map((run) => <tr className={selectedRunId === run.id ? "selected" : ""} key={run.id}><td><button className="table-run-button" onClick={() => void loadDetails(run)} type="button">#{run.id}</button></td><td>{datasets.find((item) => item.id === run.dataset_version_id)?.version ?? `#${run.dataset_version_id}`}</td><td><em className={`status ${run.status.toLowerCase()}`}>{STATUS_LABELS[run.status]}</em></td><td>{run.mlflow_run_id?.slice(0, 10) ?? "—"}</td><td>{formatDate(run.created_at)}</td></tr>)}</tbody></table></div>
+              <div className="admin-table-wrap"><table><thead><tr><th>Run</th><th>데이터셋</th><th>상태</th><th>MLflow Run</th><th>실행 시각</th></tr></thead><tbody>{runs.map((run) => {
+                const isPreviousProduction = run.status === "PRODUCTION" && run.id !== productionRun?.id;
+                return <tr className={selectedRunId === run.id ? "selected" : ""} key={run.id}><td><button className="table-run-button" onClick={() => void loadDetails(run)} type="button">#{run.id}</button></td><td>{datasets.find((item) => item.id === run.dataset_version_id)?.version ?? `#${run.dataset_version_id}`}</td><td><em className={`status ${isPreviousProduction ? "previous-production" : run.status.toLowerCase()}`}>{isPreviousProduction ? "이전 운영" : STATUS_LABELS[run.status]}</em></td><td>{run.mlflow_run_id?.slice(0, 10) ?? "—"}</td><td>{formatDate(run.created_at)}</td></tr>;
+              })}</tbody></table></div>
             </article>
 
             <aside aria-busy={isDetailsLoading} className="admin-panel model-detail">
-              <div className="panel-title split"><div><p className="admin-eyebrow">MODEL DETAIL</p><h2>{selectedRun ? `Run #${selectedRun.id}${details ? ` · model v${details.model_version}` : ""}` : "학습 Run 선택"}</h2><small>{selectedDataset?.version ?? "MLflow 원본 지표를 조회합니다."}</small></div>{details && <em className="recommendation">{recommendation.replaceAll("_", " ")}</em>}</div>
+              <div className="panel-title split"><div><p className="admin-eyebrow">MODEL PERFORMANCE</p><h2>{selectedRun ? `Run #${selectedRun.id}${details ? ` · model v${details.model_version}` : ""}` : "학습 Run 선택"}</h2><small>{isCurrentProduction ? "현재 운영 모델의 기준 성능입니다." : "선택 모델을 현재 운영 모델과 비교합니다."}</small></div>{details && <em className="recommendation">{recommendation.replaceAll("_", " ")}</em>}</div>
               {isDetailsLoading ? <div className="model-detail-loading" role="status"><i aria-hidden="true" /><strong>MLflow 모델 정보를 불러오는 중입니다.</strong><span>선택한 Run의 지표와 배포 상태를 확인하고 있습니다.</span></div> : <>
-                <div className="metric-pairs">{[["PR-AUC", metric(details, "validation_pr_auc")], ["ROC-AUC", metric(details, "validation_roc_auc")], ["Recall", metric(details, "validation_recall")], ["F1 Score", metric(details, "validation_f1")], ["Precision", metric(details, "validation_precision")], ["FPR", metric(details, "validation_fpr")]].map(([label, value]) => <div key={String(label)}><span>{label}</span><strong>{metricText(value as number | null)}</strong></div>)}</div>
+                <div className="model-comparison" role="table" aria-label="선택 모델과 현재 운영 모델 성능 비교">
+                  <div className="model-comparison-row model-comparison-header" role="row">
+                    <span role="columnheader">성능 지표</span><span role="columnheader">선택 모델</span><span role="columnheader">운영 모델</span><span role="columnheader">차이</span>
+                  </div>
+                  {COMPARISON_METRICS.map(({ label, keys, lowerIsBetter }) => {
+                    const selectedValue = metric(details, ...keys);
+                    const productionValue = metric(productionDetails, ...keys);
+                    const delta = selectedValue !== null && productionValue !== null ? selectedValue - productionValue : null;
+                    const deltaTone = delta === null || delta === 0 ? "same" : (lowerIsBetter ? delta < 0 : delta > 0) ? "better" : "worse";
+                    return <div className="model-comparison-row" role="row" key={label}>
+                      <strong role="cell">{label}<small>{lowerIsBetter ? "낮을수록 좋음" : "높을수록 좋음"}</small></strong>
+                      <span role="cell">{metricText(selectedValue)}</span>
+                      <span role="cell">{metricText(productionValue)}</span>
+                      <em className={deltaTone} role="cell">{isCurrentProduction && delta !== null ? "기준" : metricDeltaText(delta)}</em>
+                    </div>;
+                  })}
+                </div>
                 {selectedRun?.status === "CANDIDATE" && <p className="review-note"><strong>검토 필요</strong>ML Serving CD에서 이 모델 버전의 0% 후보 revision을 준비한 뒤 승인하세요.</p>}
-                {selectedRun && <div className="model-actions">
-                  <button className="admin-button danger-button" disabled={selectedRun.status !== "CANDIDATE" || isBusy} onClick={() => void decide("REJECT")} type="button">후보 거절</button>
-                  <button className="admin-button primary" disabled={selectedRun.status !== "CANDIDATE" || isBusy} onClick={() => void decide("APPROVE")} type="button">승인 후 STAGED</button>
-                  <button className="admin-button primary wide" disabled={!(["STAGED", "DEPLOYMENT_FAILED"] as string[]).includes(selectedRun.status) || isBusy} onClick={() => setDialog("promotion")} type="button">예측 검증 후 100% 전환</button>
-                  <button className="admin-button wide" disabled={selectedRun.status !== "PROMOTING" || isBusy} onClick={() => void complete()} type="button">배포 완료 확인</button>
-                </div>}
+                {selectedRun && <>
+                  <p className="model-action-guide" id="model-action-guide"><strong>{selectedRun.status === "PRODUCTION" && !isCurrentProduction ? "이전 운영" : STATUS_LABELS[selectedRun.status]}</strong>{actionGuide(selectedRun, isCurrentProduction)}</p>
+                  <div className="model-actions">
+                    <button aria-describedby="model-action-guide" className="admin-button danger-button" disabled={!canReview || isBusy} onClick={() => void decide("REJECT")} title={canReview ? "이 후보 모델을 거절합니다." : "CANDIDATE 상태에서만 가능합니다."} type="button">후보 거절</button>
+                    <button aria-describedby="model-action-guide" className="admin-button primary" disabled={!canReview || isBusy} onClick={() => void decide("APPROVE")} title={canReview ? "후보를 승인하고 0% 검증 상태로 전환합니다." : "CANDIDATE 상태에서만 가능합니다."} type="button">승인 후 STAGED</button>
+                    <button aria-describedby="model-action-guide" className="admin-button primary wide" disabled={!canPromote || isBusy} onClick={() => setDialog("promotion")} title={canPromote ? "실제 거래로 검증한 뒤 운영 트래픽을 전환합니다." : "STAGED 또는 배포 실패 상태에서만 가능합니다."} type="button">예측 검증 후 100% 전환</button>
+                    <button aria-describedby="model-action-guide" className="admin-button wide" disabled={!canComplete || isBusy} onClick={() => void complete()} title={canComplete ? "Cloud Run 트래픽 전환 완료를 확인합니다." : "PROMOTING 상태에서만 가능합니다."} type="button">배포 완료 확인</button>
+                  </div>
+                </>}
               </>}
             </aside>
           </section>
