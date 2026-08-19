@@ -206,7 +206,6 @@ export function ModelTrainingPage() {
           </button>
         </>
       )}
-      title="학습 · Run 관리"
     >
       {error && <AdminAlert message={error} onDismiss={() => setError(null)} tone="error" />}
       {notice && <AdminAlert message={notice} onDismiss={() => setNotice(null)} tone="success" />}
