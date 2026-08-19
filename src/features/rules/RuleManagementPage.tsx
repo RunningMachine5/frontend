@@ -169,7 +169,7 @@ export function RuleManagementPage() {
     <AppLayout activeNav="rules">
       <section className="admin-page rule-admin-page">
         <header className="app-page-header admin-header">
-          <PageHeading eyebrow="RULE GOVERNANCE" title="룰 규칙 관리" />
+          <PageHeading eyebrow="RULE MANAGEMENT" title="룰 관리" />
           <div className="admin-actions">
             <button className="admin-button" onClick={() => setDialog("features")} type="button">Feature 목록</button>
             <button

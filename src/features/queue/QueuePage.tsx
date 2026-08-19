@@ -1,6 +1,5 @@
 import { type FormEvent, useEffect, useMemo, useState } from "react";
 
-import { LiveStatus } from "../../components/layout/LiveStatus";
 import { CaseAnalysisPageShell } from "../caseAnalysis/CaseAnalysisPageShell";
 import type { CaseListItem, QueueSearchFilters } from "./queueTypes";
 import { useQueue } from "./useQueue";
@@ -152,7 +151,7 @@ export function QueuePage() {
     setFilters((current) => ({ ...current, page }));
   }
 
-  return <CaseAnalysisPageShell activeSection="search" actions={<LiveStatus label="실시간 데이터 수신" />} contentClassName="queue-content" headerClassName="queue-header">
+  return <CaseAnalysisPageShell activeSection="search" contentClassName="queue-content" headerClassName="queue-header">
     <form className="queue-filter" onSubmit={submitSearch}>
       <label>거래 ID<input min="1" onChange={(event) => setDraftFilters((current) => ({ ...current, transactionId: event.target.value }))} placeholder="예: 1453" type="number" value={draftFilters.transactionId} /></label>
       <label>IP 주소<input onChange={(event) => setDraftFilters((current) => ({ ...current, ipAddress: event.target.value }))} placeholder="예: 203.0.113.10" value={draftFilters.ipAddress} /></label>

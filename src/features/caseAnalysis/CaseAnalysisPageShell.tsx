@@ -35,7 +35,7 @@ export function CaseAnalysisPageShell({
     <AppLayout activeNav="analysis">
       <section className={contentClassName}>
         <header className={headerClasses}>
-          <PageHeading eyebrow="CASE INVESTIGATION" title="이상거래 분석" />
+          <PageHeading eyebrow="FRAUD ANALYSIS" title="이상거래 분석" />
           {actions}
         </header>
         <nav aria-label="이상거래 분석 메뉴" className="case-analysis-nav">
