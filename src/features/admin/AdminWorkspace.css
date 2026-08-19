@@ -157,6 +157,7 @@
 
 /* 모델 관리는 역할별 화면을 나누되 같은 운영 콘솔 구조를 사용한다. */
 .model-section-page{min-height:100vh;box-sizing:border-box}
+.model-overview-action{min-height:48px;padding:0 22px;display:inline-flex;align-items:center;justify-content:center;font-size:14px;white-space:nowrap}
 .model-section-nav{height:46px;flex:0 0 46px;border-bottom:1px solid #34343e;display:flex;align-items:flex-end;gap:6px}
 .model-section-nav a{height:38px;padding:0 16px;border-radius:8px 8px 0 0;display:flex;align-items:center;color:#888c99;font-size:12px;font-weight:700;text-decoration:none}
 .model-section-nav a:hover{color:#f1f1f7;background:#202028}
@@ -220,5 +221,5 @@
 }
 
 @media(max-width:620px){
-  .model-command-grid{grid-template-columns:minmax(0,1fr)}.production-live-state{align-items:flex-start;flex-direction:column}.production-facts,.model-context-strip,.run-detail-header dl,.monitoring-summary-grid{grid-template-columns:1fr}.run-detail-identity{min-width:0;align-items:flex-start;flex-direction:column}.run-action-buttons{grid-template-columns:1fr}
+  .model-overview-action{width:100%;box-sizing:border-box;grid-column:1/-1}.model-command-grid{grid-template-columns:minmax(0,1fr)}.production-live-state{align-items:flex-start;flex-direction:column}.production-facts,.model-context-strip,.run-detail-header dl,.monitoring-summary-grid{grid-template-columns:1fr}.run-detail-identity{min-width:0;align-items:flex-start;flex-direction:column}.run-action-buttons{grid-template-columns:1fr}
 }
