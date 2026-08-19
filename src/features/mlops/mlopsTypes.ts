@@ -56,6 +56,13 @@ export type ServingStatus = {
   }[];
 };
 
+export type InferencePerformance = {
+  window_minutes: number;
+  inference_count: number;
+  p95_latency_ms: number | null;
+  latest_inference_at: string | null;
+};
+
 export type TrainingActionResult = {
   training_run: TrainingRun;
   operation_id?: string | null;
