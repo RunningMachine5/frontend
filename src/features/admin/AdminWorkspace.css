@@ -235,3 +235,149 @@
   .model-overview-action{width:100%;box-sizing:border-box;grid-column:1/-1}.model-command-grid{grid-template-columns:minmax(0,1fr)}.production-live-state{align-items:flex-start;flex-direction:column}.production-facts,.model-context-strip,.run-detail-header dl,.monitoring-summary-grid{grid-template-columns:1fr}.run-detail-identity{min-width:0;align-items:flex-start;flex-direction:column}.run-action-buttons{grid-template-columns:1fr}
   .labeling-status-strip{grid-template-columns:1fr}.labeling-status-strip button{border-right:0;border-bottom:1px solid #383842}.labeling-status-strip button:last-child{border-bottom:0}.labeling-filters{grid-template-columns:1fr}.labeling-action-row{grid-template-columns:1fr 1fr}.label-action{min-height:46px}.labeling-detail-header{align-items:flex-start;flex-direction:column}.labeling-detail-grid,.signal-section ul{grid-template-columns:1fr 1fr}.labeling-decision-band{grid-template-columns:1fr}.labeling-decision-band>div{border-right:0;border-bottom:1px solid #34343e}.labeling-decision-band>div:last-child{border-bottom:0}
 }
+
+/*
+ * 1920 운영 화면은 정보량을 유지하되 8~10px 보조문구를 읽기 쉬운 크기로 올린다.
+ * 카드 구조나 색은 그대로 두고 룰·모델 관리 화면의 글자 위계만 맞춘다.
+ */
+@media(min-width:1600px) and (min-height:800px){
+  .rule-admin-page .admin-header>div>p:last-child,
+  .model-section-page .admin-header>div>p:last-child{font-size:14px;line-height:1.5}
+  .rule-admin-page .admin-eyebrow,
+  .model-section-page .admin-eyebrow{font-size:12px}
+  .rule-admin-page .admin-button,
+  .model-section-page .admin-button{font-size:14px}
+  .rule-admin-page .admin-alert,
+  .model-section-page .admin-alert{font-size:13px}
+  .rule-admin-page .panel-title h2,
+  .model-section-page .panel-title h2{font-size:19px}
+  .rule-admin-page .panel-title small,
+  .model-section-page .panel-title small{font-size:13px;line-height:1.5}
+  .rule-admin-page .status,
+  .model-section-page .status{font-size:12px}
+  .rule-section-nav button,
+  .model-section-nav a{font-size:14px}
+
+  .version-list strong{font-size:15px}
+  .version-list small{font-size:12px}
+  .version-panel-actions small{font-size:11px;line-height:1.5}
+  .rule-tabs button{font-size:13px}
+  .component-list{grid-auto-rows:minmax(142px,max-content)}
+  .component-row strong{font-size:14px;line-height:1.4}
+  .component-row code{font-size:12px;line-height:1.55}
+  .component-row label{font-size:12px}
+  .component-row input{font-size:13px}
+  .rule-total,.rule-total strong{font-size:13px}
+  .editor-actions small{font-size:12px;line-height:1.5}
+
+  .rule-version-compare span,
+  .rule-version-compare small{font-size:11px}
+  .rule-version-compare strong{font-size:15px}
+  .verification-flow li>span{font-size:12px}
+  .verification-flow strong{font-size:13px}
+  .verification-flow small{font-size:11px}
+  .validation-report>strong{font-size:13px}
+  .validation-report code,
+  .validation-report span{font-size:11px}
+  .replay-config label,
+  .replay-config select{font-size:12px}
+  .replay-config p,
+  .action-guide{font-size:11px;line-height:1.55}
+  .report-scope{font-size:11px}
+  .replay-empty strong{font-size:16px}
+  .replay-empty p{font-size:12px}
+  .replay-summary-grid dt{font-size:11px}
+  .replay-summary-grid dd{font-size:19px}
+  .replay-summary-grid small{font-size:10px}
+  .report-section-title h3{font-size:14px}
+  .report-section-title p,
+  .report-section-title>em{font-size:11px}
+  .impact-table td strong{font-size:12px}
+  .impact-table td small{font-size:10px}
+  .transaction-delta,
+  .report-empty-row,
+  .report-footnote,
+  .error-report li{font-size:11px}
+  .feature-list strong{font-size:13px}
+  .feature-list code,
+  .feature-list span{font-size:11px}
+
+  .rule-admin-page table,
+  .model-section-page table{font-size:13px}
+  .rule-admin-page th,
+  .model-section-page th{font-size:12px}
+
+  .production-command>header small{font-size:12px}
+  .production-command-main h2{font-size:27px}
+  .production-command-main p{font-size:13px;line-height:1.55}
+  .production-live-state>strong{font-size:14px}
+  .traffic-ring.compact span{font-size:12px}
+  .production-facts dt{font-size:12px}
+  .production-facts dd{font-size:14px}
+  .overview-inference-strip span{font-size:12px}
+  .overview-inference-strip strong small{font-size:11px}
+  .model-action-inbox h2{font-size:19px}
+  .model-action-list>a strong{font-size:14px}
+  .model-action-list>a span{font-size:12px}
+  .model-empty-state strong{font-size:14px}
+  .model-empty-state span{font-size:12px;line-height:1.5}
+  .inbox-footer-link{font-size:13px}
+  .model-context-strip span{font-size:12px}
+  .model-context-strip strong{font-size:16px}
+  .model-context-strip small{font-size:11px}
+  .model-context-strip a{font-size:12px}
+
+  .workflow-step strong{font-size:14px}
+  .workflow-step span{font-size:12px}
+  .model-comparison-row>strong{font-size:13px}
+  .model-comparison-row>strong small{font-size:10px}
+  .model-comparison-header>span{font-size:11px}
+  .dataset-ledger-list header strong{font-size:14px}
+  .dataset-ledger-list header em{font-size:10px}
+  .dataset-ledger-list dt{font-size:11px}
+  .dataset-ledger-list dd{font-size:12px}
+  .dataset-ledger-list article>small{font-size:11px}
+  .run-id-label,
+  .table-action-button,
+  .row-open-hint{font-size:12px}
+  .table-empty{font-size:13px}
+
+  .labeling-status-strip span{font-size:12px}
+  .labeling-status-strip small{font-size:10px}
+  .labeling-filters input,
+  .labeling-filters select,
+  .labeling-filters form button{font-size:12px}
+  .labeling-filters label span{font-size:9px}
+  .labeling-row-main strong,
+  .labeling-row-main b{font-size:13px}
+  .labeling-row-main small{font-size:11px}
+  .labeling-row-state em{font-size:10px}
+  .labeling-pagination,
+  .labeling-pagination button{font-size:11px}
+  .labeling-detail-header>div>span{font-size:11px}
+  .labeling-decision-band span{font-size:11px}
+  .labeling-decision-band small{font-size:10px}
+  .labeling-detail-section h3{font-size:14px}
+  .labeling-detail-section header span,
+  .labeling-detail-grid dt,
+  .signal-section li span{font-size:10px}
+  .labeling-detail-grid dd,
+  .signal-section li strong{font-size:12px}
+
+  .monitoring-range-control button{font-size:12px}
+  .monitoring-freshness span,
+  .monitoring-freshness em,
+  .monitoring-freshness>p{font-size:11px}
+  .monitoring-freshness>div strong{font-size:12px}
+  .monitoring-summary-grid span{font-size:11px}
+  .monitoring-summary-grid strong small,
+  .monitoring-summary-grid p{font-size:10px}
+  .monitoring-chart-panel h2{font-size:15px}
+  .monitoring-chart-panel header p,
+  .chart-legend span{font-size:10px}
+  .metric-chart text{font-size:10px}
+  .chart-empty{font-size:12px}
+  .monitoring-inference-note,
+  .monitoring-inference-note em{font-size:11px}
+  .monitoring-inference-note strong{font-size:12px}
+}
