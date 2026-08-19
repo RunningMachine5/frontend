@@ -2,7 +2,7 @@
 
 .dashboard-content{overflow-y:auto}
 .bubble strong{max-width:calc(100% - 8px);overflow-wrap:normal;word-break:keep-all}
-.dashboard-monitoring-grid{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(390px,1fr);grid-template-areas:"trend risk" "agent supporting";gap:16px}
+.dashboard-monitoring-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));grid-template-areas:"trend risk" "agent supporting";gap:16px}
 .dashboard-monitoring-grid>.priority-panel{grid-area:trend}
 .dashboard-monitoring-grid>.risk-panel{grid-area:risk}
 .dashboard-monitoring-grid>.agent-panel{grid-area:agent}
@@ -30,7 +30,7 @@
   .metric-card{height:100%;min-height:0;padding:12px 18px}
   .metric-card>strong{margin-top:4px;font-size:25px}
   .metric-card small{margin-top:4px}
-  .dashboard-monitoring-grid{height:100%;min-height:0;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);grid-template-rows:150px minmax(0,calc(50% - 165px)) minmax(0,calc(50% - 5px));grid-template-areas:"trend risk" "trend suspicious" "channel agent";gap:10px}
+  .dashboard-monitoring-grid{height:100%;min-height:0;grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:150px minmax(0,calc(50% - 165px)) minmax(0,calc(50% - 5px));grid-template-areas:"trend risk" "trend suspicious" "channel agent";gap:10px}
   .top-grid,.bottom-grid{height:100%;min-height:0;gap:10px;margin:0}
   .top-grid{grid-template-columns:minmax(0,1.25fr) minmax(0,1fr)}
   .bottom-grid{grid-template-columns:minmax(0,1.12fr) minmax(0,1fr)}
