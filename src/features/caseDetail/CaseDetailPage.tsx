@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 
-import { AppLayout } from "../../components/layout/AppLayout";
-import { PageHeading } from "../../components/layout/PageHeading";
+import { CaseAnalysisPageShell } from "../caseAnalysis/CaseAnalysisPageShell";
 import type {
   CaseReviewUpsertRequest,
   ReviewDecision,
@@ -173,11 +172,11 @@ export function CaseDetailPage() {
   }, [detail]);
 
   if (transactionId === null) {
-    return <AppLayout activeNav="analysis"><main className="case-state">처리 페이지에서 분석할 거래를 먼저 선택해주세요.</main></AppLayout>;
+    return <CaseAnalysisPageShell activeSection="detail" contentClassName="case-content" headerClassName="case-header"><main className="case-state">거래 탐색 탭에서 분석할 거래를 먼저 선택해주세요.</main></CaseAnalysisPageShell>;
   }
-  if (isLoading) return <AppLayout activeNav="analysis"><main className="case-state">사건 상세 정보를 불러오는 중...</main></AppLayout>;
+  if (isLoading) return <CaseAnalysisPageShell activeSection="detail" contentClassName="case-content" headerClassName="case-header"><main className="case-state">사건 상세 정보를 불러오는 중...</main></CaseAnalysisPageShell>;
   if (errorMessage || !detail) {
-    return <AppLayout activeNav="analysis"><main className="case-state">오류: {errorMessage ?? "표시할 사건 데이터가 없습니다."}</main></AppLayout>;
+    return <CaseAnalysisPageShell activeSection="detail" contentClassName="case-content" headerClassName="case-header"><main className="case-state">오류: {errorMessage ?? "표시할 사건 데이터가 없습니다."}</main></CaseAnalysisPageShell>;
   }
 
   const caseId = detail.case_id;
@@ -240,15 +239,15 @@ export function CaseDetailPage() {
   }
 
   return (
-    <AppLayout activeNav="analysis">
-      <section className="case-content">
-        <header className="app-page-header case-header">
-          <PageHeading eyebrow="CASE INVESTIGATION" title="FDS 이상거래 분석" />
-          <div className="case-wing-rail" aria-label="사건 보조 패널">
-            <button className={openWing === "chat" ? "case-wing-tab active" : "case-wing-tab"} onClick={() => setOpenWing(openWing === "chat" ? null : "chat")} type="button">사건 소통</button>
-            <button className={openWing === "review" ? "case-wing-tab active" : "case-wing-tab"} onClick={() => setOpenWing(openWing === "review" ? null : "review")} type="button">최종 판정</button>
-          </div>
-        </header>
+    <CaseAnalysisPageShell
+      activeSection="detail"
+      actions={<div className="case-wing-rail" aria-label="사건 보조 패널">
+        <button className={openWing === "chat" ? "case-wing-tab active" : "case-wing-tab"} onClick={() => setOpenWing(openWing === "chat" ? null : "chat")} type="button">사건 소통</button>
+        <button className={openWing === "review" ? "case-wing-tab active" : "case-wing-tab"} onClick={() => setOpenWing(openWing === "review" ? null : "review")} type="button">최종 판정</button>
+      </div>}
+      contentClassName="case-content"
+      headerClassName="case-header"
+    >
 
         <section className="case-hero">
           <div><span className="case-label">CASE ID</span><strong>{detail.case_id}</strong><span className="case-transaction">거래 #{detail.transaction_id}</span></div>
@@ -288,8 +287,6 @@ export function CaseDetailPage() {
             <div className="checklist-section"><div className="case-panel-head"><div><p className="case-eyebrow">REVIEW CHECKLIST</p><h2>체크리스트</h2></div><span>{checkedItems.size}/{checklist.length} 완료</span></div>{checklist.length > 0 ? <ul className="checklist">{checklist.map((item) => <li className={checkedItems.has(item.item_code) ? "checked" : ""} key={item.item_code}><label><input checked={checkedItems.has(item.item_code)} onChange={() => toggleSet(setCheckedItems, item.item_code)} type="checkbox" /><span>{item.label}</span></label>{item.required && <em>필수</em>}</li>)}</ul> : <EmptyData message="Agent 체크리스트가 없습니다." />}</div>
           </article>
         </section>
-      </section>
-
       {openWing && (
         <aside className="case-wing-drawer" aria-label={openWing === "chat" ? "사건 소통 및 처리 이력" : "최종 판정 및 처리"}>
           <header><div><p className="case-eyebrow">{openWing === "chat" ? "CASE ACTIVITY" : "REVIEW ACTION"}</p><h2>{openWing === "chat" ? "사건 소통 및 처리 이력" : "최종 판정 및 처리"}</h2></div><button aria-label="패널 닫기" onClick={() => setOpenWing(null)} type="button">×</button></header>
@@ -309,6 +306,6 @@ export function CaseDetailPage() {
           )}
         </aside>
       )}
-    </AppLayout>
+    </CaseAnalysisPageShell>
   );
 }

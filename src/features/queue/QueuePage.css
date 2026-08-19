@@ -6,17 +6,17 @@
 /* 데스크톱에서는 표만 남은 높이를 사용하고, 페이지 자체는 한 화면에 고정한다. */
 @media(min-width:1440px) and (min-height:800px){
   .queue-content{height:100vh;padding:20px 28px;display:flex;flex-direction:column;overflow:hidden}
-  .queue-header{min-height:68px;flex:0 0 68px;padding-bottom:10px}
+  .queue-header{min-height:60px;flex:0 0 60px;padding-bottom:8px}
   .queue-header h1{margin:3px 0;font-size:26px}
-  .queue-filter{flex:0 0 auto;margin:10px 0 8px;padding:10px 14px}
+  .queue-filter{flex:0 0 auto;margin:8px 0 6px;padding:8px 14px}
   .queue-summary{min-height:56px;flex:0 0 56px;margin-bottom:8px}
   .queue-summary div{padding:8px 16px}
   .queue-panel{min-height:0;padding:12px 15px}
-  .scatter-panel{min-height:310px;flex:0 0 310px;margin-bottom:8px}
+  .scatter-panel{min-height:292px;flex:0 0 292px;margin-bottom:8px}
   .queue-scatter{margin-top:8px}
-  .scatter-scale,.scatter-plot{height:200px}
-  .scatter-scale span{height:66px}
-  .scatter-plot{background:repeating-linear-gradient(to bottom,transparent 0,transparent 65px,#343440 66px)}
+  .scatter-scale,.scatter-plot{height:182px}
+  .scatter-scale span{height:60px}
+  .scatter-plot{background:repeating-linear-gradient(to bottom,transparent 0,transparent 59px,#343440 60px)}
   .queue-table-panel{flex:1;display:flex;flex-direction:column;padding-bottom:8px;overflow:hidden}
   .queue-table-wrap{min-height:0;flex:1;margin-top:8px;overflow:auto;scrollbar-gutter:stable}
   .queue-table-wrap th,.queue-table-wrap td{padding:8px}
