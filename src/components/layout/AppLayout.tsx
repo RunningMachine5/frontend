@@ -47,7 +47,6 @@ export function AppLayout({ activeNav, children }: AppLayoutProps) {
             </a>
           ))}
         </nav>
-        <div className="app-system-status"><i />데이터 스트림 연결됨<small>SSE 실시간 갱신</small></div>
       </aside>
       <a aria-label="FDShield 이상거래 감시" className="app-mobile-brand" href="/#main">
         <BrandMark />
