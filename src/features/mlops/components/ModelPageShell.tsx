@@ -6,7 +6,7 @@ import { Link } from "react-router-dom";
 import { AppLayout } from "../../../components/layout/AppLayout";
 import "../../admin/AdminWorkspace.css";
 
-type ModelSection = "overview" | "training" | "monitoring";
+type ModelSection = "overview" | "labeling" | "training" | "monitoring";
 
 type ModelPageShellProps = {
   activeSection: ModelSection;
@@ -18,6 +18,7 @@ type ModelPageShellProps = {
 
 const sections: { id: ModelSection; label: string; to: string }[] = [
   { id: "overview", label: "운영 현황", to: "/models" },
+  { id: "labeling", label: "거래 라벨링", to: "/models/labeling" },
   { id: "training", label: "학습 · Run", to: "/models/training" },
   { id: "monitoring", label: "성능 모니터링", to: "/models/monitoring" },
 ];
