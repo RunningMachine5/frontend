@@ -51,7 +51,7 @@ export function DashboardPage() {
 
   return <AppLayout activeNav="dashboard">
     <div className="dashboard-content" id="main">
-      <header className="app-page-header dashboard-header"><PageHeading eyebrow="LIVE OPERATIONS" title="통합 모니터링" /><div className="header-actions"><LiveStatus label="SSE 실시간 연결됨" /></div></header>
+      <header className="app-page-header dashboard-header"><PageHeading eyebrow="RISK OVERVIEW" title="이상거래 현황" /><div className="header-actions"><LiveStatus label="SSE 실시간 연결됨" /></div></header>
       {errorMessage && <p className="refresh-error">최근 갱신 실패: {errorMessage}</p>}
 
       <DashboardSummaryCards summary={data.summary} />
