@@ -9,7 +9,9 @@ function ChannelBubbles({ items }: { items: DistributionItem[] }) {
   return <div className="bubble-stage">
     {topItems.map((item, index) => {
       const size = 42 + Math.sqrt(item.count / maxCount) * 72;
-      return <div className={`bubble bubble-${index}`} key={item.label} style={{ ...positions[index], height: size, width: size }} title={`${item.label}: ${formatNumber(item.count)}건 / ${formatMoney(item.amount)}`}><strong>{item.label}</strong><span>{formatNumber(item.count)}건</span></div>;
+      const labelSize = Math.max(9, Math.min(14, size * 0.13));
+      const countSize = Math.max(8, Math.min(11, size * 0.1));
+      return <div className={`bubble bubble-${index}`} key={item.label} style={{ ...positions[index], height: size, width: size }} title={`${item.label}: ${formatNumber(item.count)}건 / ${formatMoney(item.amount)}`}><strong style={{ fontSize: labelSize }}>{item.label}</strong><span style={{ fontSize: countSize }}>{formatNumber(item.count)}건</span></div>;
     })}
     <div className="bubble-legend">{topItems.map((item, index) => <span key={item.label}><i className={`bubble-dot bubble-${index}`} />{item.label}</span>)}</div>
   </div>;
