@@ -12,11 +12,11 @@
   .queue-summary{min-height:56px;flex:0 0 56px;margin-bottom:8px}
   .queue-summary div{padding:8px 16px}
   .queue-panel{min-height:0;padding:12px 15px}
-  .scatter-panel{min-height:245px;flex:0 0 245px;margin-bottom:8px}
-  .queue-scatter{margin-top:8px}
-  .scatter-scale,.scatter-plot{height:150px}
-  .scatter-scale span{height:50px}
-  .scatter-plot{background:repeating-linear-gradient(to bottom,transparent 0,transparent 49px,#343440 50px)}
+  .scatter-panel{min-height:330px;flex:0 0 330px;margin-bottom:8px}
+  .queue-scatter{margin-top:10px}
+  .scatter-scale,.scatter-plot{height:225px}
+  .scatter-scale span{height:75px}
+  .scatter-plot{background:repeating-linear-gradient(to bottom,transparent 0,transparent 74px,#343440 75px)}
   .queue-table-panel{flex:1;display:flex;flex-direction:column;padding-bottom:8px;overflow:hidden}
   .queue-table-wrap{min-height:0;flex:1;margin-top:8px;overflow:auto;scrollbar-gutter:stable}
   .queue-table-wrap table{font-size:13px}
@@ -34,11 +34,11 @@
   .queue-summary strong{font-size:19px}
   .queue-panel-head h2{font-size:18px}
 
-  .scatter-panel{min-height:220px;flex:0 0 220px;margin-bottom:6px}
-  .queue-scatter{margin-top:6px}
-  .scatter-scale,.scatter-plot{height:135px}
-  .scatter-scale span{height:45px}
-  .scatter-plot{background:repeating-linear-gradient(to bottom,transparent 0,transparent 44px,#343440 45px)}
+  .scatter-panel{min-height:280px;flex:0 0 280px;margin-bottom:6px}
+  .queue-scatter{margin-top:8px}
+  .scatter-scale,.scatter-plot{height:180px}
+  .scatter-scale span{height:60px}
+  .scatter-plot{background:repeating-linear-gradient(to bottom,transparent 0,transparent 59px,#343440 60px)}
   .scatter-scale,.scatter-time-axis,.scatter-caption{font-size:12px}
 
   .queue-table-panel{flex:1;display:flex;flex-direction:column;padding-bottom:6px;overflow:hidden}
