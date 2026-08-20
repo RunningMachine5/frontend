@@ -108,7 +108,6 @@ function ScatterChart({ rows }: { rows: CaseListItem[] }) {
         ? <><span>{formatAxisTime(minTime)}</span><span>{formatAxisTime(middleTime)}</span><span>{formatAxisTime(maxTime)}</span></>
         : <span>조회 결과 없음</span>}
     </div>
-    <div className="scatter-caption"><span>현재 페이지 위험점수 분포</span><span>거래 시각(시:분:초) →</span></div>
   </div>;
 }
 
@@ -223,7 +222,7 @@ export function QueuePage() {
     </form>
     <section className="queue-summary"><div><span>검색 결과</span><strong>{totalCount.toLocaleString()}건</strong></div><div><span>현재 페이지</span><strong>{rows.length}건</strong></div><div><span>현재 페이지 HIGH 이상</span><strong>{highCount}건</strong></div><div><span>현재 페이지 거래 금액</span><strong>{pageAmount.toLocaleString()}원</strong></div></section>
     {isLoading ? <div className="queue-state">처리 목록을 불러오는 중...</div> : errorMessage ? <div className="queue-state">오류: {errorMessage}</div> : <>
-      <section className="queue-panel scatter-panel"><div className="queue-panel-head"><div><p>RISK DISTRIBUTION</p><h2>최근 의심 거래 위험도 분포</h2></div><span>점 클릭 시 상세 이동</span></div><ScatterChart rows={rows} /></section>
+      <section className="queue-panel scatter-panel"><div className="queue-panel-head"><div><p>RISK DISTRIBUTION</p><h2>최근 의심 거래 위험도 분포</h2></div><span>거래 시각별 위험도 · 점 클릭 시 상세 이동</span></div><ScatterChart rows={rows} /></section>
       <section className="queue-panel queue-table-panel">
         <div className="queue-panel-head"><div><p>CASE LIST</p><h2>이상거래 검색 결과</h2></div><span>{totalCount}건</span></div>
         <div className="queue-dual-table-wrap">
