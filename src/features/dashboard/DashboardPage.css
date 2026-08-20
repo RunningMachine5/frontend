@@ -63,6 +63,22 @@
   .agent-summary p{margin:5px 0 6px}
 }
 
+/* 1920×1080 시연에서는 보조 문구도 멀리서 읽을 수 있는 크기를 유지한다. */
+@media(min-width:1600px) and (min-height:900px){
+  .panel-caption{font-size:13px}
+  .metric-card small{font-size:12px}
+  .chart-legend,.trend-panel-meta{font-size:12px}
+  .trend-panel-meta strong{font-size:12px}
+  .chart-axis{font-size:11px}
+  .chart-value{font-size:12px}
+  .risk-detail,.risk-panel footer{font-size:12px}
+  .mini-chart-meta{font-size:12px}
+  .mini-bar-column{font-size:11px}
+  .bubble strong{font-size:12px}
+  .bubble span,.bubble-legend{font-size:11px}
+  .agent-summary span{font-size:12px}
+}
+
 /* 중간 화면에서는 카드 크기를 먼저 줄이고, 좁아지면 열을 접어 가로 잘림을 막는다. */
 @media(min-width:821px) and (max-width:1439px){
   .dashboard-content{width:100%;padding:24px}
