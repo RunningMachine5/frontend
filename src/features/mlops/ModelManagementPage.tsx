@@ -28,42 +28,90 @@ import type {
 
 const OVERVIEW_REFRESH_MS = 15_000;
 
+interface ModelOverviewSnapshot {
+  datasets: DatasetVersion[];
+  runs: TrainingRun[];
+  serving: ServingStatus | null;
+  productionDetails: ModelDetails | null;
+  updatedAt: Date;
+}
+
+let overviewCache: ModelOverviewSnapshot | null = null;
+let overviewRequest: Promise<ModelOverviewSnapshot> | null = null;
+
+function getCachedOverview() {
+  if (!overviewCache) return null;
+  const age = Date.now() - overviewCache.updatedAt.getTime();
+  return age < OVERVIEW_REFRESH_MS ? overviewCache : null;
+}
+
+async function fetchOverview(force = false) {
+  const cached = getCachedOverview();
+  if (!force && cached) return cached;
+  if (overviewRequest) return overviewRequest;
+
+  const runsRequest = fetchTrainingRuns();
+  const detailsRequest = runsRequest.then((runs) => {
+    const productionRun = runs.find((run) => run.status === "PRODUCTION");
+    return productionRun?.mlflow_run_id
+      ? fetchModelDetails(productionRun.id).catch(() => null)
+      : null;
+  });
+
+  overviewRequest = Promise.all([
+    fetchDatasets(),
+    runsRequest,
+    fetchServingStatus().catch(() => null),
+    detailsRequest,
+  ]).then(([datasets, runs, serving, productionDetails]) => {
+    overviewCache = {
+      datasets,
+      runs,
+      serving,
+      productionDetails,
+      updatedAt: new Date(),
+    };
+    return overviewCache;
+  });
+
+  try {
+    return await overviewRequest;
+  } finally {
+    overviewRequest = null;
+  }
+}
+
 export function ModelManagementPage() {
-  const [datasets, setDatasets] = useState<DatasetVersion[]>([]);
-  const [runs, setRuns] = useState<TrainingRun[]>([]);
-  const [serving, setServing] = useState<ServingStatus | null>(null);
-  const [productionDetails, setProductionDetails] = useState<ModelDetails | null>(null);
-  const [updatedAt, setUpdatedAt] = useState<Date | null>(null);
+  const [overview, setOverview] = useState<ModelOverviewSnapshot | null>(() => getCachedOverview());
+  const [isRefreshing, setIsRefreshing] = useState(() => overview === null);
   const [error, setError] = useState<string | null>(null);
 
-  const loadOverview = useCallback(async () => {
-    if (document.visibilityState !== "visible") return;
+  const loadOverview = useCallback(async (force = false) => {
+    if (document.visibilityState !== "visible") return null;
+    setIsRefreshing(true);
     try {
-      const [datasetRows, trainingRows] = await Promise.all([
-        fetchDatasets(),
-        fetchTrainingRuns(),
-      ]);
-      setDatasets(datasetRows);
-      setRuns(trainingRows);
+      const nextOverview = await fetchOverview(force);
+      setOverview(nextOverview);
       setError(null);
+      return nextOverview;
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "모델 운영 정보를 불러오지 못했습니다.");
+      return null;
+    } finally {
+      setIsRefreshing(false);
     }
-
-    try {
-      setServing(await fetchServingStatus());
-    } catch {
-      setServing(null);
-    }
-    setUpdatedAt(new Date());
   }, []);
 
   useEffect(() => {
     let active = true;
     let timer: number | null = null;
-    const refresh = async () => {
-      await loadOverview();
-      if (active) timer = window.setTimeout(() => void refresh(), OVERVIEW_REFRESH_MS);
+    const refresh = async (force = false) => {
+      const snapshot = await loadOverview(force);
+      const cacheAge = snapshot ? Date.now() - snapshot.updatedAt.getTime() : 0;
+      const nextRefresh = snapshot
+        ? Math.max(1_000, OVERVIEW_REFRESH_MS - cacheAge)
+        : OVERVIEW_REFRESH_MS;
+      if (active) timer = window.setTimeout(() => void refresh(true), nextRefresh);
     };
     void refresh();
     return () => {
@@ -72,19 +120,12 @@ export function ModelManagementPage() {
     };
   }, [loadOverview]);
 
+  const datasets = overview?.datasets ?? [];
+  const runs = overview?.runs ?? [];
+  const serving = overview?.serving ?? null;
+  const productionDetails = overview?.productionDetails ?? null;
+  const updatedAt = overview?.updatedAt ?? null;
   const productionRun = runs.find((run) => run.status === "PRODUCTION") ?? null;
-
-  useEffect(() => {
-    if (!productionRun?.mlflow_run_id) {
-      setProductionDetails(null);
-      return;
-    }
-    let active = true;
-    void fetchModelDetails(productionRun.id)
-      .then((details) => { if (active) setProductionDetails(details); })
-      .catch(() => { if (active) setProductionDetails(null); });
-    return () => { active = false; };
-  }, [productionRun?.id, productionRun?.mlflow_run_id]);
 
   const latestDataset = datasets[0] ?? null;
   const latestRun = runs[0] ?? null;
@@ -108,7 +149,7 @@ export function ModelManagementPage() {
                 {productionRun ? "PRODUCTION" : "미배포"}
               </span>
             </div>
-            <small>{updatedAt ? `${formatClock(updatedAt)} 갱신` : "상태 확인 중"}</small>
+            <small>{isRefreshing && overview ? "상태 갱신 중" : updatedAt ? `${formatClock(updatedAt)} 갱신` : "상태 확인 중"}</small>
           </header>
           <div className="production-overview">
             <div className="production-overview-copy">
