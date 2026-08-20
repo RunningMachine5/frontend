@@ -287,3 +287,10 @@
 :root[data-theme="light"] .tooltip-amount,
 :root[data-theme="light"] .tooltip-action{color:var(--ops-focus)}
 :root[data-theme="light"] .chart-amount-label{fill:var(--ops-focus)}
+:root[data-theme="light"] .grade.very_high{color:var(--ops-critical)}
+:root[data-theme="light"] .grade.high{color:var(--ops-high)}
+:root[data-theme="light"] .grade.medium{color:var(--ops-medium)}
+:root[data-theme="light"] .grade.empty{color:var(--ops-text-subtle)}
+:root[data-theme="light"] .realtime-risk-panel .trend-stat-badge strong.score-text{color:var(--ops-critical)}
+:root[data-theme="light"] .queue-filter-actions button:last-child{border-color:var(--ops-focus);background:var(--ops-focus);color:#fff}
+:root[data-theme="light"] .queue-pagination button:disabled{border-color:var(--ops-disabled-line);background:var(--ops-disabled-bg);color:var(--ops-disabled-text);opacity:1}

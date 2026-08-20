@@ -258,16 +258,24 @@
 :root[data-theme="light"] .admin-button:hover:not(:disabled){border-color:var(--ops-focus);background:var(--ops-focus-soft)}
 :root[data-theme="light"] .admin-button.danger-button{border-color:rgb(200 71 81 / 38%);background:rgb(200 71 81 / 8%);color:var(--ops-critical)}
 :root[data-theme="light"] .admin-dialog label,
-:root[data-theme="light"] .replay-config label,
+:root[data-theme="light"] .replay-config label{color:var(--ops-text-muted)}
 :root[data-theme="light"] .admin-dialog input,
 :root[data-theme="light"] .admin-dialog select,
 :root[data-theme="light"] .admin-dialog textarea,
 :root[data-theme="light"] .component-row input,
-:root[data-theme="light"] .replay-config select,
+:root[data-theme="light"] .replay-config select{border-color:var(--ops-line-strong);background:var(--ops-surface);color:var(--ops-text)}
 :root[data-theme="light"] .admin-alert.error,
 :root[data-theme="light"] .validation-report,
 :root[data-theme="light"] .run-error-message{border-color:rgb(200 71 81 / 34%);background:rgb(200 71 81 / 7%);color:var(--ops-critical)}
+:root[data-theme="light"] .validation-report>strong,
+:root[data-theme="light"] .validation-report span,
+:root[data-theme="light"] .run-error-message strong,
+:root[data-theme="light"] .run-error-message span,
+:root[data-theme="light"] .error-report li,
+:root[data-theme="light"] .error-report li strong{color:var(--ops-critical)}
+:root[data-theme="light"] .error-report li{background:rgb(184 62 72 / 7%)}
 :root[data-theme="light"] .admin-alert.success{border-color:rgb(57 121 90 / 34%);background:rgb(57 121 90 / 8%);color:var(--ops-low)}
+:root[data-theme="light"] .admin-alert-dismiss:hover{background:var(--ops-focus-soft)}
 :root[data-theme="light"] .positive{color:var(--ops-low)!important}
 :root[data-theme="light"] .danger{color:var(--ops-critical)!important}
 :root[data-theme="light"] .increase{color:var(--ops-critical)!important}
@@ -307,6 +315,16 @@
 :root[data-theme="light"] .verification-flow li.active small,
 :root[data-theme="light"] .workflow-step.active small,
 :root[data-theme="light"] .workflow-step.active span{color:var(--ops-focus)}
+:root[data-theme="light"] .verification-flow li.complete>span,
+:root[data-theme="light"] .verification-flow li.complete small,
+:root[data-theme="light"] .workflow-step.complete small,
+:root[data-theme="light"] .workflow-step.complete span,
+:root[data-theme="light"] .model-comparison-row>em.better{color:var(--ops-low)}
+:root[data-theme="light"] .verification-flow li.error>span,
+:root[data-theme="light"] .verification-flow li.error small,
+:root[data-theme="light"] .workflow-step.error small,
+:root[data-theme="light"] .workflow-step.error span,
+:root[data-theme="light"] .model-comparison-row>em.worse{color:var(--ops-critical)}
 
 :root[data-theme="light"] .model-summary-details span{color:var(--ops-text-muted)}
 :root[data-theme="light"] .model-summary-details.workflow>li>i,
@@ -317,6 +335,11 @@
 :root[data-theme="light"] .labeling-row-state .label{background:var(--ops-surface-sunken);color:var(--ops-text-muted)}
 :root[data-theme="light"] .labeling-row-state .label.normal{background:rgb(57 121 90 / 10%);color:var(--ops-low)}
 :root[data-theme="light"] .labeling-row-state .label.fraud{background:rgb(200 71 81 / 10%);color:var(--ops-critical)}
+:root[data-theme="light"] .labeling-row-state .prediction.normal,
+:root[data-theme="light"] .labeling-decision-band strong.normal{color:var(--ops-low)}
+:root[data-theme="light"] .labeling-row-state .prediction.fraud,
+:root[data-theme="light"] .labeling-decision-band strong.fraud{color:var(--ops-critical)}
+:root[data-theme="light"] .labeling-decision-band strong.unlabeled{color:var(--ops-text-muted)}
 :root[data-theme="light"] .dataset-preview dl div{background:var(--ops-surface)}
 :root[data-theme="light"] .label-action.normal{border-color:rgb(57 121 90 / 38%);background:rgb(57 121 90 / 9%);color:var(--ops-low)}
 :root[data-theme="light"] .label-action.normal:hover,
@@ -332,6 +355,15 @@
 :root[data-theme="light"] .dataset-delete-button,
 :root[data-theme="light"] .dataset-delete-summary{border-color:rgb(200 71 81 / 34%);background:rgb(200 71 81 / 7%);color:var(--ops-critical)}
 :root[data-theme="light"] .dataset-label-mix{background:var(--ops-line)}
+:root[data-theme="light"] .monitoring-service-rail span,
+:root[data-theme="light"] .monitoring-chart-panel .chart-legend b{color:var(--ops-text-muted)}
+:root[data-theme="light"] .metric-chart-crosshair{stroke:var(--ops-focus)}
+
+/* opacity로 전체 버튼을 흐리면 흰 글자가 배경에 묻힌다. 비활성 상태도 읽히는 색으로 고정한다. */
+:root[data-theme="light"] .admin-page button:disabled{opacity:1;color:var(--ops-disabled-text)}
+:root[data-theme="light"] .admin-button:disabled,
+:root[data-theme="light"] .label-action:disabled,
+:root[data-theme="light"] .labeling-pagination button:disabled{border-color:var(--ops-disabled-line);background:var(--ops-disabled-bg);color:var(--ops-disabled-text)!important;box-shadow:none}
 
 @media(min-width:1440px) and (min-height:700px){
   .model-section-page{height:100vh;overflow:hidden}

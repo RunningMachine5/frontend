@@ -486,3 +486,15 @@
 :root[data-theme="light"] .live-status-tag{color:var(--ops-low)}
 :root[data-theme="light"] .chart-floating-tooltip{background:var(--ops-surface);box-shadow:0 8px 24px rgb(39 36 42 / 16%)}
 :root[data-theme="light"] .tooltip-action{color:var(--ops-focus)}
+:root[data-theme="light"] .suspicious-amount span,
+:root[data-theme="light"] .suspicious-count-tag,
+:root[data-theme="light"] .mini-bar-col-7days,
+:root[data-theme="light"] .bar-count-label span,
+:root[data-theme="light"] .bar-period-tag,
+:root[data-theme="light"] .amount-tag{color:var(--ops-text-muted)}
+:root[data-theme="light"] .suspicious-amount strong,
+:root[data-theme="light"] .bar-val{color:var(--ops-text)}
+:root[data-theme="light"] .bar-val.prev-val{color:var(--ops-text-muted)}
+:root[data-theme="light"] .increase-count-tag{color:var(--ops-high)}
+:root[data-theme="light"] .trend-stat-badge .score-text{color:var(--ops-critical)}
+:root[data-theme="light"] .agent-summary-head span{background:var(--ops-surface-raised);color:var(--ops-text-muted)}

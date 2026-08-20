@@ -38,6 +38,10 @@ html {
   background: #121217;
 }
 
+html[data-theme="light"] {
+  background: var(--ops-canvas);
+}
+
 html:has(.chatbot-page) {
   color-scheme: light;
   background: var(--color-gray-100);
