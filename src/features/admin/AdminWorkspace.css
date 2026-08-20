@@ -54,7 +54,7 @@
 .admin-page .status.active,.admin-page .status.production{background:#17402f;color:#57d89d}.admin-page .status.draft,.admin-page .status.candidate,.admin-page .status.staged{background:var(--ops-focus-soft);color:#aebee9}.admin-page .status.failed,.admin-page .status.deployment_failed,.admin-page .status.rejected{background:#42212a;color:#ff8f99}.admin-page .status.running,.admin-page .status.requested,.admin-page .status.promoting{background:#3c3420;color:#f6ca64}
 
 .rule-editor{display:flex;flex-direction:column}.rule-tabs{padding:11px 13px 0;display:flex;gap:6px;overflow-x:auto}.rule-tabs button{min-height:34px;padding:0 12px;border:0;border-radius:7px 7px 0 0;background:var(--ops-surface-raised);color:var(--ops-text-muted);font-size:10px;font-weight:700;white-space:nowrap}.rule-tabs button.active{background:var(--ops-focus-soft);color:#fff}
-.component-list{padding:12px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.component-row{position:relative;padding:14px 16px 19px;border:1px solid var(--ops-line);border-radius:9px;display:grid;grid-template-columns:minmax(0,1fr) 80px;gap:12px;background:var(--ops-surface-raised)}.component-row strong{display:block;font-size:12px}.component-row code{display:block;margin-top:6px;color:#aebee9;font-family:inherit;font-size:11px;font-weight:500;line-height:1.45;letter-spacing:-.01em;overflow-wrap:anywhere}.component-row label{display:grid;gap:5px;color:var(--ops-text-muted);font-size:9px}.component-row input{width:76px;height:30px;padding:0 8px;border:1px solid var(--ops-line-strong);border-radius:7px;background:var(--ops-surface-sunken);color:var(--ops-text);text-align:right}.weight-track{position:absolute;right:15px;bottom:9px;width:105px;height:6px;border-radius:99px;background:var(--ops-surface-sunken);overflow:hidden}.weight-track i{display:block;height:100%;border-radius:inherit;background:var(--ops-focus)}.rule-total{margin:0 13px;padding:13px 2px 17px;border-top:1px solid var(--ops-line);display:flex;align-items:center;justify-content:space-between;color:var(--ops-text-muted);font-size:11px}.rule-total strong{font-size:11px}.editor-actions{margin-top:auto;padding:0 13px 14px;display:flex;align-items:center;justify-content:space-between;gap:14px}.editor-actions small{color:var(--ops-text-subtle);font-size:10px;line-height:1.4}.editor-actions .admin-button{flex:0 0 auto}
+.component-list{padding:12px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.component-row{position:relative;padding:14px 16px 19px;border:1px solid var(--ops-line);border-radius:9px;display:grid;grid-template-columns:minmax(0,1fr) 80px;gap:12px;background:var(--ops-surface-raised)}.component-row strong{display:block;font-size:12px}.component-row .condition-summary{display:block;margin:6px 0 0;color:#aebee9;font-size:11px;font-weight:500;line-height:1.45;letter-spacing:-.01em;overflow-wrap:anywhere}.component-row label{display:grid;gap:5px;color:var(--ops-text-muted);font-size:9px}.component-row input{width:76px;height:30px;padding:0 8px;border:1px solid var(--ops-line-strong);border-radius:7px;background:var(--ops-surface-sunken);color:var(--ops-text);text-align:right}.weight-track{position:absolute;right:15px;bottom:9px;width:105px;height:6px;border-radius:99px;background:var(--ops-surface-sunken);overflow:hidden}.weight-track i{display:block;height:100%;border-radius:inherit;background:var(--ops-focus)}.rule-total{margin:0 13px;padding:13px 2px 17px;border-top:1px solid var(--ops-line);display:flex;align-items:center;justify-content:space-between;color:var(--ops-text-muted);font-size:11px}.rule-total strong{font-size:11px}.editor-actions{margin-top:auto;padding:0 13px 14px;display:flex;align-items:center;justify-content:space-between;gap:14px}.editor-actions small{color:var(--ops-text-subtle);font-size:10px;line-height:1.4}.editor-actions .admin-button{flex:0 0 auto}
 
 .verify-panel{display:flex;flex-direction:column}.verify-steps{margin:0;padding:10px;list-style:none;display:grid;gap:8px}.verify-steps li{min-height:54px;padding:12px;border-radius:8px;display:flex;align-items:center;justify-content:space-between;background:var(--ops-surface-raised);font-size:11px;font-weight:700}.verify-steps em{color:var(--ops-text-muted);font-size:9px;font-style:normal}.replay-result{margin:0 10px 10px;padding:13px;border:1px solid var(--ops-focus);border-radius:9px;background:var(--ops-focus-soft)}.replay-result>strong{font-size:10px}.replay-result dl{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin:10px 0 0}.replay-result dl div{padding:8px;border-radius:6px;background:var(--ops-surface-sunken)}.replay-result dt{color:var(--ops-text-muted);font-size:8px}.replay-result dd{margin:5px 0 0;font-size:13px;font-weight:800}.verify-actions{margin-top:auto;padding:10px;display:grid;gap:7px}.verify-actions .admin-button{width:100%}
 
@@ -108,7 +108,7 @@
   .component-list{min-height:0;flex:1;padding:8px;gap:6px;align-content:start;grid-template-columns:repeat(3,minmax(0,1fr));grid-auto-rows:minmax(132px,max-content);overflow-y:auto;scrollbar-gutter:stable}
   .component-row{padding:11px 13px 16px;grid-template-columns:minmax(0,1fr) 76px;gap:10px}
   .component-row strong{font-size:13px}
-  .component-row code{margin-top:5px;font-size:11px;line-height:1.4}
+  .component-row .condition-summary{margin-top:5px;font-size:11px;line-height:1.4}
   .component-row label{font-size:11px}
   .component-row input{width:72px;height:30px;font-size:11px}
   .weight-track{right:12px;bottom:7px;width:92px;height:5px}
@@ -299,7 +299,7 @@
 :root[data-theme="light"] .labeling-queue-list>button:hover{background:var(--ops-surface-sunken)}
 :root[data-theme="light"] .rule-tabs button{border:1px solid transparent;border-bottom:0;background:var(--ops-surface-sunken);color:var(--ops-text-muted)}
 :root[data-theme="light"] .rule-tabs button.active{border-color:var(--ops-line);background:var(--ops-surface);color:var(--ops-focus)}
-:root[data-theme="light"] .component-row code,
+:root[data-theme="light"] .component-row .condition-summary,
 :root[data-theme="light"] .feature-list code,
 :root[data-theme="light"] .validation-report code,
 :root[data-theme="light"] .report-section-title>em,
@@ -407,7 +407,7 @@
   .rule-tabs button{font-size:13px}
   .component-list{grid-auto-rows:minmax(142px,max-content)}
   .component-row strong{font-size:14px;line-height:1.4}
-  .component-row code{font-size:12px;line-height:1.55}
+  .component-row .condition-summary{font-size:12px;line-height:1.55}
   .component-row label{font-size:12px}
   .component-row input{font-size:13px}
   .rule-total,.rule-total strong{font-size:13px}
