@@ -12,16 +12,16 @@
   .queue-summary{min-height:56px;flex:0 0 56px;margin-bottom:8px}
   .queue-summary div{padding:8px 16px}
   .queue-panel{min-height:0;padding:12px 15px}
-  .scatter-panel{min-height:300px;flex:0 0 300px;margin-bottom:8px}
+  .scatter-panel{min-height:310px;flex:0 0 310px;margin-bottom:8px}
   .queue-scatter{margin-top:8px}
-  .scatter-scale,.scatter-plot{height:204px}
-  .scatter-scale span{height:68px}
-  .scatter-plot{background:repeating-linear-gradient(to bottom,transparent 0,transparent 67px,#343440 68px)}
+  .scatter-scale,.scatter-plot{height:210px}
+  .scatter-scale span{height:70px}
+  .scatter-plot{background:repeating-linear-gradient(to bottom,transparent 0,transparent 69px,#343440 70px)}
   .queue-table-panel{flex:1;display:flex;flex-direction:column;padding-bottom:8px;overflow:hidden}
   .queue-dual-table-wrap{min-height:0;flex:1;margin-top:6px;overflow:auto;scrollbar-gutter:stable}
   .queue-table-column table{font-size:13px}
-  .queue-table-column th{padding:6px 6px;font-size:12px;line-height:1.3}
-  .queue-table-column td{padding:6px 6px;font-size:13px;line-height:1.3}
+  .queue-table-column th{padding:7px 6px;font-size:12px;line-height:1.35}
+  .queue-table-column td{padding:7px 6px;font-size:13px;line-height:1.35}
   .grade{font-size:12px}
   .queue-pagination{flex:0 0 auto;padding-top:6px}
   .queue-state{min-height:0;flex:1}
