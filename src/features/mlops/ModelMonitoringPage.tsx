@@ -269,7 +269,7 @@ export function ModelMonitoringPage() {
           <section className="monitoring-chart-grid">
             <MetricChart
               description={`${(servingMonitoring?.alignment_seconds ?? 60) / 60}분 단위 Cloud Run 요청 수`}
-              series={[{ label: "요청", color: "#de3deb", points: servingMonitoring?.series.request_count ?? [] }]}
+              series={[{ label: "요청", color: "#6f8fe6", points: servingMonitoring?.series.request_count ?? [] }]}
               showDate={showDate}
               title="요청 처리량"
               unit="건"
@@ -298,7 +298,7 @@ export function ModelMonitoringPage() {
               description="Cloud Run 인스턴스의 자원 사용률 중앙값"
               series={[
                 { label: "CPU", color: "#6ca9ff", points: servingMonitoring?.series.cpu_utilization_percent ?? [] },
-                { label: "메모리", color: "#de3deb", points: servingMonitoring?.series.memory_utilization_percent ?? [] },
+                { label: "메모리", color: "#6f8fe6", points: servingMonitoring?.series.memory_utilization_percent ?? [] },
               ]}
               showDate={showDate}
               title="자원 사용률"
@@ -334,7 +334,7 @@ export function ModelMonitoringPage() {
               description="Training Job 컨테이너 자원 사용률"
               series={[
                 { label: "CPU", color: "#6ca9ff", points: trainingMonitoring?.series.cpu_utilization_percent ?? [] },
-                { label: "메모리", color: "#de3deb", points: trainingMonitoring?.series.memory_utilization_percent ?? [] },
+                { label: "메모리", color: "#6f8fe6", points: trainingMonitoring?.series.memory_utilization_percent ?? [] },
               ]}
               showDate={showDate}
               title="학습 자원 사용률"
@@ -390,7 +390,7 @@ export function ModelMonitoringPage() {
             <MetricChart
               decimals={1}
               description="Ops Agent가 수집한 메모리 사용률"
-              series={[{ label: "메모리", color: "#de3deb", points: platformMonitoring?.series.memory_utilization_percent ?? [] }]}
+              series={[{ label: "메모리", color: "#6f8fe6", points: platformMonitoring?.series.memory_utilization_percent ?? [] }]}
               showDate={showDate}
               title="VM 메모리"
               unit="%"
