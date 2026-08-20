@@ -325,48 +325,52 @@ export function ModelTrainingPage() {
             <button className="admin-button compact" disabled={isLoading || isBusy} onClick={() => void load(true)} type="button">상태 새로고침</button>
           </div>
           <div className="admin-table-wrap">
-            <table>
+            <table className="training-runs-table">
               <thead><tr><th>Run</th><th>데이터셋</th><th>상태</th><th>실행 시각</th><th>실패 원인</th><th>작업</th></tr></thead>
               <tbody>
-                {runs.map((run) => (
-                  <tr
-                    aria-label={`Run #${run.id} 상세 보기`}
-                    className="training-run-row"
-                    key={run.id}
-                    onClick={() => openRun(run.id)}
-                    onKeyDown={(event) => {
-                      if (event.target !== event.currentTarget) return;
-                      if (event.key === "Enter" || event.key === " ") {
-                        event.preventDefault();
-                        openRun(run.id);
-                      }
-                    }}
-                    tabIndex={0}
-                  >
-                    <td><strong className="run-id-label">#{run.id}</strong></td>
-                    <td>{datasets.find((dataset) => dataset.id === run.dataset_version_id)?.version ?? `#${run.dataset_version_id}`}</td>
-                    <td><em className={`status ${run.status.toLowerCase()}`}>{STATUS_LABELS[run.status]}</em></td>
-                    <td>{formatDate(run.created_at)}</td>
-                    <td className="run-error-cell" title={run.error_message ?? undefined}>{run.error_message ?? "—"}</td>
-                    <td>
-                      {["REQUESTED", "RUNNING"].includes(run.status) ? (
-                        <button
-                          className="table-action-button"
-                          disabled={isBusy}
-                          onClick={(event) => {
-                            event.stopPropagation();
-                            void reconcile(run);
-                          }}
-                          type="button"
-                        >
-                          상태 확인
-                        </button>
-                      ) : (
-                        <span aria-hidden="true" className="row-open-hint">열기 →</span>
-                      )}
-                    </td>
-                  </tr>
-                ))}
+                {runs.map((run) => {
+                  const datasetVersion = datasets.find((dataset) => dataset.id === run.dataset_version_id)?.version ?? `#${run.dataset_version_id}`;
+
+                  return (
+                    <tr
+                      aria-label={`Run #${run.id} 상세 보기`}
+                      className="training-run-row"
+                      key={run.id}
+                      onClick={() => openRun(run.id)}
+                      onKeyDown={(event) => {
+                        if (event.target !== event.currentTarget) return;
+                        if (event.key === "Enter" || event.key === " ") {
+                          event.preventDefault();
+                          openRun(run.id);
+                        }
+                      }}
+                      tabIndex={0}
+                    >
+                      <td><strong className="run-id-label">#{run.id}</strong></td>
+                      <td className="training-run-dataset-cell" title={datasetVersion}>{datasetVersion}</td>
+                      <td><em className={`status ${run.status.toLowerCase()}`}>{STATUS_LABELS[run.status]}</em></td>
+                      <td>{formatDate(run.created_at)}</td>
+                      <td className="run-error-cell" title={run.error_message ?? undefined}>{run.error_message ?? "—"}</td>
+                      <td>
+                        {["REQUESTED", "RUNNING"].includes(run.status) ? (
+                          <button
+                            className="table-action-button"
+                            disabled={isBusy}
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              void reconcile(run);
+                            }}
+                            type="button"
+                          >
+                            상태 확인
+                          </button>
+                        ) : (
+                          <span aria-hidden="true" className="row-open-hint">열기 →</span>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
             {runs.length === 0 && !isLoading && <div className="table-empty">학습 실행 이력이 없습니다.</div>}
