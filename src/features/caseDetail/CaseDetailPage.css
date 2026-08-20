@@ -1394,3 +1394,7 @@
 :root[data-theme="light"] .j-check-item label{color:var(--ops-text)}
 :root[data-theme="light"] .j-bubble.customer .j-bubble-sender{color:#397081}
 :root[data-theme="light"] .j-drawer-overlay{box-shadow:-8px 0 24px rgb(39 36 42 / 18%)}
+:root[data-theme="light"] .j-step-num,
+:root[data-theme="light"] .j-btn-primary{border-color:var(--ops-focus);background:var(--ops-focus);color:#fff}
+:root[data-theme="light"] .j-btn-primary:hover:not(:disabled){background:var(--ops-focus)}
+:root[data-theme="light"] .j-btn-primary:disabled{border-color:var(--ops-disabled-line);background:var(--ops-disabled-bg);color:var(--ops-disabled-text);opacity:1}
