@@ -61,7 +61,7 @@ export function AppLayout({ activeNav, children }: AppLayoutProps) {
           ))}
         </nav>
         <button
-          aria-pressed={theme === "dark"}
+          aria-pressed={theme === "light"}
           className="app-theme-toggle"
           onClick={() => setTheme((current) => current === "dark" ? "light" : "dark")}
           type="button"
