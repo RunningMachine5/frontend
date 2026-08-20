@@ -193,6 +193,7 @@ export function CaseDetailPage() {
   const responsePlan = agent?.response_result;
   const checklist = responsePlan?.checklist ?? [];
   const recommendedActions = responsePlan?.recommended_actions ?? [];
+  const similarCases = agent?.similar_case_results ?? [];
   const chat = detail.chat.data;
   const riskGrade = agent?.risk_grade ?? "데이터 없음";
   const investigationReason = typeof agent?.investigation_result?.recommendation_reason === "string"
@@ -244,7 +245,7 @@ export function CaseDetailPage() {
           onClick={() => setIsChatOpen((prev) => !prev)}
           type="button"
         >
-          <span className="j-btn-icon">💬</span>
+          <span className="j-btn-icon">AI</span>
           <span>채팅으로 판단된 결과 보기</span>
         </button>
       }
@@ -320,7 +321,39 @@ export function CaseDetailPage() {
                 {responsePlan?.summary
                   ?? (ml ? `ML 사기 예측 확률 ${formatPercent(ml.fraud_probability)}와 사기 이용 계좌 룰 매칭을 근거로 이상거래 가능성이 높은 사건입니다.` : "AI 분석 데이터가 준비 중입니다.")}
               </p>
-              <small className="j-callout-sub">{investigationReason}</small>
+            </div>
+
+            {/* 과거 유사 사례 공통 정황 및 비슷한 점 박스 */}
+            <div className="j-similar-box">
+              <div className="j-similar-head">
+                <div className="j-similar-title-wrap">
+                  <span aria-hidden="true" className="j-similar-icon">AI</span>
+                  <span className="j-similar-label">과거 유사 사례 분석</span>
+                </div>
+                {similarCases.length > 0 ? (
+                  <span className="j-similar-score">Top 유사도 {formatPercent(similarCases[0].similarity_score)}</span>
+                ) : (
+                  <span className="j-similar-score muted">패턴 매칭</span>
+                )}
+              </div>
+              <div className="j-similar-content">
+                {similarCases.length > 0 ? (
+                  similarCases.slice(0, 2).map((item) => (
+                    <div className="j-similar-item" key={item.similar_case_id}>
+                      <span className="j-similar-case-id">#{item.similar_case_id}</span>
+                      <p className="j-similar-reason">
+                        <strong className="j-similar-highlight">비슷한 점:</strong> {item.similarity_reason}
+                      </p>
+                    </div>
+                  ))
+                ) : (
+                  <div className="j-similar-item">
+                    <p className="j-similar-reason">
+                      <strong className="j-similar-highlight">비슷한 점:</strong> {investigationReason}
+                    </p>
+                  </div>
+                )}
+              </div>
             </div>
 
             <div className="j-signals-dual">

@@ -326,3 +326,151 @@
   .panel{padding:14px 12px}
   .mini-bars-7days{gap:2px}
 }
+
+/* 운영 화면은 장식보다 상태와 수치가 먼저 읽히도록 표면과 강조색을 정돈한다. */
+.dashboard-content{background:#101319}
+.metric-card,.panel{background:#1b2028;border-color:#303743;border-radius:10px;box-shadow:none}
+.metric-card::before{width:3px}
+.dashboard-header{border-color:#303743}
+.eyebrow,.agent-summary strong{color:#a99cf8}
+.chart-legend i{background:#8b7cf6}
+.trend-badge.positive,.live-pill{background:#252b36;color:#d9dee7}
+.agent-summary{background:#161a21;border:1px solid #2b323e;border-radius:8px}
+.bubble{animation:none;box-shadow:none}
+.bubble-0,.bubble-dot.bubble-0{background:#6f8fe6}
+.bubble-1,.bubble-dot.bubble-1{background:#5d9f7e}
+.bubble-2,.bubble-dot.bubble-2{background:#c2a24f}
+.bubble-3,.bubble-dot.bubble-3{background:#77727c}
+
+@media(min-width:821px) and (max-width:1080px){
+  .dashboard-content{padding:20px 18px 40px}
+  .dashboard-header{flex-direction:row;align-items:flex-start}
+  .header-actions{width:auto}
+  .metric-card>span{font-size:12px}
+  .metric-card>strong{font-size:22px}
+}
+
+@media(prefers-reduced-motion:reduce){
+  .bubble,.live-pill i{animation:none!important;transition:none!important}
+}
+
+/* 1920 운영 화면: 경보 → 추이 → 원인 순서가 한 번에 읽히는 지휘 화면 */
+@media(min-width:1440px){
+  .dashboard-content{
+    max-width:none;
+    padding:16px 22px 28px;
+    background:
+      radial-gradient(circle at 92% 4%,rgb(121 98 140 / 10%),transparent 30%),
+      #100c19;
+  }
+
+  .dashboard-header{padding-bottom:10px}
+  .dashboard-header h1{font-size:30px;letter-spacing:-.035em}
+
+  .metric-grid{
+    grid-template-columns:1.2fr 1fr 1.45fr .9fr 1fr;
+    gap:8px;
+    margin:8px 0 10px;
+  }
+  .metric-card{
+    min-height:68px;
+    padding:10px 14px 10px 16px;
+    border-radius:6px;
+    background:#191522;
+  }
+  .metric-card.red{
+    background:linear-gradient(110deg,rgb(122 11 47 / 34%),#1d1725 58%);
+    border-color:#704052;
+  }
+  .metric-card>strong{font-size:24px;font-variant-numeric:tabular-nums}
+  .metric-card-head>span{color:#d7d1df;font-weight:600}
+
+  .monitoring-top-row{grid-template-columns:minmax(0,1.55fr) minmax(430px,1fr);gap:10px}
+  .monitoring-bottom-row{grid-template-columns:minmax(0,1.8fr) minmax(430px,.8fr);gap:10px}
+  .bottom-right-col{gap:10px}
+  .dashboard-monitoring-grid{gap:10px}
+  .panel{border-radius:7px;background:#191522;border-color:#332b40}
+  .panel-head{padding-bottom:9px;border-bottom:1px solid #332b40}
+  .panel-head h2,.agent-panel-head h2{letter-spacing:-.02em}
+  .trend-chart-wrap{height:236px}
+  .mini-bars-7days{height:174px}
+  .agent-summary{background:#130f1b;border-color:#30283b}
+  .agent-row{min-height:34px}
+  .solar-arc-chart-wrap{height:142px}
+}
+
+/* JenniferSoft 계열의 차분한 운영 콘솔 외형. 기존 배치는 그대로 유지한다. */
+.dashboard-content,.dashboard-state{background:var(--ops-canvas);color:var(--ops-text)}
+.dashboard-header{border-color:var(--ops-line)}
+.eyebrow{color:var(--ops-text-muted);font-size:11px;letter-spacing:.08em}
+.dashboard-header h1,.panel h2,.agent-panel-head h2{color:var(--ops-text)}
+.dashboard-header>div>p:last-child,.panel-caption{color:var(--ops-text-muted)}
+.period-pill,.live-pill{border:1px solid var(--ops-line);border-radius:4px;background:var(--ops-surface-sunken);color:var(--ops-text)}
+.period-pill span{color:var(--ops-text-subtle)}
+.live-pill{background:var(--ops-focus-soft);color:#b9c9f4}
+.metric-card,.panel{border-color:var(--ops-line);border-radius:4px;background:var(--ops-surface);box-shadow:none}
+.metric-card::before{width:2px;border-radius:0;background:var(--metric-color)}
+.metric-card.purple{--metric-color:var(--ops-info)}
+.metric-card.orange{--metric-color:var(--ops-high)}
+.metric-card.red{--metric-color:var(--ops-critical)}
+.metric-card.pink{--metric-color:var(--ops-medium)}
+.metric-card.green{--metric-color:var(--ops-low)}
+.metric-card-head>span{color:var(--ops-text-muted);font-size:12px}
+.metric-card>strong{color:var(--ops-text)}
+.metric-card small{color:var(--ops-text-subtle)}
+.panel-head{border-color:var(--ops-line)}
+.trend-badge,.status-badge,.trend-badge.positive{border:1px solid var(--ops-line);border-radius:3px;background:var(--ops-surface-sunken);color:var(--ops-text-muted)}
+.status-badge{color:#8fcaa9}
+.trend-stat-badge,.grade-legend-mini,.channel-total-badge{border-color:var(--ops-line);border-radius:3px;background:var(--ops-surface-sunken);color:var(--ops-text-muted)}
+.trend-stat-badge strong,.channel-total-badge strong{color:var(--ops-text)}
+.chart-axis,.amount-axis,.bar-date-label,.risk-detail,.trend-series-label,.chart-legend,.mini-chart-meta,.agent-graph-legend,.amount-tag,.bar-period-tag,.channel-ratio,.channel-amount{color:var(--ops-text-muted);fill:var(--ops-text-muted)}
+.chart-value,.hover-axis-label,.bar-count-label,.risk-label,.agent-row-label,.channel-count,.channel-info-main{color:var(--ops-text);fill:var(--ops-text)}
+.score-axis,.live-axis-label{fill:var(--ops-critical)}
+.chart-amount-label,.bar-amount-label,.tooltip-amount{color:#aebee9;fill:#aebee9}
+.bar-track,.channel-progress-track,.current-bar-row .bar-track,.prev-bar-row .bar-track{background:var(--ops-surface-sunken)}
+.risk-panel footer{border-color:var(--ops-line);color:var(--ops-text-subtle)}
+.agent-summary{border-color:var(--ops-line);border-radius:3px;background:var(--ops-surface-sunken)}
+.agent-summary strong{color:#b9c9f4}
+.agent-summary p{color:var(--ops-text)}
+.agent-summary span{color:var(--ops-text-muted)}
+.agent-comparative-row{border-color:transparent;border-radius:3px;background:var(--ops-surface-raised)}
+.agent-comparative-row:hover{border-color:var(--ops-line-strong);background:#302e34}
+.agent-refresh-btn{border-color:var(--ops-line-strong);border-radius:3px;background:var(--ops-surface-sunken);color:#c8d3f0}
+.agent-refresh-btn:hover:not(:disabled){border-color:var(--ops-focus);background:var(--ops-focus-soft);box-shadow:none;color:var(--ops-text)}
+.growth-tag{border-radius:2px}
+.growth-tag.positive{border-color:rgb(228 91 100 / 35%);background:rgb(228 91 100 / 12%);color:#ef8e95}
+.growth-tag.negative{background:rgb(93 159 126 / 14%);color:#8bc4a7}
+.increase-count-tag{color:#e1aa70}
+.current-box{background:var(--ops-critical)}
+.prev-box,.prev-fill{background:#66616c!important}
+.grade-legend-mini{padding:3px 7px}
+.dot-critical,.segment-critical{background:var(--ops-critical)!important}
+.dot-high,.segment-high{background:var(--ops-high)!important}
+.dot-medium,.segment-medium{background:var(--ops-medium)!important}
+.live-status-tag{border-radius:3px;background:rgb(93 159 126 / 13%);color:#8bc4a7}
+.live-green-dot{background:var(--ops-low);animation:none}
+.amount-curve-dot{background:var(--ops-info)}
+.mini-bar-track-7days{border-radius:2px;background:var(--ops-surface-sunken)}
+.mini-bar-fill-7days{border-radius:2px 2px 0 0;background:var(--ops-info)}
+.stacked-bar-7days{border-radius:2px 2px 0 0}
+.mini-bar-col-7days:hover,.chart-interactive-point:hover{transform:none}
+.mini-bar-col-7days:hover .stacked-bar-7days,.solar-planet-group:hover .planet-circle{filter:none}
+.solar-planet-group:hover{transform:none}
+.time-interval-toggle{border-color:var(--ops-line);border-radius:3px;background:var(--ops-surface-sunken)}
+.time-interval-toggle button{border-radius:2px;color:var(--ops-text-muted)}
+.time-interval-toggle button:hover{color:var(--ops-text)}
+.time-interval-toggle button.active{border-color:var(--ops-line-strong);background:var(--ops-surface-raised);box-shadow:none;color:var(--ops-text)}
+.chart-floating-tooltip{border-color:var(--ops-line-strong);border-radius:3px;background:rgb(29 28 32 / 97%);box-shadow:0 8px 24px rgb(0 0 0 / 35%);backdrop-filter:none}
+.tooltip-head,.tooltip-action{border-color:var(--ops-line)}
+.tooltip-tx{color:var(--ops-text)}
+.tooltip-time,.tooltip-label{color:var(--ops-text-muted)}
+.tooltip-action{color:#aebee9}
+.bubble{animation:none;box-shadow:none}
+
+@media(min-width:1440px){
+  .dashboard-content{background:var(--ops-canvas)}
+  .metric-card,.panel{background:var(--ops-surface);border-color:var(--ops-line)}
+  .metric-card.red{border-color:rgb(228 91 100 / 42%);background:var(--ops-surface)}
+  .panel-head{border-color:var(--ops-line)}
+  .agent-summary{border-color:var(--ops-line);background:var(--ops-surface-sunken)}
+}

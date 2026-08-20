@@ -1,7 +1,7 @@
 import type { DashboardAgentInsight } from "../dashboardOverviewTypes";
 import { formatDate, formatCompactMoney, formatNumber } from "../dashboardFormatters";
 
-const agentColors = ["#ee4047", "#f49121", "#b640be", "#7a49dc", "#3ec887"];
+const agentColors = ["#e45b64", "#db934b", "#c2a24f", "#6f8fe6", "#5d9f7e"];
 
 export type AgentChartDetailItem = {
   label: string;
