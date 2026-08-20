@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { fetchQueueRows } from "./queueApi";
 import type { CaseListItem, QueueSearchFilters } from "./queueTypes";
 
-const REFRESH_DEBOUNCE_MS = 500;
+const REFRESH_INTERVAL_MS = 200;
 
 export function useQueue(filters: QueueSearchFilters, pageSize: number) {
   const [rows, setRows] = useState<CaseListItem[]>([]);
@@ -43,17 +43,20 @@ export function useQueue(filters: QueueSearchFilters, pageSize: number) {
     }
 
     function scheduleRefresh() {
-      if (refreshTimer !== null) window.clearTimeout(refreshTimer);
+      if (refreshTimer !== null) return;
       refreshTimer = window.setTimeout(
-        () => void loadQueue(false),
-        REFRESH_DEBOUNCE_MS,
+        () => {
+          refreshTimer = null;
+          void loadQueue(false);
+        },
+        REFRESH_INTERVAL_MS,
       );
     }
 
     void loadQueue(true);
 
     const eventSource = new EventSource("/api/dashboard/events");
-    eventSource.addEventListener("dashboard_updated", scheduleRefresh);
+    eventSource.addEventListener("dashboard_patch", scheduleRefresh);
 
     return () => {
       active = false;
