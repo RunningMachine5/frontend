@@ -128,6 +128,7 @@ export function ModelManagementPage() {
   const [overview, setOverview] = useState<ModelOverviewSnapshot | null>(() => getCachedOverview());
   const [productionDetails, setProductionDetails] = useState<ModelDetails | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(() => overview === null);
+  const [isDetailsLoading, setIsDetailsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const loadOverview = useCallback(async (force = false) => {
@@ -173,11 +174,15 @@ export function ModelManagementPage() {
   useEffect(() => {
     if (!productionRun?.mlflow_run_id) {
       setProductionDetails(null);
+      setIsDetailsLoading(false);
       return;
     }
     let active = true;
+    setProductionDetails(null);
+    setIsDetailsLoading(true);
     void fetchProductionDetails(productionRun.id)
-      .then((details) => { if (active) setProductionDetails(details); });
+      .then((details) => { if (active) setProductionDetails(details); })
+      .finally(() => { if (active) setIsDetailsLoading(false); });
     return () => { active = false; };
   }, [productionRun?.id, productionRun?.mlflow_run_id]);
 
@@ -186,6 +191,7 @@ export function ModelManagementPage() {
   const actionRuns = runs.filter((run) => ACTION_REQUIRED_STATUSES.has(run.status));
   const trafficPercent = latestRevisionTraffic(serving);
   const latestRevision = resourceName(serving?.latest_ready_revision);
+  const isOverviewRefreshing = isRefreshing || isDetailsLoading;
 
   return (
     <ModelPageShell
@@ -204,7 +210,13 @@ export function ModelManagementPage() {
                 {productionRun ? "PRODUCTION" : "미배포"}
               </span>
             </div>
-            <small>{isRefreshing && overview ? "상태 갱신 중" : updatedAt ? `${formatClock(updatedAt)} 갱신` : "상태 확인 중"}</small>
+            <small
+              aria-live="polite"
+              className={`model-overview-refresh-status ${isOverviewRefreshing ? "loading" : ""}`}
+            >
+              {isOverviewRefreshing && <i aria-hidden="true" />}
+              {isOverviewRefreshing ? "모델 정보 갱신 중" : updatedAt ? `${formatClock(updatedAt)} 갱신` : "상태 확인 중"}
+            </small>
           </header>
           <div className="production-overview">
             <div className="production-overview-copy">
