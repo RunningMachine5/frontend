@@ -3,6 +3,7 @@
 
 import { useState } from "react";
 
+import { ACCENT } from "../chatbotColors";
 import type { ChatSizes } from "../chatbotSizes";
 import type { ChatViewStatus } from "../chatbotTypes";
 
@@ -115,7 +116,7 @@ const inputStyle = {
 const sendButtonStyle = {
     flex: "none",
     borderRadius: "50%",
-    background: "var(--color-primary-200)",
+    background: ACCENT,
     border: "none",
     display: "flex",
     alignItems: "center",

@@ -7,7 +7,6 @@
   font-family:var(--font-brand);
 }
 
-:root{color-scheme:dark}
 
 .admin-page button,.admin-page input,.admin-page textarea,.admin-page select{font:inherit}
 .admin-page button{cursor:pointer;touch-action:manipulation}

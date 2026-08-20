@@ -3,6 +3,7 @@
 import { useState } from "react";
 
 import hamsterImage from "../../../assets/chatbot/financial-chatbot-hamster-70.png";
+import { ACCENT } from "../chatbotColors";
 
 type IdentityGateProps = {
     busy: boolean;
@@ -148,7 +149,7 @@ const buttonStyle = {
     width: "100%",
     maxWidth: "220px",
     border: "none",
-    background: "var(--color-primary-200)",
+    background: ACCENT,
     color: "var(--color-text-strong)",
     fontFamily: "var(--font-brand)",
     fontSize: "14.5px",

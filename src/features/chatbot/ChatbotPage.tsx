@@ -1,12 +1,13 @@
 // 고객 대응 챗봇 화면 (/chat/:chatSessionId).
 // 흐름은 PRD 2.2~2.6, 화면 골격은 디자인 원본 Chat.dc.html 의 390x844 카드다.
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
 
 import { chatSizes } from "./chatbotSizes";
 import { ChatComposer } from "./components/ChatComposer";
 import { ChatHeader } from "./components/ChatHeader";
+import { FraudAlertModal } from "./components/FraudAlertModal";
 import { IdentityGate } from "./components/IdentityGate";
 import { MessageList } from "./components/MessageList";
 import { VerifiedTransition } from "./components/VerifiedTransition";
@@ -27,6 +28,7 @@ function ChatbotSession({ chatSessionId }: { chatSessionId: string }) {
         phase,
         status,
         isOlder,
+        fraudType,
         bubbles,
         verifyBusy,
         verifyError,
@@ -38,6 +40,9 @@ function ChatbotSession({ chatSessionId }: { chatSessionId: string }) {
     } = useChatSession(chatSessionId);
 
     const scrollRef = useRef<HTMLDivElement>(null);
+
+    // 헤더 알림 버튼으로 여는 사기 유형 안내 팝업.
+    const [alertOpen, setAlertOpen] = useState(false);
 
     // 고령자 세션이면 글씨·여백·버튼을 한 단계 키운다(PRD 2.2 의 is_older).
     // 인증 전에는 is_older 를 모르므로 본인인증 화면은 기본 크기 그대로다.
@@ -81,7 +86,11 @@ function ChatbotSession({ chatSessionId }: { chatSessionId: string }) {
 
     return (
         <ChatFrame>
-            <ChatHeader sizes={sizes} />
+            <ChatHeader
+                sizes={sizes}
+                fraudType={fraudType}
+                onOpenAlert={() => setAlertOpen(true)}
+            />
 
             <MessageList
                 scrollRef={scrollRef}
@@ -105,6 +114,13 @@ function ChatbotSession({ chatSessionId }: { chatSessionId: string }) {
                 onSend={sendAnswer}
                 sizes={sizes}
             />
+
+            {alertOpen && fraudType && (
+                <FraudAlertModal
+                    fraudType={fraudType}
+                    onClose={() => setAlertOpen(false)}
+                />
+            )}
         </ChatFrame>
     );
 }
@@ -112,7 +128,9 @@ function ChatbotSession({ chatSessionId }: { chatSessionId: string }) {
 /** 390x844 모바일 카드. 디자인 원본의 바깥 두 겹을 그대로 옮겼다. */
 function ChatFrame({ children }: { children: React.ReactNode }) {
     return (
-        <div style={pageStyle}>
+        // chatbot-page 클래스는 styles/global.css 가 루트 배색을 라이트로 되돌리는
+        // 표식이다(스크롤바 배색은 루트에서만 정할 수 있다).
+        <div className="chatbot-page" style={pageStyle}>
             <div style={cardStyle}>{children}</div>
         </div>
     );
