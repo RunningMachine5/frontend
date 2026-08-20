@@ -128,7 +128,9 @@ function ChatbotSession({ chatSessionId }: { chatSessionId: string }) {
 /** 390x844 모바일 카드. 디자인 원본의 바깥 두 겹을 그대로 옮겼다. */
 function ChatFrame({ children }: { children: React.ReactNode }) {
     return (
-        <div style={pageStyle}>
+        // chatbot-page 클래스는 styles/global.css 가 루트 배색을 라이트로 되돌리는
+        // 표식이다(스크롤바 배색은 루트에서만 정할 수 있다).
+        <div className="chatbot-page" style={pageStyle}>
             <div style={cardStyle}>{children}</div>
         </div>
     );

@@ -44,7 +44,8 @@ export type ChatSessionDetail = {
     is_older: boolean;
     question_step: number;
     // 이 상담에서 의심되는 사기 유형. 아직 백엔드 계약에 없는 선택 필드다.
-    // 내려오기 시작하면 헤더 알림 버튼이 점등되고, 없으면 알림 버튼은 꺼진 채로 있는다.
+    // 내려오면 헤더 알림 버튼의 초기값이 된다. 상담 도중의 갱신은 점수 SSE 가 맡는다
+    // (ChatScoreUpdatedEvent).
     fraud_type?: FraudTypeCode | null;
     messages: ChatMessage[];
 };
@@ -58,6 +59,21 @@ export type ChatTurnResult = {
     // 턴을 돌면서 유형이 좁혀질 수 있어 상세 조회와 같은 선택 필드를 둔다.
     fraud_type?: FraudTypeCode | null;
     messages: string[];
+};
+
+// GET /transactions/{transaction_id}/chat-session/score-events 가 밀어주는 유형별 점수 한 줄.
+// 백엔드 ChatFraudTypeScoreResponse 와 같은 형태다.
+export type ChatFraudTypeScore = {
+    type_code: FraudTypeCode;
+    display_name: string;
+    score: number;
+};
+
+// 위 SSE 의 chat_score_updated 이벤트 data.
+// 사기 정황이 추출될 때마다 4개 유형 점수 전체를 다시 밀어준다(점수 내림차순).
+export type ChatScoreUpdatedEvent = {
+    transaction_id: number;
+    type_scores: ChatFraudTypeScore[];
 };
 
 // 화면이 그리는 말풍선 하나.

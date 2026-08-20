@@ -155,11 +155,23 @@ PRD 2.3은 「챗봇 상담 / 상담사 연결 / 종료」로 부른다. 라벨�
 세션에서만 빨간 점이 `alertPulse`로 점등되고, 누르면 유형별 아이콘·문구를 담은 모달이
 카드 위에 뜬다. 유형이 없으면 버튼은 회색으로 꺼진 채 눌리지 않는다.
 
-유형은 백엔드가 정한다. `ChatSessionDetail`·`ChatTurnResult`에 선택 필드 `fraud_type`
-(코드 4종은 `app/domain/fraud_type_codes.py`의 `FINAL_FRAUD_TYPE_CODES`)을 두고,
-내려오면 점등한다. **`app/dto/chatbot.py`가 아직 이 필드를 내보내지 않으므로 현재는
-항상 꺼진 상태다.** 디자인 원본이 `START_CHAT` 1.4초 뒤 `VOICE_PHISHING`을 심는 것은
-시연용 목이라 옮기지 않았다 — 고객에게 보이는 화면에 근거 없는 유형을 띄우게 된다.
+유형은 백엔드가 정한다. 근거는 **사기 정황 점수 SSE**
+(`GET /transactions/{transaction_id}/chat-session/score-events`, 백엔드 PRD 2.7)다.
+사기 정황이 추출될 때마다 `chat_score_updated` 이벤트로 4개 유형 점수 전체가 다시
+내려오므로, 상담 도중에 알림이 갱신되면 그 자리에서 점등된다. 구독은
+`useChatScoreEvents.ts`가 맡고, 거래 id는 인증 응답(`ChatSessionDetail.transaction_id`)에서
+얻으므로 인증 전에는 연결하지 않는다.
+
+**점수 목록에서 유형 하나를 고르는 규칙은 프론트가 정한다.** 최고점 유형 하나를 쓰되,
+0점뿐이거나 최고점이 동점이면 점등하지 않는다 — 고객 화면에 근거가 약한 유형을 띄우지
+않기 위해서다. 앞서는 유형이 없는 갱신은 이미 점등된 유형을 끄지 않는다(턴 응답의
+`fraud_type`을 다루는 규칙과 같다).
+
+세션 조회·턴 응답의 선택 필드 `fraud_type`(코드 4종은 `app/domain/fraud_type_codes.py`의
+`FINAL_FRAUD_TYPE_CODES`)도 그대로 둔다. `app/dto/chatbot.py`가 아직 이 필드를 내보내지
+않으므로 지금은 항상 null이고, 내려오기 시작하면 재접속 직후의 초기값으로 쓴다. **둘 다
+있으면 더 최신인 SSE 값이 이긴다.** 디자인 원본이 `START_CHAT` 1.4초 뒤 `VOICE_PHISHING`을
+심는 것은 시연용 목이라 옮기지 않았다 — 고객에게 보이는 화면에 근거 없는 유형을 띄우게 된다.
 
 모달의 유형별 문구(「현재 보이스피싱이 의심되는 상황이에요」)와 공통 본문은 말풍선이 아니라
 화면 고정 문구라 3.3의 예외에 해당한다. 버튼 라벨과 같은 이유로 프론트 상수로 둔다.
@@ -230,6 +242,7 @@ src/
    ├─ chatbotSizes.ts             is_older 세션의 크기 표
    ├─ chatbotColors.ts            토큰에 없는 강조색(#FFCC46)
    ├─ useChatSession.ts           상태·이력·턴 실행·오류를 쥔 훅
+   ├─ useChatScoreEvents.ts       사기 정황 점수 SSE 구독 → 점등할 유형 하나
    ├─ ChatbotPage.tsx             라우트 진입점, 게이트/전환/채팅 전환
    └─ components/
       ├─ IdentityGate.tsx         출생연도 4자리 입력

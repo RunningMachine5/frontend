@@ -10,6 +10,7 @@ import {
     sendChatMessage,
     verifyChatSession,
 } from "./chatbotApi";
+import { useChatScoreEvents } from "./useChatScoreEvents";
 import type {
     ChatBubble,
     ChatButtonAction,
@@ -38,9 +39,17 @@ export function useChatSession(chatSessionId: string) {
     const [status, setStatus] = useState<ChatViewStatus>("URL_SENT");
     const [isOlder, setIsOlder] = useState(false);
     const [bubbles, setBubbles] = useState<ChatBubble[]>([]);
-    // 헤더 알림 버튼과 알림 모달이 쓰는 의심 사기 유형.
-    // 백엔드가 fraud_type 을 내려주기 전까지는 계속 null 이라 알림 버튼이 꺼져 있다.
-    const [fraudType, setFraudType] = useState<FraudTypeCode | null>(null);
+    // 헤더 알림 버튼과 알림 모달이 쓰는 의심 사기 유형 중, 세션 조회·턴 응답에서 온 값.
+    // 백엔드가 fraud_type 을 내려주기 전까지는 계속 null 이고, 그동안은 점수 SSE 가 정한다.
+    const [sessionFraudType, setSessionFraudType] =
+        useState<FraudTypeCode | null>(null);
+    // 점수 SSE 를 열려면 거래 id 가 필요한데, 인증 응답으로 처음 알게 된다.
+    const [transactionId, setTransactionId] = useState<number | null>(null);
+
+    // 사기 정황이 추출될 때마다 갱신되는 유형. 상담 도중 알림 버튼을 점등하는 값이다.
+    const scoreFraudType = useChatScoreEvents(transactionId);
+    // 실시간 점수가 세션 값보다 최신이므로 먼저 본다.
+    const fraudType = scoreFraudType ?? sessionFraudType;
 
     const [verifyBusy, setVerifyBusy] = useState(false);
     const [verifyError, setVerifyError] = useState<string | null>(null);
@@ -54,7 +63,8 @@ export function useChatSession(chatSessionId: string) {
     const applyDetail = useCallback((detail: ChatSessionDetail) => {
         setStatus(detail.status);
         setIsOlder(detail.is_older);
-        setFraudType(detail.fraud_type ?? null);
+        setTransactionId(detail.transaction_id);
+        setSessionFraudType(detail.fraud_type ?? null);
         setBubbles(toBubbles(detail.messages));
     }, []);
 
@@ -138,7 +148,7 @@ export function useChatSession(chatSessionId: string) {
                 setStatus(result.status);
                 // 턴마다 유형이 좁혀질 수 있다. 아직 못 정한 턴은 값을 지우지 않는다.
                 if (result.fraud_type) {
-                    setFraudType(result.fraud_type);
+                    setSessionFraudType(result.fraud_type);
                 }
             } catch (error) {
                 await handleTurnError(error);
@@ -186,7 +196,7 @@ export function useChatSession(chatSessionId: string) {
                 ]);
                 setStatus(result.status);
                 if (result.fraud_type) {
-                    setFraudType(result.fraud_type);
+                    setSessionFraudType(result.fraud_type);
                 }
             } catch (error) {
                 // 보낸 말풍선은 지우지 않는다. 백엔드가 이미 저장했을 수 있고,
