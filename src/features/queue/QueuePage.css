@@ -24,6 +24,26 @@
   .queue-state{min-height:0;flex:1}
 }
 
+/* 1920×1080 F11 시연에서는 그래프와 표 10건을 한 화면에 함께 보여준다. */
+@media(min-width:1600px) and (min-height:900px){
+  .queue-header p,.queue-panel-head p{font-size:12px}
+  .queue-filter label,.queue-summary span,.queue-panel-head>span{font-size:12px}
+  .queue-summary strong{font-size:19px}
+  .queue-panel-head h2{font-size:18px}
+
+  .scatter-panel{min-height:240px;flex-basis:240px}
+  .scatter-scale,.scatter-plot{height:135px}
+  .scatter-scale span{height:45px}
+  .scatter-plot{background:repeating-linear-gradient(to bottom,transparent 0,transparent 44px,#343440 45px)}
+  .scatter-scale,.scatter-time-axis,.scatter-caption{font-size:11px}
+
+  .queue-table-wrap{flex:0 0 auto;overflow-x:auto;overflow-y:hidden}
+  .queue-table-wrap table{font-size:12px}
+  .queue-table-wrap th,.queue-table-wrap td{padding:6px 8px;line-height:1.35}
+  .grade{font-size:11px}
+  .queue-pagination span{font-size:13px}
+}
+
 /* 룰·모델 관리처럼 중간 화면에서는 간격을 줄이고 헤더가 자연스럽게 줄바꿈된다. */
 @media(min-width:821px) and (max-width:1439px){
   .queue-content{width:100%;padding:24px}
