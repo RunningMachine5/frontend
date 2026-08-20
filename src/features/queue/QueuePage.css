@@ -141,14 +141,15 @@
   .queue-workspace-grid>.realtime-risk-panel{grid-area:trend;margin:0;min-height:0;flex:auto;align-self:stretch}
   .queue-panel{border-radius:7px;background:#191522;border-color:#332b40}
   .queue-panel-head{padding-bottom:10px;border-bottom:1px solid #332b40}
-  .queue-dual-table-wrap{margin-top:8px;overflow:auto}
+  .queue-dual-table-wrap{margin-top:6px;overflow:hidden}
   .queue-dual-table-wrap{display:grid}
+  .queue-table-column{overflow:hidden}
   .queue-table-column table{font-variant-numeric:tabular-nums}
-  .queue-table-column th{height:34px;padding:7px 8px;background:#211c2b;border-bottom:1px solid #443850}
-  .queue-table-column td{height:38px;padding:6px 8px;border-color:#30283b}
+  .queue-table-column th{height:30px;padding:4px 6px;background:#211c2b;border-bottom:1px solid #443850}
+  .queue-table-column td{height:34px;padding:4px 6px;border-color:#30283b}
   .queue-table-column tbody tr{transition:background-color .18s ease}
   .queue-table-column tbody tr:hover{background:#231c2d}
-  .queue-detail{display:inline-flex;min-height:28px;align-items:center;padding:2px 9px;border-color:#675779}
+  .queue-detail{display:inline-flex;min-height:24px;align-items:center;padding:2px 8px;border-color:#675779}
 
   .realtime-risk-panel .queue-panel-head{display:flex;gap:16px}
   .realtime-risk-panel .trend-panel-meta{justify-content:flex-end;white-space:nowrap}
