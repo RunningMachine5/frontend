@@ -24,8 +24,8 @@
   .queue-state{min-height:0;flex:1}
 }
 
-/* 1920×1080 F11 시연에서는 그래프와 표 10건을 한 화면에 함께 보여준다. */
-@media(min-width:1600px) and (min-height:900px){
+/* 1920×1080 F11 전체화면(높이 1000px 이상)에서는 그래프와 표 10건을 한 화면에 함께 보여준다. */
+@media(min-width:1600px) and (min-height:1000px){
   .queue-header p,.queue-panel-head p{font-size:12px}
   .queue-filter label,.queue-summary span,.queue-panel-head>span{font-size:12px}
   .queue-summary strong{font-size:19px}
