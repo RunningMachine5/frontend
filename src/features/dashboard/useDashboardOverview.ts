@@ -8,8 +8,36 @@ import {
     type DashOverviewParams,
 } from "./DashboardOverviewApi";
 import type { DashboardOverviewResponse } from "./dashboardOverviewTypes";
+import type { DashboardPatch } from "./dashboardOverviewTypes";
 
-const REFRESH_DEBOUNCE_MS = 500;
+function mergePoints<T extends { date: string }>(
+    current: T[],
+    changed?: T[],
+): T[] {
+    if (!changed) return current;
+
+    const changedByDate = new Map(changed.map((point) => [point.date, point]));
+    const merged = current.map((point) => changedByDate.get(point.date) ?? point);
+    const missing = changed.filter((point) => !current.some((item) => item.date === point.date));
+    return [...merged, ...missing];
+}
+
+function applyPatch(
+    current: DashboardOverviewResponse,
+    patch: DashboardPatch,
+): DashboardOverviewResponse {
+    return {
+        ...current,
+        summary: patch.summary ?? current.summary,
+        priority_trend: mergePoints(current.priority_trend, patch.priority_trend),
+        suspicious_trend: mergePoints(current.suspicious_trend, patch.suspicious_trend),
+        risk_grade_distribution: patch.risk_grade_distribution ?? current.risk_grade_distribution,
+        channel_distribution: patch.channel_distribution ?? current.channel_distribution,
+        agent_insight: "agent_insight" in patch
+            ? patch.agent_insight ?? null
+            : current.agent_insight,
+    };
+}
 
 export function useDashboardOverview(params: DashOverviewParams){
     const [data, setData] = useState<DashboardOverviewResponse | null>(null);
@@ -18,7 +46,7 @@ export function useDashboardOverview(params: DashOverviewParams){
 
     useEffect(() => {
         let isActive = true;
-        let refreshTimer: number | null = null;
+        let latestVersion = 0;
 
         async function loadOverview(generateIfMissing = false){
             try {
@@ -57,33 +85,25 @@ export function useDashboardOverview(params: DashOverviewParams){
             }
         }
 
-        function scheduleRefresh(){
-            if(refreshTimer !== null){
-                window.clearTimeout(refreshTimer);
-            }
-
-            refreshTimer = window.setTimeout(
-                () => void loadOverview(),
-                REFRESH_DEBOUNCE_MS,
-            );
-        }
-
         // 화면 첫 진입 시 overview 조회
         void loadOverview(true);
 
-        // SSE 연결
-        const eventSource = new EventSource("/api/dashboard/events");
+        const eventQuery = new URLSearchParams({
+            period_start: params.periodStart,
+            period_end: params.periodEnd,
+        });
+        const eventSource = new EventSource(`/api/dashboard/events?${eventQuery}`);
 
-        eventSource.addEventListener("dashboard_updated", () => {
-            scheduleRefresh();
+        eventSource.addEventListener("dashboard_patch", (event) => {
+            const patch = JSON.parse(event.data) as DashboardPatch;
+            if (patch.version <= latestVersion) return;
+
+            latestVersion = patch.version;
+            setData((current) => current ? applyPatch(current, patch) : current);
         });
 
         return () => {
             isActive = false;
-
-            if(refreshTimer !== null){
-                window.clearTimeout(refreshTimer);
-            }
 
             eventSource.close();
         };
