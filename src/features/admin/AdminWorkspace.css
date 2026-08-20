@@ -245,6 +245,15 @@
 @keyframes monitoring-loading-pulse{to{opacity:.45}}
 @media(prefers-reduced-motion:reduce){.monitoring-freshness i.loading,.monitoring-summary-skeleton article::after,.monitoring-chart-skeleton-panel::after,.model-overview-skeleton-card::after,.model-overview-refresh-status.loading i{animation:none}}
 
+:root[data-theme="light"] .monitoring-summary-skeleton i,
+:root[data-theme="light"] .monitoring-chart-skeleton-panel>i,
+:root[data-theme="light"] .model-overview-skeleton-card i,
+:root[data-theme="light"] .labeling-list-skeleton i{background:var(--ops-line)}
+:root[data-theme="light"] .monitoring-chart-skeleton-panel>i:last-child{background:repeating-linear-gradient(0deg,var(--ops-line) 0,var(--ops-line) 1px,transparent 1px,transparent 28px)}
+:root[data-theme="light"] .metric-chart-tooltip{background:var(--ops-surface);box-shadow:0 8px 24px rgb(39 36 42 / 16%)}
+:root[data-theme="light"] .metric-chart-tooltip time,
+:root[data-theme="light"] .metric-chart-tooltip span{color:var(--ops-text-muted)}
+
 @media(min-width:1440px) and (min-height:700px){
   .model-section-page{height:100vh;overflow:hidden}
   .model-section-content{overflow:hidden}

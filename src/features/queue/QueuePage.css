@@ -277,3 +277,13 @@
   .queue-table-column tbody tr:hover{background:#302e34}
   .queue-detail{border-color:var(--ops-line-strong)}
 }
+
+:root[data-theme="light"] .queue-table-column td{color:var(--ops-text)}
+:root[data-theme="light"] .queue-table-column tbody tr:hover{background:var(--ops-surface-raised)}
+:root[data-theme="light"] .queue-detail,
+:root[data-theme="light"] .queue-mobile-detail{color:var(--ops-focus)}
+:root[data-theme="light"] .queue-detail:hover{color:var(--ops-text)}
+:root[data-theme="light"] .chart-floating-tooltip{background:var(--ops-surface);box-shadow:0 8px 24px rgb(39 36 42 / 16%)}
+:root[data-theme="light"] .tooltip-amount,
+:root[data-theme="light"] .tooltip-action{color:var(--ops-focus)}
+:root[data-theme="light"] .chart-amount-label{fill:var(--ops-focus)}

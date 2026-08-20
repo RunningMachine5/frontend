@@ -1370,3 +1370,27 @@
   .j-card-header{border-color:var(--ops-line);background:var(--ops-surface-raised)}
   .j-guide-card{border-left-color:var(--ops-info)}
 }
+
+:root[data-theme="light"] .j-meta-highlight,
+:root[data-theme="light"] .j-card-badge.primary,
+:root[data-theme="light"] .j-similar-label,
+:root[data-theme="light"] .j-verdict-tag-val,
+:root[data-theme="light"] .j-channel-chip,
+:root[data-theme="light"] .j-bubble-sender,
+:root[data-theme="light"] .j-type-score{color:var(--ops-focus)}
+:root[data-theme="light"] .j-agent-badge,
+:root[data-theme="light"] .j-card-badge.success,
+:root[data-theme="light"] .j-similar-score,
+:root[data-theme="light"] .j-amount-val{color:var(--ops-low)}
+:root[data-theme="light"] .j-status-chip.critical .j-status-val,
+:root[data-theme="light"] .j-chip.active.danger{color:var(--ops-critical)}
+:root[data-theme="light"] .j-status-chip.warning .j-status-val,
+:root[data-theme="light"] .j-status-val,
+:root[data-theme="light"] .j-risk-grade-badge,
+:root[data-theme="light"] .j-similar-highlight,
+:root[data-theme="light"] .j-evidence-desc,
+:root[data-theme="light"] .j-required-badge{color:var(--ops-high)}
+:root[data-theme="light"] .j-similar-reason,
+:root[data-theme="light"] .j-check-item label{color:var(--ops-text)}
+:root[data-theme="light"] .j-bubble.customer .j-bubble-sender{color:#397081}
+:root[data-theme="light"] .j-drawer-overlay{box-shadow:-8px 0 24px rgb(39 36 42 / 18%)}

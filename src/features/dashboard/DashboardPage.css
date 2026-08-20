@@ -474,3 +474,15 @@
   .panel-head{border-color:var(--ops-line)}
   .agent-summary{border-color:var(--ops-line);background:var(--ops-surface-sunken)}
 }
+
+:root[data-theme="light"] .live-pill,
+:root[data-theme="light"] .agent-summary strong,
+:root[data-theme="light"] .agent-refresh-btn{color:var(--ops-focus)}
+:root[data-theme="light"] .chart-amount-label,
+:root[data-theme="light"] .bar-amount-label,
+:root[data-theme="light"] .tooltip-amount{color:var(--ops-focus);fill:var(--ops-focus)}
+:root[data-theme="light"] .agent-comparative-row:hover{background:var(--ops-surface-sunken)}
+:root[data-theme="light"] .status-badge,
+:root[data-theme="light"] .live-status-tag{color:var(--ops-low)}
+:root[data-theme="light"] .chart-floating-tooltip{background:var(--ops-surface);box-shadow:0 8px 24px rgb(39 36 42 / 16%)}
+:root[data-theme="light"] .tooltip-action{color:var(--ops-focus)}
