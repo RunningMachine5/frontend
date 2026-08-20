@@ -19,7 +19,7 @@
 
 .app-brand-mark{width:60px;height:60px;position:relative;flex:0 0 60px;overflow:hidden;border:1px solid #65366d;border-radius:16px;background:#24132f;box-shadow:inset 0 0 0 1px rgb(255 255 255 / 4%),0 8px 24px rgb(182 64 190 / 16%)}
 
-.app-brand-mark img{width:100%;height:100%;display:block;object-fit:cover}
+.app-brand-mark img{width:100%;height:100%;display:block;object-fit:cover;filter:hue-rotate(72deg) saturate(1.12)}
 
 .app-brand-copy{min-width:0;display:grid;gap:4px}
 
