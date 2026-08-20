@@ -69,13 +69,13 @@
   .metric-card small{font-size:12px}
   .chart-legend,.trend-panel-meta{font-size:12px}
   .trend-panel-meta strong{font-size:12px}
-  .chart-axis{font-size:11px}
+  .chart-axis{font-size:12px}
   .chart-value{font-size:12px}
   .risk-detail,.risk-panel footer{font-size:12px}
   .mini-chart-meta{font-size:12px}
-  .mini-bar-column{font-size:11px}
+  .mini-bar-column{font-size:12px}
   .bubble strong{font-size:12px}
-  .bubble span,.bubble-legend{font-size:11px}
+  .bubble span,.bubble-legend{font-size:12px}
   .agent-summary span{font-size:12px}
 }
 

@@ -35,12 +35,12 @@
   .scatter-scale,.scatter-plot{height:135px}
   .scatter-scale span{height:45px}
   .scatter-plot{background:repeating-linear-gradient(to bottom,transparent 0,transparent 44px,#343440 45px)}
-  .scatter-scale,.scatter-time-axis,.scatter-caption{font-size:11px}
+  .scatter-scale,.scatter-time-axis,.scatter-caption{font-size:12px}
 
   .queue-table-wrap{flex:0 0 auto;overflow-x:auto;overflow-y:hidden}
   .queue-table-wrap table{font-size:12px}
   .queue-table-wrap th,.queue-table-wrap td{padding:6px 8px;line-height:1.35}
-  .grade{font-size:11px}
+  .grade{font-size:12px}
   .queue-pagination span{font-size:13px}
 }
 
