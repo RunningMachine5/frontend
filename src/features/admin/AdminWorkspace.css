@@ -196,6 +196,17 @@
 .run-detail-header{padding:15px 18px;border:1px solid var(--ops-line);border-radius:12px;display:flex;align-items:center;justify-content:space-between;gap:24px;background:var(--ops-surface)}.run-detail-identity{min-width:280px;display:flex;align-items:center;gap:14px}.run-detail-identity h2{margin:0;font-size:20px}.run-detail-header dl{min-width:0;margin:0;display:grid;grid-template-columns:repeat(4,minmax(120px,1fr));gap:7px}.run-detail-header dl div{min-width:0;padding:9px 11px;border-radius:7px;background:var(--ops-surface-sunken)}.run-detail-header dt{color:var(--ops-text-subtle);font-size:8px}.run-detail-header dd{margin:5px 0 0;overflow:hidden;font-size:10px;font-weight:700;text-overflow:ellipsis;white-space:nowrap}
 .run-workflow-rail{margin:0}.run-detail-workspace{min-height:0;display:grid;grid-template-columns:minmax(560px,1.4fr) minmax(360px,.7fr);gap:12px}.run-comparison-panel,.run-action-panel{min-height:0}.run-comparison-panel{display:flex;flex-direction:column}.run-comparison-panel .model-comparison{min-height:0;flex:1;display:grid;grid-template-rows:repeat(7,1fr)}.run-comparison-panel .model-comparison-row{min-height:0}.run-action-panel{padding:20px;display:flex;flex-direction:column;gap:15px}.run-action-panel h2{margin:0 0 6px;font-size:20px}.run-action-guide{margin:0;color:var(--ops-text-muted);font-size:11px;line-height:1.65}.run-error-message{padding:12px;border:1px solid #64303a;border-radius:8px;display:grid;gap:5px;background:#291b20}.run-error-message strong{color:#ff909a;font-size:10px}.run-error-message span{color:#c7a4a7;font-size:10px;line-height:1.5}.run-action-buttons{margin-top:auto;display:grid;grid-template-columns:1fr 1fr;gap:8px}.automatic-smoke-card{min-height:0;flex:1;padding:16px;border:1px solid var(--ops-line);border-radius:10px;display:flex;flex-direction:column;gap:14px;background:var(--ops-surface-sunken)}.automatic-smoke-card>div{margin:auto 0;display:grid;gap:8px}.automatic-smoke-card span{color:var(--ops-focus);font-size:10px;font-weight:800}.automatic-smoke-card strong{font-size:15px;line-height:1.45}.automatic-smoke-card p{margin:0;color:var(--ops-text-muted);font-size:10px;line-height:1.6}.automatic-smoke-card .admin-button{margin-top:auto}.traffic-progress-card{margin-top:auto;display:grid;gap:12px}.traffic-progress-card>div:first-child{display:flex;align-items:flex-end;justify-content:space-between;gap:12px}.traffic-progress-card span{color:var(--ops-text-muted);font-size:10px}.traffic-progress-card strong{color:var(--ops-focus);font-size:30px}.traffic-progress-track{height:9px;border-radius:99px;background:var(--ops-surface-sunken);overflow:hidden}.traffic-progress-track i{display:block;height:100%;border-radius:inherit;background:var(--ops-focus)}.traffic-progress-card p{margin:0;color:var(--ops-text-muted);font-size:10px;line-height:1.6}
 
+/* 모델 비교와 승인 화면은 작은 수치를 읽고 바로 판단하는 곳이므로 본문 글자를 한 단계 키운다. */
+.run-detail-header dt{font-size:10px}.run-detail-header dd{font-size:12px}
+.run-workflow-rail .workflow-step strong{font-size:14px}.run-workflow-rail .workflow-step span{font-size:12px}
+.run-comparison-panel .model-comparison-row>strong{font-size:13px}.run-comparison-panel .model-comparison-row>strong small{font-size:10px}.run-comparison-panel .model-comparison-row>span,.run-comparison-panel .model-comparison-row>em{font-size:14px}.run-comparison-panel .model-comparison-header>span{font-size:11px}
+.run-action-panel h2{font-size:22px}.run-action-guide{font-size:13px}.run-error-message strong,.run-error-message span{font-size:12px}
+/* 큰 내부 박스를 없애 안내와 실행 버튼이 하나의 조치 영역으로 읽히게 한다. */
+.automatic-smoke-card{padding:16px 0 0;border:0;border-top:1px solid var(--ops-line);border-radius:0;background:transparent}
+.automatic-smoke-card>div{margin:0;padding:16px;border:1px solid var(--ops-line);border-radius:9px;background:var(--ops-surface-sunken)}
+.automatic-smoke-card span{font-size:12px}.automatic-smoke-card strong{font-size:17px}.automatic-smoke-card p{font-size:12px}
+.traffic-progress-card span,.traffic-progress-card p{font-size:12px}
+
 .monitoring-range-control{padding:3px;border:1px solid var(--ops-line);border-radius:10px;display:flex;background:var(--ops-surface-sunken)}.monitoring-range-control button{min-width:58px;height:31px;border:0;border-radius:7px;background:transparent;color:var(--ops-text-muted);font-size:10px;font-weight:700}.monitoring-range-control button.active{background:var(--ops-focus-soft);color:#dce4f7}.monitoring-range-control button:focus-visible,.monitoring-service-rail button:focus-visible{outline:2px solid var(--ops-focus);outline-offset:2px}
 .monitoring-service-rail{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.monitoring-service-rail button{position:relative;min-width:0;min-height:82px;padding:13px 16px 12px;border:1px solid var(--ops-line);border-radius:11px;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:3px 14px;overflow:hidden;background:var(--ops-surface-sunken);color:var(--ops-text);text-align:left}.monitoring-service-rail button::before{content:"";position:absolute;top:0;bottom:0;left:0;width:3px;background:transparent}.monitoring-service-rail button:hover{background:var(--ops-surface-raised)}.monitoring-service-rail button.active{border-color:var(--ops-focus);background:var(--ops-focus-soft)}.monitoring-service-rail button.active::before{background:var(--ops-focus)}.monitoring-service-rail small{grid-column:1/-1;color:var(--ops-focus);font-size:8px;font-weight:800;letter-spacing:.11em}.monitoring-service-rail strong{font-size:15px}.monitoring-service-rail span{color:#cfd1da;font-size:10px;font-weight:700}.monitoring-service-rail em{align-self:end;grid-row:2/4;grid-column:2;color:var(--ops-text-subtle);font-size:9px;font-style:normal;text-align:right}
 .monitoring-freshness{min-height:50px;padding:7px 11px;border:1px solid var(--ops-line);border-radius:10px;display:grid;grid-template-columns:minmax(300px,1fr) minmax(520px,1.5fr) auto;align-items:center;gap:16px;background:var(--ops-surface)}.monitoring-freshness>div{min-width:0;display:flex;align-items:center;gap:9px}.monitoring-freshness i{width:8px;height:8px;border-radius:50%;background:var(--ops-text-subtle)}.monitoring-freshness i.online{background:#48d192;box-shadow:0 0 0 4px rgb(72 209 146 / 10%)}.monitoring-freshness i.error{background:#ff7d89;box-shadow:0 0 0 4px rgb(255 125 137 / 10%)}.monitoring-freshness span,.monitoring-freshness em{color:var(--ops-text-muted);font-size:9px;font-style:normal}.monitoring-freshness>div span{color:var(--ops-text);font-weight:700}.monitoring-freshness>div strong{min-width:0;overflow:hidden;font-size:10px;text-overflow:ellipsis;white-space:nowrap}.monitoring-freshness>p{margin:0;display:flex;align-items:center;justify-content:flex-end;gap:8px;color:var(--ops-text-muted);font-size:9px}.monitoring-freshness>p strong{color:var(--ops-text)}.monitoring-freshness>p em{padding-left:8px;border-left:1px solid var(--ops-line)}
@@ -531,9 +542,11 @@
   .workflow-step strong{font-size:15px}
   .workflow-step span{font-size:13px}
   .recommendation{font-size:12px}
-  .model-comparison-row>strong{font-size:14px}
-  .model-comparison-row>strong small{font-size:12px}
-  .model-comparison-header>span{font-size:12px}
+  .model-comparison-row>strong{font-size:15px}
+  .model-comparison-row>strong small{font-size:13px}
+  .model-comparison-row>span,
+  .model-comparison-row>em{font-size:15px}
+  .model-comparison-header>span{font-size:13px}
   .dataset-ledger-list header strong{font-size:15px}
   .dataset-ledger-list header em{font-size:12px}
   .dataset-delete-button,
@@ -582,14 +595,18 @@
   .labeling-detail-grid dd,
   .signal-section li strong{font-size:13px}
 
-  .run-detail-header dt,
-  .run-detail-header dd,
-  .run-action-guide,
+  .run-detail-identity h2{font-size:22px}
+  .run-detail-header dt{font-size:13px}
+  .run-detail-header dd{font-size:14px}
+  .run-workflow-rail .workflow-step small{font-size:14px}
+  .run-action-guide{font-size:14px}
   .run-error-message strong,
-  .run-error-message span,
-  .automatic-smoke-card,
+  .run-error-message span{font-size:13px}
+  .automatic-smoke-card span{font-size:13px}
+  .automatic-smoke-card strong{font-size:18px}
+  .automatic-smoke-card p,
   .traffic-progress-card span,
-  .traffic-progress-card p{font-size:12px}
+  .traffic-progress-card p{font-size:13px}
 
   .monitoring-range-control button{font-size:13px}
   .monitoring-service-rail small{font-size:12px}

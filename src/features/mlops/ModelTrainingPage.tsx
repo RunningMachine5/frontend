@@ -191,8 +191,7 @@ export function ModelTrainingPage() {
     if (!trainingDatasetId) return;
     const result = await startTraining(trainingDatasetId);
     setDialog(null);
-    setNotice(`학습 Run #${result.training_run.id}을 시작했습니다.`);
-    await load();
+    navigate(`/models/runs/${result.training_run.id}`);
   });
 
   const reconcile = (run: TrainingRun) => runAction(async () => {
