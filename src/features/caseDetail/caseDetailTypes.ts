@@ -67,6 +67,8 @@ export type CaseAgentView = {
       action: string;
       reason: string;
       required: boolean;
+      procedure_steps: string[];
+      cautions: string[];
     }>;
     checklist?: Array<{
       item_code: string;
@@ -217,6 +219,8 @@ export type AgentCaseResult = {
       action: string;
       reason: string;
       required: boolean;
+      procedure_steps: string[];
+      cautions: string[];
     }>;
     checklist: Array<{
       item_code: string;
