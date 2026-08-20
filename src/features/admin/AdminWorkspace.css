@@ -158,8 +158,8 @@
 .model-section-nav a:focus-visible,.model-action-list a:focus-visible,.model-workflow-grid a:focus-visible,.table-action-button:focus-visible{outline:2px solid #cf5bd7;outline-offset:2px}
 .model-section-content{min-height:0;margin-top:14px;display:flex;flex:1;flex-direction:column;gap:12px}
 
-.model-command-grid{min-height:0;display:grid;grid-template-columns:minmax(0,1.8fr) minmax(320px,.8fr);gap:12px}
-.production-command{padding:22px;display:flex;flex-direction:column;gap:14px}
+.model-command-grid{min-height:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.production-command{grid-column:span 2;padding:22px;display:flex;flex-direction:column;gap:14px}
 .production-command>header{display:flex;align-items:flex-start;justify-content:space-between;gap:16px}
 .production-command>header>div{display:flex;align-items:center;gap:10px}.production-command>header .admin-eyebrow{margin:0}.production-command>header small{color:#777b88;font-size:10px}
 .production-overview{min-height:0;display:grid;flex:1;grid-template-columns:minmax(0,1fr) 250px;align-items:stretch;gap:28px}
@@ -221,6 +221,7 @@
 
 @media(max-width:1280px){
   .model-command-grid,.training-workspace,.run-detail-workspace,.labeling-workspace{grid-template-columns:1fr}
+  .production-command{grid-column:auto}
   .model-command-grid,.training-workspace,.run-detail-workspace,.monitoring-chart-grid,.labeling-workspace{overflow:visible}
   .labeling-queue-list{max-height:470px}
   .dataset-ledger-list{max-height:none}.run-detail-header{align-items:flex-start;flex-direction:column}.run-detail-header dl{width:100%}.monitoring-summary-grid{grid-template-columns:repeat(3,1fr)}.monitoring-freshness{grid-template-columns:1fr auto}.monitoring-freshness>p{grid-column:1/-1;grid-row:2;justify-content:flex-start}
