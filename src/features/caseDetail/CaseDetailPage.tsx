@@ -142,11 +142,11 @@ export function CaseDetailPage() {
   } = useCaseDetail(transactionId);
   const [openWing, setOpenWing] = useState<"chat" | "review" | null>(null);
   const [checkedItems, setCheckedItems] = useState<Set<string>>(new Set());
-  const [performedActions, setPerformedActions] = useState<Set<string>>(new Set());
   const [decision, setDecision] = useState<ReviewDecision>("ON_HOLD");
   const [confirmedFraudType, setConfirmedFraudType] = useState("");
   const [resolutionSummary, setResolutionSummary] = useState("");
   const [saveMessage, setSaveMessage] = useState<string | null>(null);
+  const [isGuideDetailsOpen, setIsGuideDetailsOpen] = useState(false);
 
   useEffect(() => {
     const review = detail?.review.data;
@@ -159,17 +159,13 @@ export function CaseDetailPage() {
       ?? "",
     );
     setResolutionSummary(review?.resolution_summary ?? "");
+    setIsGuideDetailsOpen(false);
     setCheckedItems(new Set(
       (review?.checklist_results ?? [])
         .filter((item) => item.checked ?? item.cheked ?? false)
         .map((item) => item.item_code),
     ));
-    setPerformedActions(new Set(
-      (review?.performed_actions ?? [])
-        .filter((item) => item.performed)
-        .map((item) => item.action_code),
-    ));
-  }, [detail]);
+  }, [detail?.case_id]);
 
   if (transactionId === null) {
     return <CaseAnalysisPageShell activeSection="detail" contentClassName="case-content" headerClassName="case-header"><main className="case-state">거래 탐색 탭에서 분석할 거래를 먼저 선택해주세요.</main></CaseAnalysisPageShell>;
@@ -218,10 +214,7 @@ export function CaseDetailPage() {
       confirmed_fraud_type: decision === "CONFIRMED_FRAUD"
         ? confirmedFraudType.trim()
         : null,
-      performed_actions: recommendedActions.map((item) => ({
-        action_code: item.action_code,
-        performed: performedActions.has(item.action_code),
-      })),
+      performed_actions: [],
       checklist_results: checklist.map((item) => ({
         item_code: item.item_code,
         checked: checkedItems.has(item.item_code),
@@ -274,17 +267,27 @@ export function CaseDetailPage() {
             </div>
           </article>
 
+          <article className="case-panel profile-card"><div className="case-panel-head"><div><p className="case-eyebrow">TRANSACTION PROFILE</p><h2>거래 · 고객 · 계좌 정보</h2></div></div>{transaction ? <dl className="profile-definition"><div><dt>거래 시각</dt><dd>{formatDate(transaction.transaction_datetime)}</dd></div><div><dt>거래 금액</dt><dd>{formatAmount(transaction.transaction_amount)}</dd></div><div><dt>채널 / 위치</dt><dd>{transaction.channel} / {formatLocation(transaction)}</dd></div><div><dt>고객 ID</dt><dd>{transaction.customer_id ?? "데이터 없음"}</dd></div><div><dt>출금 계좌</dt><dd>{transaction.source_account_number}</dd></div><div><dt>수취 계좌</dt><dd>{transaction.recipient_account_number}</dd></div></dl> : <EmptyData message={detail.transaction.error_message ?? "거래 정보가 없습니다."} />}</article>
+          <article className="case-panel device-card"><div className="case-panel-head"><div><p className="case-eyebrow">DEVICE SIGNAL</p><h2>단말 · 접속 위험정보</h2></div></div><DeviceRiskInfo transaction={transaction} /></article>
+
+          <article className="case-panel guide-checklist-card">
+            <div className="guide-section">
+              <div className="case-panel-head"><div><p className="case-eyebrow">AGENT RESPONSE PLAN</p><h2>대응 가이드</h2></div><span className="data-source">Agent 결과</span></div>
+              {responsePlan ? <>
+                <p className="guide-summary">{responsePlan.summary ?? "요약 데이터 없음"}</p>
+                <ol className="action-list">{recommendedActions.map((item) => <li key={item.action_code}><b>{item.priority}</b><div><strong>{item.action}</strong><p>{item.reason}</p></div></li>)}</ol>
+                <button className="guide-detail-button" onClick={() => setIsGuideDetailsOpen((current) => !current)} type="button">
+                  {isGuideDetailsOpen ? "대응 가이드 접기" : "대응 가이드 자세히 보기"}
+                </button>
+                {isGuideDetailsOpen && <div className="guide-detail-table-wrap"><table className="guide-detail-table"><thead><tr><th>조치</th><th>절차</th><th>주의사항</th></tr></thead><tbody>{recommendedActions.map((item) => <tr key={item.action_code}><td>{item.action}</td><td><ol>{item.procedure_steps.map((step) => <li key={step}>{step}</li>)}</ol></td><td><ul>{item.cautions.map((caution) => <li key={caution}>{caution}</li>)}</ul></td></tr>)}</tbody></table></div>}
+              </> : <EmptyData message="Agent 대응 가이드가 생성되지 않았습니다." />}
+            </div>
+            <div className="checklist-section"><div className="case-panel-head"><div><p className="case-eyebrow">REVIEW CHECKLIST</p><h2>체크리스트</h2></div><span>{checkedItems.size}/{checklist.length} 완료</span></div>{checklist.length > 0 ? <ul className="checklist">{checklist.map((item) => <li className={checkedItems.has(item.item_code) ? "checked" : ""} key={item.item_code}><label><input checked={checkedItems.has(item.item_code)} onChange={() => toggleSet(setCheckedItems, item.item_code)} type="checkbox" /><span>{item.label}</span></label>{item.required && <em>필수</em>}</li>)}</ul> : <EmptyData message="Agent 체크리스트가 없습니다." />}</div>
+          </article>
+
           <article className="case-panel similar-card">
             <div className="case-panel-head"><div><p className="case-eyebrow">SIMILAR CASES</p><h2>유사 사례 Top 3</h2></div><span>{similarCases.length}건</span></div>
             {similarCases.length > 0 ? <div className="similar-list">{similarCases.slice(0, 3).map((item) => <div className="similar-row" key={item.similar_case_id}><b>#{item.similarity_rank}</b><div><strong>{item.similar_case_id}</strong><p>{item.similarity_reason}</p></div><span>{formatPercent(item.similarity_score)}</span></div>)}</div> : <EmptyData message="조건에 맞는 완료 사건이 없습니다." />}
-          </article>
-
-          <article className="case-panel"><div className="case-panel-head"><div><p className="case-eyebrow">TRANSACTION PROFILE</p><h2>거래 · 고객 · 계좌 정보</h2></div></div>{transaction ? <dl className="profile-definition"><div><dt>거래 시각</dt><dd>{formatDate(transaction.transaction_datetime)}</dd></div><div><dt>거래 금액</dt><dd>{formatAmount(transaction.transaction_amount)}</dd></div><div><dt>채널 / 위치</dt><dd>{transaction.channel} / {formatLocation(transaction)}</dd></div><div><dt>고객 ID</dt><dd>{transaction.customer_id ?? "데이터 없음"}</dd></div><div><dt>출금 계좌</dt><dd>{transaction.source_account_number}</dd></div><div><dt>수취 계좌</dt><dd>{transaction.recipient_account_number}</dd></div></dl> : <EmptyData message={detail.transaction.error_message ?? "거래 정보가 없습니다."} />}</article>
-          <article className="case-panel"><div className="case-panel-head"><div><p className="case-eyebrow">DEVICE SIGNAL</p><h2>단말 · 접속 위험정보</h2></div></div><DeviceRiskInfo transaction={transaction} /></article>
-
-          <article className="case-panel guide-checklist-card">
-            <div className="guide-section"><div className="case-panel-head"><div><p className="case-eyebrow">AGENT RESPONSE PLAN</p><h2>대응 가이드</h2></div><span className="data-source">Agent 결과</span></div>{responsePlan ? <><p className="guide-summary">{responsePlan.summary ?? "요약 데이터 없음"}</p><ol className="action-list">{recommendedActions.map((item) => <li key={item.action_code}><b>{item.priority}</b><div><strong>{item.action}</strong><p>{item.reason}</p></div></li>)}</ol></> : <EmptyData message="Agent 대응 가이드가 생성되지 않았습니다." />}</div>
-            <div className="checklist-section"><div className="case-panel-head"><div><p className="case-eyebrow">REVIEW CHECKLIST</p><h2>체크리스트</h2></div><span>{checkedItems.size}/{checklist.length} 완료</span></div>{checklist.length > 0 ? <ul className="checklist">{checklist.map((item) => <li className={checkedItems.has(item.item_code) ? "checked" : ""} key={item.item_code}><label><input checked={checkedItems.has(item.item_code)} onChange={() => toggleSet(setCheckedItems, item.item_code)} type="checkbox" /><span>{item.label}</span></label>{item.required && <em>필수</em>}</li>)}</ul> : <EmptyData message="Agent 체크리스트가 없습니다." />}</div>
           </article>
         </section>
       {openWing && (
@@ -297,7 +300,6 @@ export function CaseDetailPage() {
               {review && <p className="saved-review">최근 저장: {formatDate(review.reviewed_at)}</p>}
               <label>최종 판정<select onChange={(event) => setDecision(event.target.value as ReviewDecision)} value={decision}>{Object.entries(DECISION_LABELS).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
               {decision === "CONFIRMED_FRAUD" && <label>확정 사기유형<input onChange={(event) => setConfirmedFraudType(event.target.value)} placeholder="예: VOICE_PHISHING" value={confirmedFraudType} /></label>}
-              {recommendedActions.length > 0 && <fieldset><legend>수행 조치</legend>{recommendedActions.map((item) => <label className="review-check" key={item.action_code}><input checked={performedActions.has(item.action_code)} onChange={() => toggleSet(setPerformedActions, item.action_code)} type="checkbox" /><span>{item.action}</span></label>)}</fieldset>}
               <label>처리 근거<textarea onChange={(event) => setResolutionSummary(event.target.value)} placeholder="최종 판정 근거를 입력하세요." value={resolutionSummary} /></label>
               <button className="review-save" disabled={isSaving || (decision === "CONFIRMED_FRAUD" && !confirmedFraudType.trim())} onClick={() => void handleReviewSave()} type="button">{isSaving ? "저장 중..." : "최종 판정 저장"}</button>
               {saveMessage && <small className="save-success">{saveMessage}</small>}
