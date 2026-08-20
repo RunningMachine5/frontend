@@ -69,6 +69,34 @@ function SummaryCard({
   );
 }
 
+function MonitoringSkeleton({ target }: { target: MonitoringTarget }) {
+  const label = target === "serving"
+    ? "추론 서비스"
+    : target === "training"
+      ? "학습 Job"
+      : "VM · DB";
+
+  return (
+    <>
+      <span className="monitoring-loading-label" role="status">
+        {label} 지표를 불러오는 중입니다.
+      </span>
+      <section aria-hidden="true" className="monitoring-summary-grid monitoring-summary-skeleton">
+        {Array.from({ length: 6 }, (_, index) => (
+          <article key={index}><i /><i /><i /></article>
+        ))}
+      </section>
+      <section aria-hidden="true" className="monitoring-chart-grid monitoring-chart-skeleton">
+        {Array.from({ length: 4 }, (_, index) => (
+          <article className="monitoring-chart-panel monitoring-chart-skeleton-panel" key={index}>
+            <i /><i /><i />
+          </article>
+        ))}
+      </section>
+    </>
+  );
+}
+
 export function ModelMonitoringPage() {
   const [target, setTarget] = useState<MonitoringTarget>("serving");
   const [windowMinutes, setWindowMinutes] = useState(60);
@@ -140,6 +168,13 @@ export function ModelMonitoringPage() {
   const servingSummary = servingMonitoring?.summary;
   const trainingSummary = trainingMonitoring?.summary;
   const platformSummary = platformMonitoring?.summary;
+  const currentMonitoring = target === "serving"
+    ? servingMonitoring
+    : target === "training"
+      ? trainingMonitoring
+      : platformMonitoring;
+  const isInitialLoading = isRefreshing
+    && currentMonitoring?.window_minutes !== windowMinutes;
   const instanceCount = servingSummary?.active_instances === null
     || servingSummary?.active_instances === undefined
     ? null
@@ -205,7 +240,7 @@ export function ModelMonitoringPage() {
 
       <section className="monitoring-freshness">
         <div>
-          <i aria-hidden="true" className={error ? "error" : "online"} />
+          <i aria-hidden="true" className={error ? "error" : isInitialLoading ? "loading" : "online"} />
           <span>{target === "serving" ? "추론" : target === "training" ? "학습" : "플랫폼"}</span>
           <strong>{activeResource}</strong>
         </div>
@@ -219,7 +254,9 @@ export function ModelMonitoringPage() {
         </button>
       </section>
 
-      {target === "serving" && (
+      {isInitialLoading && <MonitoringSkeleton target={target} />}
+
+      {!isInitialLoading && target === "serving" && (
         <>
           <section aria-label="추론 서비스 핵심 지표" className="monitoring-summary-grid">
             <SummaryCard description={`최근 ${windowLabel(windowMinutes)} 합계`} label="Cloud 요청" unit="건" value={servingSummary?.request_count.toLocaleString("ko-KR") ?? "—"} />
@@ -271,7 +308,7 @@ export function ModelMonitoringPage() {
         </>
       )}
 
-      {target === "training" && (
+      {!isInitialLoading && target === "training" && (
         <>
           <section aria-label="학습 Job 핵심 지표" className="monitoring-summary-grid">
             <SummaryCard description={latestRun ? STATUS_LABELS[latestRun.status] : "실행 이력 없음"} label="최근 학습" value={latestRun ? `Run #${latestRun.id}` : "—"} />
@@ -331,7 +368,7 @@ export function ModelMonitoringPage() {
         </>
       )}
 
-      {target === "platform" && (
+      {!isInitialLoading && target === "platform" && (
         <>
           <section aria-label="운영 VM과 DB 핵심 지표" className="monitoring-summary-grid">
             <SummaryCard description="관리 API 응답 가능" label="Backend" tone={platformStatus ? "positive" : "negative"} value={platformStatus?.backend_status ?? "확인 불가"} />
