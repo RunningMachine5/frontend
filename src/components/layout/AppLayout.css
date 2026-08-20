@@ -90,6 +90,15 @@
 .app-sidebar nav a{height:42px;border-left:2px solid transparent;border-radius:3px;color:var(--ops-text-muted);font-size:14px}
 .app-sidebar nav a:hover{background:var(--ops-surface-sunken);color:var(--ops-text)}
 .app-sidebar nav a.active{border-left-color:var(--ops-info);background:var(--ops-surface);color:var(--ops-text);font-weight:700}
+.app-theme-toggle{width:100%;margin-top:auto;padding:10px 12px;border:1px solid var(--ops-line);border-radius:3px;display:flex;align-items:center;justify-content:space-between;background:var(--ops-surface-sunken);color:var(--ops-text);cursor:pointer;text-align:left}
+.app-theme-toggle>span{display:grid;gap:2px}
+.app-theme-toggle small{color:var(--ops-text-subtle);font-size:9px;letter-spacing:.08em}
+.app-theme-toggle b{font-size:12px}
+.app-theme-toggle i{width:30px;height:16px;padding:2px;border-radius:9px;display:flex;justify-content:flex-start;background:var(--ops-line-strong)}
+.app-theme-toggle i::after{width:12px;height:12px;border-radius:50%;background:var(--ops-text);content:""}
+.app-theme-toggle[aria-pressed="true"] i{justify-content:flex-end;background:var(--ops-info)}
+.app-theme-toggle:hover{border-color:var(--ops-line-strong);background:var(--ops-surface)}
+.app-theme-toggle:focus-visible{outline:2px solid var(--ops-focus);outline-offset:2px}
 .app-brand:focus-visible,.app-mobile-brand:focus-visible,.app-sidebar nav a:focus-visible,.app-mobile-nav a:focus-visible{outline-color:var(--ops-focus)}
 
 @media(max-width:820px){
