@@ -32,12 +32,13 @@ interface ModelOverviewSnapshot {
   datasets: DatasetVersion[];
   runs: TrainingRun[];
   serving: ServingStatus | null;
-  productionDetails: ModelDetails | null;
   updatedAt: Date;
 }
 
 let overviewCache: ModelOverviewSnapshot | null = null;
 let overviewRequest: Promise<ModelOverviewSnapshot> | null = null;
+let detailsCache: { runId: number; value: ModelDetails; updatedAt: Date } | null = null;
+let detailsRequest: { runId: number; promise: Promise<ModelDetails | null> } | null = null;
 
 function getCachedOverview() {
   if (!overviewCache) return null;
@@ -51,24 +52,15 @@ async function fetchOverview(force = false) {
   if (overviewRequest) return overviewRequest;
 
   const runsRequest = fetchTrainingRuns();
-  const detailsRequest = runsRequest.then((runs) => {
-    const productionRun = runs.find((run) => run.status === "PRODUCTION");
-    return productionRun?.mlflow_run_id
-      ? fetchModelDetails(productionRun.id).catch(() => null)
-      : null;
-  });
-
   overviewRequest = Promise.all([
     fetchDatasets(),
     runsRequest,
     fetchServingStatus().catch(() => null),
-    detailsRequest,
-  ]).then(([datasets, runs, serving, productionDetails]) => {
+  ]).then(([datasets, runs, serving]) => {
     overviewCache = {
       datasets,
       runs,
       serving,
-      productionDetails,
       updatedAt: new Date(),
     };
     return overviewCache;
@@ -81,8 +73,60 @@ async function fetchOverview(force = false) {
   }
 }
 
+async function fetchProductionDetails(runId: number) {
+  if (detailsCache?.runId === runId) {
+    const age = Date.now() - detailsCache.updatedAt.getTime();
+    if (age < OVERVIEW_REFRESH_MS) return detailsCache.value;
+  }
+  if (detailsRequest?.runId === runId) return detailsRequest.promise;
+
+  const promise = fetchModelDetails(runId)
+    .then((value) => {
+      detailsCache = { runId, value, updatedAt: new Date() };
+      return value;
+    })
+    .catch(() => null);
+  detailsRequest = { runId, promise };
+
+  try {
+    return await promise;
+  } finally {
+    if (detailsRequest?.promise === promise) detailsRequest = null;
+  }
+}
+
+function ModelOverviewSkeleton() {
+  return (
+    <>
+      <span className="model-overview-loading-label" role="status">
+        모델 운영 정보를 불러오는 중입니다.
+      </span>
+      <section aria-hidden="true" className="model-command-grid">
+        <article className="admin-panel production-command model-overview-skeleton-card model-overview-skeleton-production">
+          <i /><i />
+          <div className="model-overview-skeleton-facts">
+            {Array.from({ length: 4 }, (_, index) => <i key={index} />)}
+          </div>
+        </article>
+        <aside className="admin-panel model-action-inbox model-overview-skeleton-card model-overview-skeleton-inbox">
+          <i />
+          {Array.from({ length: 5 }, (_, index) => <i key={index} />)}
+        </aside>
+      </section>
+      <section aria-hidden="true" className="model-workflow-grid">
+        {Array.from({ length: 3 }, (_, index) => (
+          <article className="model-overview-skeleton-card model-overview-skeleton-workflow" key={index}>
+            <i /><i /><i /><i />
+          </article>
+        ))}
+      </section>
+    </>
+  );
+}
+
 export function ModelManagementPage() {
   const [overview, setOverview] = useState<ModelOverviewSnapshot | null>(() => getCachedOverview());
+  const [productionDetails, setProductionDetails] = useState<ModelDetails | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(() => overview === null);
   const [error, setError] = useState<string | null>(null);
 
@@ -123,9 +167,19 @@ export function ModelManagementPage() {
   const datasets = overview?.datasets ?? [];
   const runs = overview?.runs ?? [];
   const serving = overview?.serving ?? null;
-  const productionDetails = overview?.productionDetails ?? null;
   const updatedAt = overview?.updatedAt ?? null;
   const productionRun = runs.find((run) => run.status === "PRODUCTION") ?? null;
+
+  useEffect(() => {
+    if (!productionRun?.mlflow_run_id) {
+      setProductionDetails(null);
+      return;
+    }
+    let active = true;
+    void fetchProductionDetails(productionRun.id)
+      .then((details) => { if (active) setProductionDetails(details); });
+    return () => { active = false; };
+  }, [productionRun?.id, productionRun?.mlflow_run_id]);
 
   const latestDataset = datasets[0] ?? null;
   const latestRun = runs[0] ?? null;
@@ -140,7 +194,8 @@ export function ModelManagementPage() {
     >
       {error && <AdminAlert message={error} onDismiss={() => setError(null)} tone="error" />}
 
-      <section className="model-command-grid">
+      {!overview && isRefreshing ? <ModelOverviewSkeleton /> : <>
+        <section className="model-command-grid">
         <article className="admin-panel production-command">
           <header>
             <div>
@@ -198,9 +253,9 @@ export function ModelManagementPage() {
           </div>
           <Link className="inbox-footer-link" to="/models/training">학습·배포 이력 전체 보기</Link>
         </aside>
-      </section>
+        </section>
 
-      <section aria-label="모델 운영 업무" className="model-workflow-grid">
+        <section aria-label="모델 운영 업무" className="model-workflow-grid">
         <Link to="/models/labeling">
           <small>01 · HUMAN LABELS</small>
           <h3>거래 라벨링</h3>
@@ -237,7 +292,8 @@ export function ModelManagementPage() {
           </ol>
           <footer><strong>{serving ? "Serving 연결됨" : "상태 확인 필요"}</strong><em>열기 →</em></footer>
         </Link>
-      </section>
+        </section>
+      </>}
     </ModelPageShell>
   );
 }
