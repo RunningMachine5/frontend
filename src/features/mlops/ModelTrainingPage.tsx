@@ -7,8 +7,10 @@ import { AdminAlert } from "../admin/AdminAlert";
 import { ModelPageShell } from "./components/ModelPageShell";
 import {
   ACTIVE_RUN_STATUSES,
+  findCurrentProductionRun,
   formatDate,
   STATUS_LABELS,
+  trainingDisplayStatus,
 } from "./modelOperations";
 import {
   buildDataset,
@@ -204,6 +206,7 @@ export function ModelTrainingPage() {
   };
 
   const usedDatasetIds = new Set(runs.map((run) => run.dataset_version_id));
+  const productionRun = findCurrentProductionRun(runs);
   const datasetPageStart = (datasetPage - 1) * DATASETS_PER_PAGE;
   const visibleDatasets = datasets.slice(
     datasetPageStart,
@@ -342,6 +345,7 @@ export function ModelTrainingPage() {
               <tbody>
                 {runs.map((run) => {
                   const datasetVersion = datasets.find((dataset) => dataset.id === run.dataset_version_id)?.version ?? `#${run.dataset_version_id}`;
+                  const displayStatus = trainingDisplayStatus(run, productionRun?.id ?? null);
 
                   return (
                     <tr
@@ -360,7 +364,7 @@ export function ModelTrainingPage() {
                     >
                       <td><strong className="run-id-label">#{run.id}</strong></td>
                       <td className="training-run-dataset-cell" title={datasetVersion}>{datasetVersion}</td>
-                      <td><em className={`status ${run.status.toLowerCase()}`}>{STATUS_LABELS[run.status]}</em></td>
+                      <td><em className={`status ${displayStatus.toLowerCase()}`}>{STATUS_LABELS[displayStatus]}</em></td>
                       <td>{formatDate(run.created_at)}</td>
                       <td className="run-error-cell" title={run.error_message ?? undefined}>{run.error_message ?? "—"}</td>
                       <td>

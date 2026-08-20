@@ -8,6 +8,7 @@ import { ModelPageShell } from "./components/ModelPageShell";
 import {
   ACTION_REQUIRED_STATUSES,
   actionLabel,
+  findCurrentProductionRun,
   formatClock,
   formatDate,
   latestRevisionTraffic,
@@ -197,7 +198,7 @@ export function ModelManagementPage() {
   const inference = overview?.inference ?? null;
   const platform = overview?.platform ?? null;
   const updatedAt = overview?.updatedAt ?? null;
-  const productionRun = runs.find((run) => run.status === "PRODUCTION") ?? null;
+  const productionRun = findCurrentProductionRun(runs);
 
   useEffect(() => {
     if (!productionRun?.mlflow_run_id) {
