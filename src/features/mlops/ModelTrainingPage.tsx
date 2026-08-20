@@ -1,6 +1,6 @@
 // 학습 데이터셋 버전과 Cloud Run 학습 실행 이력을 관리한다.
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { AdminAlert } from "../admin/AdminAlert";
@@ -57,14 +57,17 @@ export function ModelTrainingPage() {
   const [isBusy, setIsBusy] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const loadRequestId = useRef(0);
 
   const load = useCallback(async (showLoading = false) => {
+    const requestId = ++loadRequestId.current;
     if (showLoading) setIsLoading(true);
     try {
       const [datasetRows, trainingRows] = await Promise.all([
         fetchDatasets(),
         fetchTrainingRuns(),
       ]);
+      if (requestId !== loadRequestId.current) return;
       setDatasets(datasetRows);
       setRuns(trainingRows);
       setTrainingDatasetId((current) => (
@@ -74,6 +77,7 @@ export function ModelTrainingPage() {
       ));
       setError(null);
     } catch (cause) {
+      if (requestId !== loadRequestId.current) return;
       setError(cause instanceof Error ? cause.message : "학습 이력을 불러오지 못했습니다.");
     } finally {
       if (showLoading) setIsLoading(false);
@@ -166,8 +170,16 @@ export function ModelTrainingPage() {
 
   const removeDataset = () => runAction(async () => {
     if (!deleteTarget) return;
+    const deletedId = deleteTarget.id;
     const deletedVersion = deleteTarget.version;
-    await deleteDataset(deleteTarget.id);
+    const remainingDatasets = datasets.filter((dataset) => dataset.id !== deletedId);
+    await deleteDataset(deletedId);
+    setDatasets(remainingDatasets);
+    setTrainingDatasetId((current) => (
+      current && remainingDatasets.some((dataset) => dataset.id === current)
+        ? current
+        : remainingDatasets[0]?.id ?? null
+    ));
     setDeleteTarget(null);
     setNotice(`${deletedVersion} 데이터셋을 삭제했습니다.`);
     await load();
@@ -325,48 +337,52 @@ export function ModelTrainingPage() {
             <button className="admin-button compact" disabled={isLoading || isBusy} onClick={() => void load(true)} type="button">상태 새로고침</button>
           </div>
           <div className="admin-table-wrap">
-            <table>
+            <table className="training-runs-table">
               <thead><tr><th>Run</th><th>데이터셋</th><th>상태</th><th>실행 시각</th><th>실패 원인</th><th>작업</th></tr></thead>
               <tbody>
-                {runs.map((run) => (
-                  <tr
-                    aria-label={`Run #${run.id} 상세 보기`}
-                    className="training-run-row"
-                    key={run.id}
-                    onClick={() => openRun(run.id)}
-                    onKeyDown={(event) => {
-                      if (event.target !== event.currentTarget) return;
-                      if (event.key === "Enter" || event.key === " ") {
-                        event.preventDefault();
-                        openRun(run.id);
-                      }
-                    }}
-                    tabIndex={0}
-                  >
-                    <td><strong className="run-id-label">#{run.id}</strong></td>
-                    <td>{datasets.find((dataset) => dataset.id === run.dataset_version_id)?.version ?? `#${run.dataset_version_id}`}</td>
-                    <td><em className={`status ${run.status.toLowerCase()}`}>{STATUS_LABELS[run.status]}</em></td>
-                    <td>{formatDate(run.created_at)}</td>
-                    <td className="run-error-cell" title={run.error_message ?? undefined}>{run.error_message ?? "—"}</td>
-                    <td>
-                      {["REQUESTED", "RUNNING"].includes(run.status) ? (
-                        <button
-                          className="table-action-button"
-                          disabled={isBusy}
-                          onClick={(event) => {
-                            event.stopPropagation();
-                            void reconcile(run);
-                          }}
-                          type="button"
-                        >
-                          상태 확인
-                        </button>
-                      ) : (
-                        <span aria-hidden="true" className="row-open-hint">열기 →</span>
-                      )}
-                    </td>
-                  </tr>
-                ))}
+                {runs.map((run) => {
+                  const datasetVersion = datasets.find((dataset) => dataset.id === run.dataset_version_id)?.version ?? `#${run.dataset_version_id}`;
+
+                  return (
+                    <tr
+                      aria-label={`Run #${run.id} 상세 보기`}
+                      className="training-run-row"
+                      key={run.id}
+                      onClick={() => openRun(run.id)}
+                      onKeyDown={(event) => {
+                        if (event.target !== event.currentTarget) return;
+                        if (event.key === "Enter" || event.key === " ") {
+                          event.preventDefault();
+                          openRun(run.id);
+                        }
+                      }}
+                      tabIndex={0}
+                    >
+                      <td><strong className="run-id-label">#{run.id}</strong></td>
+                      <td className="training-run-dataset-cell" title={datasetVersion}>{datasetVersion}</td>
+                      <td><em className={`status ${run.status.toLowerCase()}`}>{STATUS_LABELS[run.status]}</em></td>
+                      <td>{formatDate(run.created_at)}</td>
+                      <td className="run-error-cell" title={run.error_message ?? undefined}>{run.error_message ?? "—"}</td>
+                      <td>
+                        {["REQUESTED", "RUNNING"].includes(run.status) ? (
+                          <button
+                            className="table-action-button"
+                            disabled={isBusy}
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              void reconcile(run);
+                            }}
+                            type="button"
+                          >
+                            상태 확인
+                          </button>
+                        ) : (
+                          <span aria-hidden="true" className="row-open-hint">열기 →</span>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
             {runs.length === 0 && !isLoading && <div className="table-empty">학습 실행 이력이 없습니다.</div>}

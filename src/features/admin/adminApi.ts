@@ -17,8 +17,10 @@ export async function adminRequest<T>(
   path: string,
   init: RequestInit = {},
 ): Promise<T> {
+  const method = (init.method ?? "GET").toUpperCase();
   const response = await fetch(`/api${path}`, {
     ...init,
+    cache: init.cache ?? (method === "GET" ? "no-store" : "default"),
     headers: {
       "Content-Type": "application/json",
       ...init.headers,

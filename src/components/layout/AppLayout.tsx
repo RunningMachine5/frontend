@@ -22,7 +22,7 @@ const pageTitles = {
 } as const;
 
 function BrandMark() {
-  return <span aria-hidden="true" className="app-brand-mark"><img alt="" src="/fdshield-logo.png" /></span>;
+  return <span aria-hidden="true" className="app-brand-mark"><img alt="" src="/fdshield-mark.svg" /></span>;
 }
 
 // 모든 화면에서 같은 사이드바와 화면 폭을 사용한다.
