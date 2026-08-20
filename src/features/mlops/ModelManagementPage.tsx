@@ -226,6 +226,9 @@ export function ModelManagementPage() {
   const latestDatasetLabelCount = latestDataset
     ? latestDataset.period_normal_count + latestDataset.period_fraud_count
     : null;
+  const runtimeState = serving && platform?.database_status === "UP"
+    ? serving.reconciling ? "트래픽 전환 중" : "서비스 정상"
+    : "상태 확인 필요";
   const productionTitle = productionDetails?.model_version
     ? `운영 모델 v${productionDetails.model_version}`
     : productionRun?.model_key ?? (hasDisconnectedRun ? "운영 Run 미연결" : "운영 모델 없음");
@@ -312,54 +315,99 @@ export function ModelManagementPage() {
         </aside>
         </section>
 
-        <section aria-label="모델 운영 핵심 지표" className="model-summary-grid">
+        <section aria-label="라벨링부터 운영까지 모델 업무 흐름" className="model-summary-grid">
         <Link to="/models/labeling">
           <header>
-            <div><small>HUMAN LABELS</small><h3>거래 라벨링</h3></div>
+            <div className="model-summary-heading">
+              <b aria-hidden="true">01</b>
+              <div><small>HUMAN LABELS</small><h3>거래 라벨링</h3></div>
+            </div>
             <em>검토 열기 →</em>
           </header>
           <div className="model-summary-primary">
-            <span>미판정 거래</span>
+            <span>지금 확인할 거래</span>
             <strong>{labelSummary ? numberFormat.format(labelSummary.unlabeled_count) : "—"}<small>건</small></strong>
-            <p>{labelSummary ? `전체 ${numberFormat.format(labelSummary.total_count)}건 중 담당자 확인 대기` : "라벨 집계를 확인하고 있습니다."}</p>
+            <p>{labelSummary ? `담당자 판정 ${labelingCompletion}% 완료` : "라벨 집계를 확인하고 있습니다."}</p>
           </div>
-          <dl>
-            <div><dt>판정 완료율</dt><dd>{labelSummary ? `${labelingCompletion}%` : "—"}</dd></div>
-            <div><dt>정상 확정</dt><dd className="positive">{labelSummary ? numberFormat.format(labelSummary.normal_count) : "—"}</dd></div>
-            <div><dt>사기 확정</dt><dd className="danger">{labelSummary ? numberFormat.format(labelSummary.fraud_count) : "—"}</dd></div>
-          </dl>
+          <ul className="model-summary-details">
+            <li>
+              <i className="accent" />
+              <div><span>담당자 판정 완료</span><small>전체 {labelSummary ? numberFormat.format(labelSummary.total_count) : "—"}건</small></div>
+              <strong>{confirmedLabelCount === null ? "—" : numberFormat.format(confirmedLabelCount)}<small>건</small></strong>
+            </li>
+            <li>
+              <i className="positive" />
+              <div><span>정상 확정</span><small>학습용 정상 라벨</small></div>
+              <strong className="positive">{labelSummary ? numberFormat.format(labelSummary.normal_count) : "—"}<small>건</small></strong>
+            </li>
+            <li>
+              <i className="danger" />
+              <div><span>사기 확정</span><small>학습용 사기 라벨</small></div>
+              <strong className="danger">{labelSummary ? numberFormat.format(labelSummary.fraud_count) : "—"}<small>건</small></strong>
+            </li>
+          </ul>
         </Link>
         <Link to="/models/training">
           <header>
-            <div><small>TRAIN & RELEASE</small><h3>학습 · 배포</h3></div>
+            <div className="model-summary-heading">
+              <b aria-hidden="true">02</b>
+              <div><small>TRAIN & RELEASE</small><h3>학습 · 배포</h3></div>
+            </div>
             <em>이력 열기 →</em>
           </header>
           <div className="model-summary-primary">
-            <span>최근 학습 상태</span>
-            <strong className="text-value">{latestRun ? STATUS_LABELS[latestRun.status] : "실행 이력 없음"}</strong>
-            <p>{latestRun ? `Run #${latestRun.id} · ${formatDate(latestRun.created_at)}` : "새 데이터셋을 만든 뒤 학습을 실행하세요."}</p>
+            <span>다음 학습 · 배포 작업</span>
+            <strong className="text-value">{actionRuns.length > 0 ? `${numberFormat.format(actionRuns.length)}건 확인 필요` : latestRun ? "대기 작업 없음" : "첫 학습 준비"}</strong>
+            <p>{actionRuns.length > 0 ? "후보 검토 또는 배포 확인이 필요합니다." : latestRun ? `최근 Run #${latestRun.id} · ${formatDate(latestRun.created_at)}` : "데이터셋을 만든 뒤 학습을 실행하세요."}</p>
           </div>
-          <dl>
-            <div><dt>조치 필요 Run</dt><dd className={actionRuns.length > 0 ? "accent" : undefined}>{numberFormat.format(actionRuns.length)}</dd></div>
-            <div><dt>최신 데이터셋 행</dt><dd>{latestDataset ? numberFormat.format(latestDataset.row_count) : "—"}</dd></div>
-            <div><dt>반영 라벨</dt><dd>{latestDatasetLabelCount === null ? "—" : numberFormat.format(latestDatasetLabelCount)}</dd></div>
-          </dl>
+          <ol className="model-summary-details workflow">
+            <li>
+              <i>1</i>
+              <div><span>학습 데이터셋</span><small title={latestDataset?.version}>{latestDataset?.version ?? "생성 전"}</small></div>
+              <strong>{latestDataset ? numberFormat.format(latestDataset.row_count) : "—"}<small>행</small></strong>
+            </li>
+            <li>
+              <i>2</i>
+              <div><span>최근 학습 Run</span><small>{latestRun ? `Run #${latestRun.id}` : "실행 전"}</small></div>
+              <strong>{latestRun ? STATUS_LABELS[latestRun.status] : "—"}</strong>
+            </li>
+            <li>
+              <i>3</i>
+              <div><span>운영 전환</span><small>{productionRun ? `Ready 트래픽 ${trafficPercent}%` : "후보 검토 후 배포"}</small></div>
+              <strong>{productionRun ? `Run #${productionRun.id}` : latestDatasetLabelCount === null ? "—" : `${numberFormat.format(latestDatasetLabelCount)} 라벨`}</strong>
+            </li>
+          </ol>
         </Link>
         <Link to="/models/monitoring">
           <header>
-            <div><small>RUNTIME HEALTH</small><h3>서버 상태</h3></div>
+            <div className="model-summary-heading">
+              <b aria-hidden="true">03</b>
+              <div><small>RUNTIME HEALTH</small><h3>운영 모니터링</h3></div>
+            </div>
             <em>모니터링 열기 →</em>
           </header>
           <div className="model-summary-primary">
-            <span>최근 {inference?.window_minutes ?? 5}분 추론</span>
-            <strong>{inference ? numberFormat.format(inference.inference_count) : "—"}<small>건</small></strong>
-            <p>{inference?.latest_inference_at ? `마지막 추론 ${formatClock(inference.latest_inference_at)}` : inference ? "최근 추론 요청이 없습니다." : "추론 성능을 확인하고 있습니다."}</p>
+            <span>현재 서비스 상태</span>
+            <strong className={`text-value ${runtimeState === "서비스 정상" ? "positive" : serving?.reconciling ? "accent" : "danger"}`}>{runtimeState}</strong>
+            <p>{inference?.latest_inference_at ? `마지막 추론 ${formatClock(inference.latest_inference_at)}` : inference ? `최근 ${inference.window_minutes}분 추론 요청 없음` : "운영 지표를 확인하고 있습니다."}</p>
           </div>
-          <dl>
-            <div><dt>추론 P95</dt><dd>{inference?.p95_latency_ms === null || inference?.p95_latency_ms === undefined ? "—" : `${numberFormat.format(inference.p95_latency_ms)}ms`}</dd></div>
-            <div><dt>PostgreSQL</dt><dd className={platform ? platform.database_status === "UP" ? "positive" : "danger" : undefined}>{platform?.database_status ?? "—"}</dd></div>
-            <div><dt>Cloud Run</dt><dd className={serving?.reconciling ? "accent" : serving ? "positive" : "danger"}>{serving?.reconciling ? "전환 중" : serving ? "연결" : "확인 필요"}</dd></div>
-          </dl>
+          <ul className="model-summary-details">
+            <li>
+              <i className="accent" />
+              <div><span>추론 API</span><small>P95 {inference?.p95_latency_ms === null || inference?.p95_latency_ms === undefined ? "—" : `${numberFormat.format(inference.p95_latency_ms)}ms`}</small></div>
+              <strong>{inference ? numberFormat.format(inference.inference_count) : "—"}<small>건</small></strong>
+            </li>
+            <li>
+              <i className={serving?.reconciling ? "accent" : serving ? "positive" : "danger"} />
+              <div><span>Cloud Run Serving</span><small>Ready 트래픽 {serving ? `${trafficPercent}%` : "—"}</small></div>
+              <strong className={serving?.reconciling ? "accent" : serving ? "positive" : "danger"}>{serving?.reconciling ? "전환 중" : serving ? "연결" : "확인 필요"}</strong>
+            </li>
+            <li>
+              <i className={platform?.database_status === "UP" ? "positive" : "danger"} />
+              <div><span>PostgreSQL</span><small>응답 {platform?.database_latency_ms === null || platform?.database_latency_ms === undefined ? "—" : `${numberFormat.format(platform.database_latency_ms)}ms`}</small></div>
+              <strong className={platform ? platform.database_status === "UP" ? "positive" : "danger" : undefined}>{platform?.database_status ?? "—"}</strong>
+            </li>
+          </ul>
         </Link>
         </section>
       </>}
