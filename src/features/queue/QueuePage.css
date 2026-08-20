@@ -67,6 +67,8 @@
   .queue-content{width:100%;padding:20px 16px 88px}
 }
 
+.queue-mobile-list{display:none}
+
 @media(max-width:1439px){
   .queue-dual-table-wrap{grid-template-columns:1fr}
 }
