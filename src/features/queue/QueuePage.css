@@ -12,39 +12,42 @@
   .queue-summary{min-height:56px;flex:0 0 56px;margin-bottom:8px}
   .queue-summary div{padding:8px 16px}
   .queue-panel{min-height:0;padding:12px 15px}
-  .scatter-panel{min-height:280px;flex:0 0 280px;margin-bottom:8px}
-  .queue-scatter{margin-top:8px}
-  .scatter-scale,.scatter-plot{height:170px}
-  .scatter-scale span{height:56px}
-  .scatter-plot{background:repeating-linear-gradient(to bottom,transparent 0,transparent 55px,#343440 56px)}
+  .scatter-panel{min-height:200px;flex:0 0 200px;margin-bottom:8px}
+  .queue-scatter{margin-top:6px}
+  .scatter-scale,.scatter-plot{height:120px}
+  .scatter-scale span{height:40px}
+  .scatter-plot{background:repeating-linear-gradient(to bottom,transparent 0,transparent 39px,#343440 40px)}
   .queue-table-panel{flex:1;display:flex;flex-direction:column;padding-bottom:8px;overflow:hidden}
   .queue-table-wrap{min-height:0;flex:1;margin-top:8px;overflow:auto;scrollbar-gutter:stable}
   .queue-table-wrap table{font-size:13px}
-  .queue-table-wrap th{padding:9px 8px;font-size:12px}
-  .queue-table-wrap td{padding:9px 8px;font-size:13px}
+  .queue-table-wrap th{padding:8px;font-size:12px}
+  .queue-table-wrap td{padding:8px;font-size:13px}
   .grade{font-size:12px}
   .queue-pagination{flex:0 0 auto;padding-top:8px}
   .queue-state{min-height:0;flex:1}
 }
 
-/* 1920×1080 F11 전체화면(높이 1000px 이상)에서는 그래프와 표 10건을 한 화면에 함께 보여준다. */
+/* 1920×1080 F11 전체화면(높이 1000px 이상)에서는 그래프와 표 15건을 한 화면에 함께 보여준다. */
 @media(min-width:1600px) and (min-height:1000px){
   .queue-header p,.queue-panel-head p{font-size:12px}
   .queue-filter label,.queue-summary span,.queue-panel-head>span{font-size:12px}
   .queue-summary strong{font-size:19px}
   .queue-panel-head h2{font-size:18px}
 
-  .scatter-panel{min-height:240px;flex-basis:240px}
-  .scatter-scale,.scatter-plot{height:135px}
-  .scatter-scale span{height:45px}
-  .scatter-plot{background:repeating-linear-gradient(to bottom,transparent 0,transparent 44px,#343440 45px)}
+  .scatter-panel{min-height:170px;flex:0 0 170px;margin-bottom:6px}
+  .queue-scatter{margin-top:4px}
+  .scatter-scale,.scatter-plot{height:96px}
+  .scatter-scale span{height:32px}
+  .scatter-plot{background:repeating-linear-gradient(to bottom,transparent 0,transparent 31px,#343440 32px)}
   .scatter-scale,.scatter-time-axis,.scatter-caption{font-size:12px}
 
-  .queue-table-wrap{flex:0 0 auto;overflow-x:auto;overflow-y:hidden}
+  .queue-table-panel{flex:1;display:flex;flex-direction:column;padding-bottom:6px;overflow:hidden}
+  .queue-table-wrap{min-height:0;flex:1;margin-top:6px;overflow:auto;scrollbar-gutter:stable}
   .queue-table-wrap table{font-size:13px}
-  .queue-table-wrap th{padding:6px 8px;font-size:12px;line-height:1.35}
-  .queue-table-wrap td{padding:6px 8px;font-size:13px;line-height:1.35}
+  .queue-table-wrap th{padding:4px 8px;font-size:12px;line-height:1.25}
+  .queue-table-wrap td{padding:4px 8px;font-size:13px;line-height:1.25}
   .grade{font-size:12px}
+  .queue-pagination{flex:0 0 auto;padding-top:4px}
   .queue-pagination span{font-size:13px}
 }
 
