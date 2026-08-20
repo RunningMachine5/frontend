@@ -98,11 +98,11 @@ export const reconcileTrainingRun = (runId: number) =>
 
 export const promoteModel = (
   runId: number,
-  transactionId: number,
   features: unknown,
 ) => adminRequest<TrainingActionResult>("/mlops/serving/promotions", {
   method: "POST",
-  body: JSON.stringify({ training_run_id: runId, transaction_id: transactionId, features }),
+  // 예측 요청에는 Feature만 사용됩니다. 기존 백엔드 요청 형식을 위해 Run ID를 식별값으로 보냅니다.
+  body: JSON.stringify({ training_run_id: runId, transaction_id: runId, features }),
 });
 
 export const completeDeployment = (runId: number, operationId: string) =>
