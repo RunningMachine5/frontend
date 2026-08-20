@@ -27,7 +27,7 @@ import type {
 
 const TRAINING_REFRESH_MS = 5_000;
 const MIN_DATASET_PERIOD_START = "2026-08-01";
-const DATASETS_PER_PAGE = 2;
+const DATASETS_PER_PAGE = 3;
 
 const todayInputValue = () => {
   const today = new Date();
