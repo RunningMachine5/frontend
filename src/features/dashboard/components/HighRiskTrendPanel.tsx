@@ -510,10 +510,7 @@ export function HighRiskTrendPanel({
   return (
     <article className="panel priority-panel realtime-risk-panel">
       <div className="panel-head">
-        <div>
-          <h2>실시간 위험 거래 반영 현황</h2>
-          <p className="panel-caption">위험 거래 금액·점수 추이</p>
-        </div>
+        <h2>실시간 위험 거래 반영 현황</h2>
         <div className="trend-panel-meta realtime-trend-meta">
           {/* 초 단위 / 분 단위 선택 토글 */}
           <div className="time-interval-toggle" role="group" aria-label="시간 단위 선택">
@@ -551,6 +548,7 @@ export function HighRiskTrendPanel({
             <span>평균 위험도 <strong className="score-text">{avgScore}점</strong></span>
           </div>
         </div>
+        <p className="panel-caption">위험 거래 금액(원)과 위험 점수 추이 · 점 클릭 시 상세 분석 이동</p>
       </div>
       <RealtimeRiskTrendChart items={items} />
     </article>
