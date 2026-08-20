@@ -367,14 +367,14 @@ export function ModelTrainingPage() {
                         {["REQUESTED", "RUNNING"].includes(run.status) ? (
                           <button
                             className="table-action-button"
-                            disabled={isBusy}
+                            disabled={isBusy || !run.cloud_run_execution_name}
                             onClick={(event) => {
                               event.stopPropagation();
                               void reconcile(run);
                             }}
                             type="button"
                           >
-                            상태 확인
+                            {run.cloud_run_execution_name ? "상태 확인" : "실행 연결 대기 중"}
                           </button>
                         ) : (
                           <span aria-hidden="true" className="row-open-hint">열기 →</span>

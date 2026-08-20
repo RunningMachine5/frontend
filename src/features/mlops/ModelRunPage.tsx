@@ -270,7 +270,16 @@ export function ModelRunPage() {
               )}
 
               {["REQUESTED", "RUNNING"].includes(run.status) && (
-                <button className="admin-button" disabled={isBusy} onClick={() => void reconcile()} type="button">Cloud Run 상태 확인</button>
+                <button
+                  className="admin-button"
+                  disabled={isBusy || !run.cloud_run_execution_name}
+                  onClick={() => void reconcile()}
+                  type="button"
+                >
+                  {run.cloud_run_execution_name
+                    ? "Cloud Run 상태 확인"
+                    : "Cloud Run 실행 연결 대기 중"}
+                </button>
               )}
             </aside>
           </section>
