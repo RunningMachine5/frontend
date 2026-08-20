@@ -6,8 +6,8 @@ import { useQueue } from "./useQueue";
 import "./QueuePage.css";
 
 const SELECTED_TRANSACTION_ID_KEY = "fds.selectedTransactionId";
-const WINDOWED_PAGE_SIZE = 10;
-const FULLSCREEN_PAGE_SIZE = 20;
+const WINDOWED_PAGE_SIZE = 12;
+const FULLSCREEN_PAGE_SIZE = 26;
 const FULLSCREEN_HEIGHT = 1000;
 const EMPTY_FILTERS = {
   transactionId: "",
