@@ -10,7 +10,7 @@ import {
   fetchRuleSet,
   fetchRuleSets,
   replayRuleSet,
-  saveRule,
+  saveRuleWeights,
   validateRuleSet,
 } from "./ruleApi";
 import type {
@@ -54,7 +54,7 @@ export function RuleManagementPage() {
   const [replay, setReplay] = useState<RuleReplay | null>(null);
   const [workspaceTab, setWorkspaceTab] = useState<WorkspaceTab>("edit");
   const [replaySampleSize, setReplaySampleSize] = useState(100);
-  const [dialog, setDialog] = useState<"features" | "rule" | null>(null);
+  const [dialog, setDialog] = useState<"features" | null>(null);
   const [isBusy, setIsBusy] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -136,10 +136,10 @@ export function RuleManagementPage() {
 
   const saveCurrentRule = () => runAction(async () => {
     if (!selectedSet || !editingRule) return;
-    const saved = await saveRule(selectedSet.id, editingRule);
+    const saved = await saveRuleWeights(selectedSet.id, editingRule);
     setEditingRule(saved);
     await loadRuleSet(selectedSet.id);
-    setNotice("가중치와 유형 정보를 DRAFT에 저장했습니다. 운영 반영 전 다시 검증하세요.");
+    setNotice("가중치를 DRAFT에 저장했습니다. 운영 반영 전 다시 검증하세요.");
   });
 
   const discardDraft = () => {
@@ -257,7 +257,6 @@ export function RuleManagementPage() {
             <section className="admin-panel rule-editor">
               <div className="panel-title split">
                 <div><p className="admin-eyebrow">{selectedSet?.status ?? "RULE SET"} v{selectedSet?.version ?? "—"}</p><h2>사기유형별 가중치 편집</h2><small>구성요소 가중치 합계는 유형별 1.000이어야 합니다.</small></div>
-                <button className="admin-button compact" disabled={!editingRule} onClick={() => setDialog("rule")} type="button">유형 설정</button>
               </div>
               <div aria-label="사기유형 선택" className="rule-tabs" role="tablist">
                 {selectedSet?.rules.map((rule) => <button aria-selected={selectedRuleId === rule.id} className={selectedRuleId === rule.id ? "active" : ""} key={rule.id} onClick={() => setSelectedRuleId(rule.id)} role="tab" type="button">{rule.display_name}</button>)}
@@ -266,7 +265,7 @@ export function RuleManagementPage() {
                 {editingRule?.components.map((component) => <article className="component-row" key={component.id}><div><strong>{component.name}</strong><code>{formatExpression(component.condition_expression)}</code></div><label><span>가중치</span><input disabled={!canEdit} max="1" min="0.001" onChange={(event) => updateWeight(component.id, Number(event.target.value))} step="0.01" type="number" value={component.weight} /></label><div className="weight-track"><i style={{ width: `${Math.min(component.weight * 100, 100)}%` }} /></div></article>)}
               </div>
               <footer className="rule-total"><span>{editingRule?.display_name ?? "선택된 유형 없음"} 구성요소 합계</span><strong className={Math.abs(componentTotal - 1) < 0.0001 ? "positive" : "danger"}>{componentTotal.toFixed(3)} · {Math.abs(componentTotal - 1) < 0.0001 ? "정상" : "확인 필요"}</strong></footer>
-              <div className="editor-actions"><small>{canEdit ? "저장하면 기존 검증과 Replay 결과가 초기화됩니다." : `${selectedSet?.status ?? "선택한"} 버전은 조회만 가능합니다.`}</small><button className="admin-button primary" disabled={!canEdit || isBusy || !editingRule} onClick={saveCurrentRule} type="button">DRAFT 변경 저장</button></div>
+              <div className="editor-actions"><small>{canEdit ? "저장하면 기존 검증과 Replay 결과가 초기화됩니다." : `${selectedSet?.status ?? "선택한"} 버전은 조회만 가능합니다.`}</small><button className="admin-button primary" disabled={!canEdit || isBusy || !editingRule} onClick={saveCurrentRule} type="button">DRAFT 가중치 저장</button></div>
             </section>
           </section>
         )}
@@ -300,7 +299,6 @@ export function RuleManagementPage() {
         )}
 
         {dialog === "features" && <div className="admin-dialog-backdrop" role="presentation" onMouseDown={() => setDialog(null)}><section aria-modal="true" className="admin-dialog feature-dialog" onMouseDown={(event) => event.stopPropagation()} role="dialog"><header><div><p className="admin-eyebrow">RULE FEATURES</p><h2>사용 가능한 Feature</h2></div><button onClick={() => setDialog(null)} type="button">닫기</button></header><div className="feature-list">{features.map((feature) => <article key={feature.field}><strong>{feature.display_name}</strong><code>{feature.field}</code><span>{feature.value_type} · {feature.derived ? "파생값" : "원본값"} · {feature.operators.length ? feature.operators.join(", ") : "조건식 직접 사용 불가"}</span></article>)}</div></section></div>}
-        {dialog === "rule" && editingRule && <div className="admin-dialog-backdrop" role="presentation" onMouseDown={() => setDialog(null)}><section aria-modal="true" className="admin-dialog" onMouseDown={(event) => event.stopPropagation()} role="dialog"><header><div><p className="admin-eyebrow">FRAUD TYPE</p><h2>사기유형 정보</h2></div><button onClick={() => setDialog(null)} type="button">닫기</button></header><label><span>유형 코드</span><input disabled value={editingRule.type_code} /></label><label><span>표시 이름</span><input disabled={!canEdit} onChange={(event) => setEditingRule({ ...editingRule, display_name: event.target.value })} value={editingRule.display_name} /></label><label><span>설명</span><textarea className="short-textarea" disabled={!canEdit} onChange={(event) => setEditingRule({ ...editingRule, description: event.target.value })} value={editingRule.description ?? ""} /></label><label className="checkbox-field"><input checked={editingRule.enabled} disabled={!canEdit} onChange={(event) => setEditingRule({ ...editingRule, enabled: event.target.checked })} type="checkbox" /><span>실시간 점수 계산에 이 유형 포함</span></label><button className="admin-button primary" disabled={!canEdit || isBusy} onClick={() => { setDialog(null); void saveCurrentRule(); }} type="button">유형 정보 저장</button></section></div>}
       </section>
     </AppLayout>
   );

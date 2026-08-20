@@ -26,21 +26,13 @@ export const createRuleDraft = (sourceId?: number) =>
 export const deleteRuleDraft = (id: number) =>
   adminRequest<void>(`/rule-sets/${id}`, { method: "DELETE" });
 
-export const saveRule = (ruleSetId: number, rule: FraudRule) =>
+export const saveRuleWeights = (ruleSetId: number, rule: FraudRule) =>
   adminRequest<FraudRule>(`/rule-sets/${ruleSetId}/rules/${rule.id}`, {
     method: "PUT",
     body: JSON.stringify({
-      type_code: rule.type_code,
-      display_name: rule.display_name,
-      description: rule.description,
-      enabled: rule.enabled,
-      sort_order: rule.sort_order,
       components: rule.components.map((component) => ({
         component_key: component.component_key,
-        name: component.name,
-        condition_expression: component.condition_expression,
         weight: component.weight,
-        sort_order: component.sort_order,
       })),
     }),
   });
