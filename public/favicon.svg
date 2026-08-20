@@ -1,8 +1,8 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
   <defs>
     <linearGradient id="shield" x1="5" y1="4" x2="27" y2="29" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#d34bdd" />
-      <stop offset="1" stop-color="#7a49dc" />
+      <stop stop-color="#6f8fe6" />
+      <stop offset="1" stop-color="#3156a8" />
     </linearGradient>
   </defs>
   <path
