@@ -845,6 +845,10 @@
   white-space: nowrap;
 }
 
+.j-seg-btn:not(:last-child) {
+  border-right: 1px solid var(--ops-line-strong);
+}
+
 .j-seg-dot {
   width: 6px;
   height: 6px;
