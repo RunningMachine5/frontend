@@ -1,4 +1,4 @@
-import { useEffect, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 
 import "./AppLayout.css";
 
@@ -21,15 +21,28 @@ const pageTitles = {
   model: "모델 관리",
 } as const;
 
+type Theme = "dark" | "light";
+
+const THEME_STORAGE_KEY = "fds.theme";
+
 function BrandMark() {
   return <span aria-hidden="true" className="app-brand-mark"><img alt="" src="/fdshield-mark.png" /></span>;
 }
 
 // 모든 화면에서 같은 사이드바와 화면 폭을 사용한다.
 export function AppLayout({ activeNav, children }: AppLayoutProps) {
+  const [theme, setTheme] = useState<Theme>(() => (
+    localStorage.getItem(THEME_STORAGE_KEY) === "light" ? "light" : "dark"
+  ));
+
   useEffect(() => {
     document.title = `${pageTitles[activeNav]} | FDShield`;
   }, [activeNav]);
+
+  useEffect(() => {
+    document.documentElement.dataset.theme = theme;
+    localStorage.setItem(THEME_STORAGE_KEY, theme);
+  }, [theme]);
 
   return (
     <main className="app-layout">
@@ -47,6 +60,15 @@ export function AppLayout({ activeNav, children }: AppLayoutProps) {
             </a>
           ))}
         </nav>
+        <button
+          aria-pressed={theme === "light"}
+          className="app-theme-toggle"
+          onClick={() => setTheme((current) => current === "dark" ? "light" : "dark")}
+          type="button"
+        >
+          <span><small>THEME</small><b>{theme === "dark" ? "다크모드" : "화이트모드"}</b></span>
+          <i aria-hidden="true" />
+        </button>
       </aside>
       <a aria-label="FDShield 이상거래 감시" className="app-mobile-brand" href="/#main">
         <BrandMark />

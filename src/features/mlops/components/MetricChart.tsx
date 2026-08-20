@@ -257,7 +257,7 @@ export function MetricChart({
                           className="metric-chart-active-point"
                           cx={xPosition(point.timestamp)}
                           cy={yPosition(point.value)}
-                          fill="#202028"
+                          fill="var(--ops-surface)"
                           key={point.timestamp}
                           r="5"
                           stroke={item.color}

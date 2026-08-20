@@ -1,4 +1,5 @@
 :root{
+  color-scheme:dark;
   /* Primary — green (source: Design-System/Color-Palette) */
   --color-primary-100:#C9E0A3;
   --color-primary-200:#A7BA88;
@@ -49,4 +50,44 @@
   --text-on-primary:var(--color-white);
   --link:var(--color-primary-300);
   --link-hover:var(--color-primary-700);
+
+  /* 담당자 화면: JenniferSoft의 surface 계층과 상태색 원칙을 적용한 운영용 토큰 */
+  --ops-canvas:#211f24;
+  --ops-sidebar:#18171c;
+  --ops-surface:#26242a;
+  --ops-surface-raised:#2c2a30;
+  --ops-surface-sunken:#1d1c20;
+  --ops-line:#3a373e;
+  --ops-line-strong:#504c55;
+  --ops-text:#f2f0f3;
+  --ops-text-muted:#aaa6ae;
+  --ops-text-subtle:#7f7a84;
+  --ops-focus:#6f8fe6;
+  --ops-focus-soft:rgb(111 143 230 / 14%);
+  --ops-critical:#e45b64;
+  --ops-high:#db934b;
+  --ops-medium:#c2a24f;
+  --ops-low:#5d9f7e;
+  --ops-info:#6f8fe6;
+}
+
+:root[data-theme="light"]{
+  color-scheme:light;
+  --ops-canvas:#f3f2f0;
+  --ops-sidebar:#e8e6e3;
+  --ops-surface:#ffffff;
+  --ops-surface-raised:#f4f2ef;
+  --ops-surface-sunken:#eceae7;
+  --ops-line:#d5d1cc;
+  --ops-line-strong:#b9b4ad;
+  --ops-text:#27242a;
+  --ops-text-muted:#666169;
+  --ops-text-subtle:#837d85;
+  --ops-focus:#4f6fc7;
+  --ops-focus-soft:rgb(79 111 199 / 12%);
+  --ops-critical:#c84751;
+  --ops-high:#b96f2e;
+  --ops-medium:#8f741d;
+  --ops-low:#39795a;
+  --ops-info:#4f6fc7;
 }

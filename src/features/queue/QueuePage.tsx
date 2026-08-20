@@ -1,4 +1,4 @@
-import { type FormEvent, useEffect, useMemo, useState } from "react";
+import { type FormEvent, useMemo, useState } from "react";
 
 import { CaseAnalysisPageShell } from "../caseAnalysis/CaseAnalysisPageShell";
 import { formatCompactMoney } from "../dashboard/dashboardFormatters";
@@ -8,34 +8,13 @@ import { useQueue } from "./useQueue";
 import "./QueuePage.css";
 
 const SELECTED_TRANSACTION_ID_KEY = "fds.selectedTransactionId";
-const WINDOWED_PAGE_SIZE = 10;
-const FULLSCREEN_PAGE_SIZE = 26;
-const FULLSCREEN_HEIGHT = 1000;
+const PAGE_SIZE = 16;
 const EMPTY_FILTERS = {
   transactionId: "",
   ipAddress: "",
   periodStart: "",
   periodEnd: "",
 };
-
-function getPageSize() {
-  return window.innerHeight >= FULLSCREEN_HEIGHT ? FULLSCREEN_PAGE_SIZE : WINDOWED_PAGE_SIZE;
-}
-
-function useResponsivePageSize() {
-  const [pageSize, setPageSize] = useState(getPageSize);
-
-  useEffect(() => {
-    function updatePageSize() {
-      setPageSize(getPageSize());
-    }
-
-    window.addEventListener("resize", updatePageSize);
-    return () => window.removeEventListener("resize", updatePageSize);
-  }, []);
-
-  return pageSize;
-}
 
 function selectTransaction(transactionId: number) {
   sessionStorage.setItem(SELECTED_TRANSACTION_ID_KEY, String(transactionId));
@@ -252,19 +231,14 @@ function CaseTableSection({
 export function QueuePage() {
   const [draftFilters, setDraftFilters] = useState(EMPTY_FILTERS);
   const [filters, setFilters] = useState<QueueSearchFilters>({ ...EMPTY_FILTERS, page: 1 });
-  const pageSize = useResponsivePageSize();
+  const pageSize = PAGE_SIZE;
   const { rows, trendRows, totalCount, isLoading, errorMessage } = useQueue(filters, pageSize);
   const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
   const highCount = rows.filter((row) => ["VERY_HIGH", "HIGH"].includes(row.risk_grade ?? "")).length;
   const pageAmount = rows.reduce((sum, row) => sum + row.transaction_amount, 0);
-
   const splitIndex = Math.ceil(rows.length / 2);
   const leftRows = rows.slice(0, splitIndex);
   const rightRows = rows.slice(splitIndex);
-
-  useEffect(() => {
-    setFilters((current) => current.page === 1 ? current : { ...current, page: 1 });
-  }, [pageSize]);
 
   function submitSearch(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -290,22 +264,24 @@ export function QueuePage() {
     </form>
     <section className="queue-summary"><div><span>검색 결과</span><strong>{totalCount.toLocaleString()}건</strong></div><div><span>현재 페이지</span><strong>{rows.length}건</strong></div><div><span>현재 페이지 HIGH 이상</span><strong>{highCount}건</strong></div><div><span>현재 페이지 거래 금액</span><strong>{pageAmount.toLocaleString()}원</strong></div></section>
     {isLoading ? <div className="queue-state">처리 목록을 불러오는 중...</div> : errorMessage ? <div className="queue-state">오류: {errorMessage}</div> : <>
-      <QueueRealtimeTrendSection rows={trendRows.length > 0 ? trendRows : rows} />
-      <section className="queue-panel queue-table-panel">
-        <div className="queue-panel-head"><div><p>CASE LIST</p><h2>이상거래 검색 결과</h2></div><span>{totalCount}건</span></div>
-        <div className="queue-dual-table-wrap">
-          <CaseTableSection
-            emptyMessage={rows.length === 0 ? "검색 조건에 맞는 의심 거래가 없습니다." : undefined}
-            items={leftRows}
-            startNumber={(filters.page - 1) * pageSize + 1}
-          />
-          <CaseTableSection
-            items={rightRows}
-            startNumber={(filters.page - 1) * pageSize + splitIndex + 1}
-          />
-        </div>
-        <MobileCaseList rows={rows} startIndex={(filters.page - 1) * pageSize + 1} />
-        <nav aria-label="처리 목록 페이지" className="queue-pagination"><button disabled={filters.page === 1} onClick={() => movePage(filters.page - 1)} type="button">이전</button><span>{filters.page} / {totalPages}</span><button disabled={filters.page >= totalPages} onClick={() => movePage(filters.page + 1)} type="button">다음</button></nav>
+      <section className="queue-workspace-grid">
+        <QueueRealtimeTrendSection rows={trendRows.length > 0 ? trendRows : rows} />
+        <section className="queue-panel queue-table-panel">
+          <div className="queue-panel-head"><div><p>CASE LIST</p><h2>우선 처리 거래</h2><span className="queue-panel-sub-desc">위험등급과 발생 시각을 따라 연속으로 검토합니다</span></div><span>{totalCount}건</span></div>
+          <div className="queue-dual-table-wrap">
+            <CaseTableSection
+              emptyMessage={rows.length === 0 ? "검색 조건에 맞는 의심 거래가 없습니다." : undefined}
+              items={leftRows}
+              startNumber={(filters.page - 1) * pageSize + 1}
+            />
+            <CaseTableSection
+              items={rightRows}
+              startNumber={(filters.page - 1) * pageSize + splitIndex + 1}
+            />
+          </div>
+          <MobileCaseList rows={rows} startIndex={(filters.page - 1) * pageSize + 1} />
+          <nav aria-label="처리 목록 페이지" className="queue-pagination"><button disabled={filters.page === 1} onClick={() => movePage(filters.page - 1)} type="button">이전</button><span>{filters.page} / {totalPages}</span><button disabled={filters.page >= totalPages} onClick={() => movePage(filters.page + 1)} type="button">다음</button></nav>
+        </section>
       </section>
     </>}
   </CaseAnalysisPageShell>;

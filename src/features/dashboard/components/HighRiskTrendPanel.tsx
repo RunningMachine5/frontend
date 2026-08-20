@@ -35,35 +35,35 @@ function createSmoothPath(coords: { x: number; y: number }[]): string {
 export function getRiskGradeStyle(score: number) {
   if (score >= 80) {
     return {
-      mainColor: "#ee4047",
-      badgeBg: "#ee4047",
-      badgeBorder: "#ff6b72",
+      mainColor: "#e45b64",
+      badgeBg: "#e45b64",
+      badgeBorder: "#ef858d",
       textColor: "#ffffff",
       gradeText: "심각",
     };
   }
   if (score >= 60) {
     return {
-      mainColor: "#f49121",
-      badgeBg: "#f49121",
-      badgeBorder: "#ffab40",
+      mainColor: "#db934b",
+      badgeBg: "#db934b",
+      badgeBorder: "#e2a469",
       textColor: "#ffffff",
       gradeText: "경고",
     };
   }
   if (score >= 40) {
     return {
-      mainColor: "#b640be",
-      badgeBg: "#2d193c",
-      badgeBorder: "#b640be",
-      textColor: "#f1f1f7",
+      mainColor: "#c2a24f",
+      badgeBg: "#363127",
+      badgeBorder: "#c2a24f",
+      textColor: "#f2f0f3",
       gradeText: "주의",
     };
   }
   return {
-    mainColor: "#3ec887",
-    badgeBg: "#1d3b2e",
-    badgeBorder: "#3ec887",
+    mainColor: "#5d9f7e",
+    badgeBg: "#25362f",
+    badgeBorder: "#5d9f7e",
     textColor: "#ffffff",
     gradeText: "정상",
   };
@@ -165,15 +165,14 @@ export function RealtimeRiskTrendChart({
         <defs>
           {/* 금액 영역 그라디언트 */}
           <linearGradient id="realtime-amount-area" x1="0" x2="0" y1="0" y2="1">
-            <stop offset="0%" stopColor="#7a49dc" stopOpacity="0.55" />
-            <stop offset="60%" stopColor="#7a49dc" stopOpacity="0.18" />
-            <stop offset="100%" stopColor="#7a49dc" stopOpacity="0.0" />
+            <stop offset="0%" stopColor="#6f8fe6" stopOpacity="0.28" />
+            <stop offset="100%" stopColor="#6f8fe6" stopOpacity="0.02" />
           </linearGradient>
 
           {/* 위험 점수 영역 은은한 글로우 */}
           <linearGradient id="realtime-score-area" x1="0" x2="0" y1="0" y2="1">
-            <stop offset="0%" stopColor="#ee4047" stopOpacity="0.25" />
-            <stop offset="100%" stopColor="#ee4047" stopOpacity="0.0" />
+            <stop offset="0%" stopColor="#e45b64" stopOpacity="0.12" />
+            <stop offset="100%" stopColor="#e45b64" stopOpacity="0" />
           </linearGradient>
 
           {/* 위험 점수 곡선 다이나믹 멀티 컬러 그라디언트 (등급에 따라 선 색상 변화) */}
@@ -212,7 +211,7 @@ export function RealtimeRiskTrendChart({
           return (
             <g key={ratio}>
               <line
-                stroke="#252532"
+                stroke="#3a373e"
                 strokeDasharray={ratio > 0 && ratio < 1 ? "4 4" : undefined}
                 strokeWidth="1"
                 x1={padding.left - 6}
@@ -233,7 +232,7 @@ export function RealtimeRiskTrendChart({
         {/* 호버 시 수직 가이드라인 */}
         {activeScoreCoord && (
           <line
-            stroke="#7a49dc"
+            stroke="#6f8fe6"
             strokeDasharray="3 3"
             strokeOpacity="0.6"
             strokeWidth="1.5"
@@ -252,7 +251,7 @@ export function RealtimeRiskTrendChart({
           <path
             d={amountSmoothLine}
             fill="none"
-            stroke="#9d68ff"
+            stroke="#6f8fe6"
             strokeLinecap="round"
             strokeLinejoin="round"
             strokeWidth="3"
@@ -276,9 +275,9 @@ export function RealtimeRiskTrendChart({
               <circle
                 cx={x}
                 cy={y}
-                fill="#1b1429"
+                fill="#1d1c20"
                 r={isHovered ? "6.5" : "4.5"}
-                stroke="#9d68ff"
+                stroke="#6f8fe6"
                 strokeWidth={isHovered ? "3" : "2"}
               />
               {/* 점 위의 금액 라벨 제거 (마우스 호버 툴팁 카드로 깔끔하게 표시) */}
@@ -291,7 +290,7 @@ export function RealtimeRiskTrendChart({
           <path
             d={scoreSmoothLine}
             fill="none"
-            stroke={scoreCoords.length > 1 ? "url(#realtime-score-line-grad)" : "#ee4047"}
+            stroke={scoreCoords.length > 1 ? "url(#realtime-score-line-grad)" : "#e45b64"}
             strokeLinecap="round"
             strokeLinejoin="round"
             strokeWidth="3.5"
@@ -342,7 +341,7 @@ export function RealtimeRiskTrendChart({
               <circle
                 cx={x}
                 cy={y}
-                fill={isLive || isHighRisk ? gradeStyle.mainColor : isHovered ? gradeStyle.mainColor : "#14141c"}
+                fill={isLive || isHighRisk ? gradeStyle.mainColor : isHovered ? gradeStyle.mainColor : "#1d1c20"}
                 r={isHovered ? "6.5" : showBadge ? "5.5" : "4.5"}
                 stroke={gradeStyle.mainColor}
                 strokeWidth={isHovered ? "3.5" : "2.5"}
