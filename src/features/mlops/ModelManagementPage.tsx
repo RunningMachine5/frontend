@@ -226,6 +226,18 @@ export function ModelManagementPage() {
   const latestDatasetLabelCount = latestDataset
     ? latestDataset.period_normal_count + latestDataset.period_fraud_count
     : null;
+  const productionTitle = productionDetails?.model_version
+    ? `운영 모델 v${productionDetails.model_version}`
+    : productionRun?.model_key ?? (hasDisconnectedRun ? "운영 Run 미연결" : "운영 모델 없음");
+  let productionDescription = "운영 모델과 Serving 연결 상태를 확인하세요.";
+  if (productionRun) {
+    productionDescription = "현재 거래 트래픽을 받는 모델과 Serving 연결 상태입니다.";
+  } else if (serving) {
+    productionDescription = "Serving은 연결됐지만 운영 트래픽을 받는 Run이 없습니다.";
+  }
+  if (hasDisconnectedRun) {
+    productionDescription = "Cloud Run은 트래픽을 처리 중이지만 Backend 운영 Run 연결 정보가 없습니다.";
+  }
   const isOverviewRefreshing = isRefreshing || isDetailsLoading;
 
   return (
@@ -257,13 +269,8 @@ export function ModelManagementPage() {
             <div className="production-overview-copy">
               <div className="production-command-main">
                 <span>{productionRun ? `Backend Run #${productionRun.id}` : serving ? "Cloud Run Serving" : "배포 대기"}</span>
-                <h2>{productionDetails?.model_version
-                  ? `운영 모델 v${productionDetails.model_version}`
-                  : productionRun ? productionRun.model_key
-                    : hasDisconnectedRun ? "운영 Run 미연결" : "운영 모델 없음"}</h2>
-                <p>{hasDisconnectedRun
-                  ? "Cloud Run은 트래픽을 처리 중이지만 Backend 운영 Run 연결 정보가 없습니다."
-                  : "현재 거래 트래픽을 받는 모델과 Serving 연결 상태입니다."}</p>
+                <h2>{productionTitle}</h2>
+                <p>{productionDescription}</p>
               </div>
               <dl className="production-facts">
                 <div><dt>Backend 운영 Run</dt><dd className={hasDisconnectedRun ? "accent" : undefined}>{productionRun ? `#${productionRun.id}` : hasDisconnectedRun ? "미연결" : "—"}</dd></div>
