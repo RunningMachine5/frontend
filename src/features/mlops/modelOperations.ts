@@ -10,9 +10,31 @@ export const STATUS_LABELS: Record<string, string> = {
   STAGED: "0% 검증",
   PROMOTING: "전환 중",
   PRODUCTION: "운영 중",
+  RETIRED: "이전 운영",
   FAILED: "학습 실패",
   DEPLOYMENT_FAILED: "배포 실패",
 };
+
+export type TrainingDisplayStatus = TrainingRun["status"] | "RETIRED";
+
+// 학습 이력 API는 최신 Run부터 반환하므로 첫 PRODUCTION을 현재 운영 Run으로 본다.
+export function findCurrentProductionRun(runs: TrainingRun[]) {
+  return runs.find((run) => run.status === "PRODUCTION") ?? null;
+}
+
+export function trainingDisplayStatus(
+  run: TrainingRun,
+  currentProductionRunId: number | null,
+): TrainingDisplayStatus {
+  if (
+    run.status === "PRODUCTION"
+    && currentProductionRunId !== null
+    && run.id !== currentProductionRunId
+  ) {
+    return "RETIRED";
+  }
+  return run.status;
+}
 
 export const ACTION_REQUIRED_STATUSES = new Set([
   "CANDIDATE",
@@ -162,6 +184,7 @@ export function workflowForRun(
   run: TrainingRun,
   trafficPercent: number,
   candidateReady = true,
+  isCurrentProduction = true,
 ): WorkflowStep[] {
   const reviewed = ["STAGED", "PROMOTING", "PRODUCTION"].includes(run.status);
   const verified = ["PROMOTING", "PRODUCTION"].includes(run.status);
@@ -198,7 +221,9 @@ export function workflowForRun(
       label: "운영 전환",
       status: run.status === "PROMOTING"
         ? `${trafficPercent}% 전환 중`
-        : run.status === "PRODUCTION" ? "100% 운영" : "대기",
+        : run.status === "PRODUCTION"
+          ? isCurrentProduction ? "100% 운영" : "이전 운영"
+          : "대기",
       state: run.status === "PROMOTING"
         ? "active"
         : run.status === "PRODUCTION" ? "complete"

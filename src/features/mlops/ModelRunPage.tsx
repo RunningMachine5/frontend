@@ -9,6 +9,7 @@ import {
   actionGuide,
   ACTIVE_RUN_STATUSES,
   COMPARISON_METRICS,
+  findCurrentProductionRun,
   formatDate,
   isModelRevisionReady,
   latestRevisionTraffic,
@@ -17,6 +18,7 @@ import {
   metricText,
   recommendationLabel,
   STATUS_LABELS,
+  trainingDisplayStatus,
   workflowForRun,
 } from "./modelOperations";
 import {
@@ -65,7 +67,7 @@ export function ModelRunPage() {
         fetchDatasets(),
         fetchServingStatus().catch(() => null),
       ]);
-      const currentProduction = runs.find((item) => item.status === "PRODUCTION") ?? null;
+      const currentProduction = findCurrentProductionRun(runs);
       const selectedDetails = runRow.mlflow_run_id
         ? await fetchModelDetails(runRow.id).catch(() => null)
         : null;
@@ -154,7 +156,12 @@ export function ModelRunPage() {
 
   const trafficPercent = latestRevisionTraffic(serving);
   const isCurrentProduction = run?.id === productionRun?.id;
-  const workflow = run ? workflowForRun(run, trafficPercent, candidateReady) : [];
+  const displayStatus = run
+    ? trainingDisplayStatus(run, productionRun?.id ?? null)
+    : null;
+  const workflow = run
+    ? workflowForRun(run, trafficPercent, candidateReady, isCurrentProduction)
+    : [];
   const recommendation = recommendationLabel(details?.tags.promotion_recommendation);
 
   return (
@@ -177,7 +184,7 @@ export function ModelRunPage() {
                 <p className="admin-eyebrow">SELECTED TRAINING RUN</p>
                 <h2>Run #{run.id}{details?.model_version ? ` · model v${details.model_version}` : ""}</h2>
               </div>
-              <em className={`status ${run.status.toLowerCase()}`}>{STATUS_LABELS[run.status]}</em>
+              <em className={`status ${displayStatus?.toLowerCase()}`}>{displayStatus && STATUS_LABELS[displayStatus]}</em>
             </div>
             <dl>
               <div><dt>데이터셋</dt><dd>{dataset?.version ?? `#${run.dataset_version_id}`}</dd></div>
@@ -234,7 +241,7 @@ export function ModelRunPage() {
             <aside className="admin-panel run-action-panel">
               <div>
                 <p className="admin-eyebrow">CURRENT ACTION</p>
-                <h2>{isCandidatePreparing ? "0% 후보 준비 중" : STATUS_LABELS[run.status]}</h2>
+                <h2>{isCandidatePreparing ? "0% 후보 준비 중" : displayStatus && STATUS_LABELS[displayStatus]}</h2>
                 <p className="run-action-guide">{actionGuide(run, isCurrentProduction, candidateReady)}</p>
               </div>
 
