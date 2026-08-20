@@ -1,6 +1,8 @@
 import { type FormEvent, useEffect, useMemo, useState } from "react";
 
 import { CaseAnalysisPageShell } from "../caseAnalysis/CaseAnalysisPageShell";
+import { formatCompactMoney } from "../dashboard/dashboardFormatters";
+import { RealtimeRiskTrendChart, type RealtimeRiskPoint } from "../dashboard/components/HighRiskTrendPanel";
 import type { CaseListItem, QueueSearchFilters } from "./queueTypes";
 import { useQueue } from "./useQueue";
 import "./QueuePage.css";
@@ -58,6 +60,14 @@ function formatAxisTime(value: string | number) {
   });
 }
 
+function formatAxisMinutes(value: string | number) {
+  return new Date(value).toLocaleTimeString("ko-KR", {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  });
+}
+
 function reviewStatus(value: string) {
   if (value === "COMPLETED") return "처리 완료";
   if (value === "PROCESSING") return "분석 중";
@@ -77,38 +87,96 @@ function fraudTypeLabel(value: string | null, executionStatus: string) {
   return labels[value] ?? value.replaceAll("_", " ");
 }
 
-function ScatterChart({ rows }: { rows: CaseListItem[] }) {
+function QueueRealtimeTrendSection({ rows }: { rows: CaseListItem[] }) {
+  const [timeInterval, setTimeInterval] = useState<"second" | "minute">("second");
+
   const timeRows = useMemo(
-    () => [...rows].sort((left, right) => new Date(left.transaction_datetime).getTime() - new Date(right.transaction_datetime).getTime()),
+    () =>
+      [...rows].sort(
+        (left, right) =>
+          new Date(left.transaction_datetime).getTime() - new Date(right.transaction_datetime).getTime(),
+      ),
     [rows],
   );
-  const times = timeRows.map((row) => new Date(row.transaction_datetime).getTime());
-  const minTime = times[0] ?? 0;
-  const maxTime = times[times.length - 1] ?? minTime;
-  const middleTime = minTime + (maxTime - minTime) / 2;
 
-  return <div className="queue-scatter">
-    <div className="scatter-scale"><span>100</span><span>50</span><span>0</span></div>
-    <div className="scatter-plot">
-      {timeRows.map((row, index) => {
-        const score = Math.max(0, Math.min(100, row.risk_score ?? 0));
-        const rawPosition = maxTime === minTime ? (index + 1) / (timeRows.length + 1) : (times[index] - minTime) / (maxTime - minTime);
-        return <a
-          aria-label={`거래 ${row.transaction_id} 상세`}
-          href="#case"
-          key={row.transaction_id}
-          onClick={() => selectTransaction(row.transaction_id)}
-          style={{ left: `${4 + rawPosition * 92}%`, bottom: `${score}%` }}
-          title={`TX-${row.transaction_id} · ${score}점 · ${formatAxisTime(row.transaction_datetime)}`}
-        />;
-      })}
-    </div>
-    <div className="scatter-time-axis">
-      {timeRows.length > 0
-        ? <><span>{formatAxisTime(minTime)}</span><span>{formatAxisTime(middleTime)}</span><span>{formatAxisTime(maxTime)}</span></>
-        : <span>조회 결과 없음</span>}
-    </div>
-  </div>;
+  const items: RealtimeRiskPoint[] = useMemo(() => {
+    if (timeRows.length === 0) return [];
+    return timeRows.map((row, idx) => {
+      const rawTime =
+        timeInterval === "second"
+          ? formatAxisTime(row.transaction_datetime)
+          : formatAxisMinutes(row.transaction_datetime);
+      const isLive = idx === timeRows.length - 1;
+
+      return {
+        transactionId: row.transaction_id,
+        timeLabel: isLive ? `${rawTime} LIVE` : rawTime,
+        amount: row.transaction_amount,
+        score: row.risk_score ?? 0,
+        isLive,
+      };
+    });
+  }, [timeRows, timeInterval]);
+
+  const peakAmount = useMemo(() => Math.max(...items.map((i) => i.amount), 0), [items]);
+  const avgScore = useMemo(
+    () => (items.length > 0 ? Math.round(items.reduce((s, i) => s + i.score, 0) / items.length) : 0),
+    [items],
+  );
+
+  if (items.length === 0) {
+    return null;
+  }
+
+  return (
+    <section className="queue-panel scatter-panel realtime-risk-panel">
+      <div className="queue-panel-head">
+        <div>
+          <p>REALTIME RISK MONITORING</p>
+          <h2>실시간 위험 거래 반영 현황</h2>
+          <span className="queue-panel-sub-desc">현재 페이지 의심 거래의 금액(원) 및 위험 점수(Score) 추이 · 점 클릭 시 상세 분석 이동</span>
+        </div>
+        <div className="trend-panel-meta realtime-trend-meta">
+          {/* 초 단위 / 분 단위 선택 토글 */}
+          <div className="time-interval-toggle" role="group" aria-label="시간 단위 선택">
+            <button
+              type="button"
+              className={timeInterval === "second" ? "active" : ""}
+              onClick={() => setTimeInterval("second")}
+            >
+              초 단위
+            </button>
+            <button
+              type="button"
+              className={timeInterval === "minute" ? "active" : ""}
+              onClick={() => setTimeInterval("minute")}
+            >
+              분 단위
+            </button>
+          </div>
+
+          <span className="live-status-tag"><i className="live-green-dot" /> 실시간 모니터링</span>
+          <span className="trend-series-label score-legend" title="80점 이상: 심각(레드), 60~79점: 경고(오렌지), 40~59점: 주의(퍼플), 40점 미만: 정상(그린)">
+            <span className="grade-color-dots">
+              <i className="score-dot dot-critical" />
+              <i className="score-dot dot-high" />
+              <i className="score-dot dot-medium" />
+            </span>
+            위험 등급별 점수
+          </span>
+          <span className="trend-series-label amount-legend">
+            <i className="amount-curve-dot" /> 위험 금액 (원)
+          </span>
+          <div className="trend-stat-badge">
+            <span>최고 금액 <strong>{formatCompactMoney(peakAmount)}</strong></span>
+            <span className="divider">·</span>
+            <span>평균 위험도 <strong className="score-text">{avgScore}점</strong></span>
+          </div>
+        </div>
+      </div>
+      <RealtimeRiskTrendChart items={items} height={200} />
+    </section>
+  );
 }
 
 function MobileCaseList({ rows, startIndex }: { rows: CaseListItem[]; startIndex: number }) {
@@ -185,7 +253,7 @@ export function QueuePage() {
   const [draftFilters, setDraftFilters] = useState(EMPTY_FILTERS);
   const [filters, setFilters] = useState<QueueSearchFilters>({ ...EMPTY_FILTERS, page: 1 });
   const pageSize = useResponsivePageSize();
-  const { rows, totalCount, isLoading, errorMessage } = useQueue(filters, pageSize);
+  const { rows, trendRows, totalCount, isLoading, errorMessage } = useQueue(filters, pageSize);
   const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
   const highCount = rows.filter((row) => ["VERY_HIGH", "HIGH"].includes(row.risk_grade ?? "")).length;
   const pageAmount = rows.reduce((sum, row) => sum + row.transaction_amount, 0);
@@ -222,7 +290,7 @@ export function QueuePage() {
     </form>
     <section className="queue-summary"><div><span>검색 결과</span><strong>{totalCount.toLocaleString()}건</strong></div><div><span>현재 페이지</span><strong>{rows.length}건</strong></div><div><span>현재 페이지 HIGH 이상</span><strong>{highCount}건</strong></div><div><span>현재 페이지 거래 금액</span><strong>{pageAmount.toLocaleString()}원</strong></div></section>
     {isLoading ? <div className="queue-state">처리 목록을 불러오는 중...</div> : errorMessage ? <div className="queue-state">오류: {errorMessage}</div> : <>
-      <section className="queue-panel scatter-panel"><div className="queue-panel-head"><div><p>RISK DISTRIBUTION</p><h2>최근 의심 거래 위험도 분포</h2></div><span>거래 시각별 위험도 · 점 클릭 시 상세 이동</span></div><ScatterChart rows={rows} /></section>
+      <QueueRealtimeTrendSection rows={trendRows.length > 0 ? trendRows : rows} />
       <section className="queue-panel queue-table-panel">
         <div className="queue-panel-head"><div><p>CASE LIST</p><h2>이상거래 검색 결과</h2></div><span>{totalCount}건</span></div>
         <div className="queue-dual-table-wrap">

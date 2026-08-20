@@ -89,5 +89,35 @@ export function useDashboardOverview(params: DashOverviewParams){
         };
     }, [params.periodStart, params.periodEnd]);
 
-    return {data, isLoading, errorMessage};
+    const [isRefreshingInsight, setIsRefreshingInsight] = useState(false);
+
+    async function refreshAgentInsight(customParams?: DashOverviewParams) {
+        const targetParams = customParams || params;
+        setIsRefreshingInsight(true);
+        try {
+            const insight = await generateDashboardInsight({
+                ...targetParams,
+                forceRefresh: true,
+            });
+            setData((prev) => (prev ? { ...prev, agent_insight: insight } : prev));
+            setErrorMessage(null);
+            return insight;
+        } catch (error) {
+            setErrorMessage(
+                error instanceof Error ? error.message : "에이전트 분석 새로고침 실패"
+            );
+            throw error;
+        } finally {
+            setIsRefreshingInsight(false);
+        }
+    }
+
+    return {
+        data,
+        isLoading,
+        errorMessage,
+        isRefreshingInsight,
+        refreshAgentInsight,
+        setData,
+    };
 }

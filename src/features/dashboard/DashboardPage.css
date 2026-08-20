@@ -18,124 +18,311 @@
 .trend-chart-wrap{position:relative}
 .trend-panel-meta{display:flex;align-items:center;justify-content:flex-end;gap:10px;color:#9ca1b0;font-size:10px;white-space:nowrap}
 .trend-panel-meta strong{padding:5px 10px;border-radius:14px;background:#1d3b2e;color:#3ec887;font-size:11px}
-.trend-series-label{display:flex;align-items:center;gap:6px}
+.trend-series-label{display:flex;align-items:center;gap:6px;font-size:11px;color:#9ca1b0}
 .trend-series-label i{width:8px;height:8px;border-radius:50%;display:inline-block;background:#b640be}
-.suspicious-panel-meta{display:flex;align-items:center;justify-content:flex-end;gap:8px}
+.score-legend .score-dot{background:#ee4047}
+.grade-color-dots{display:inline-flex;align-items:center;gap:3px;margin-right:2px}
+.dot-critical{background:#ee4047 !important}
+.dot-high{background:#f49121 !important}
+.dot-medium{background:#b640be !important}
+.amount-legend .amount-bar-dot{background:#7a49dc;border-radius:2px}
+.trend-stat-badge{display:flex;align-items:center;gap:6px;padding:4px 10px;border-radius:12px;background:#1b1b24;border:1px solid #3c3c48;font-size:11px;color:#9ca1b0}
+.trend-stat-badge strong{color:#f1f1f7}
+.trend-stat-badge .score-text{color:#ff7a82}
+.trend-stat-badge .divider{color:#555566}
+.amount-axis{fill:#9ca1b0;font-size:10px}
+.score-axis{fill:#ff7a82;font-size:10px;font-weight:600}
+.chart-amount-label{fill:#cfc6ff;font-size:9.5px;font-weight:600}
+.live-status-tag{display:inline-flex;align-items:center;gap:5px;padding:3px 8px;border-radius:10px;background:rgba(62,200,135,0.12);color:#3ec887;font-size:10.5px;font-weight:600}
+.live-green-dot{width:6px;height:6px;border-radius:50%;background:#3ec887;display:inline-block;animation:pulse-green 1.5s infinite}
+@keyframes pulse-green{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(1.3)}}
+.amount-curve-dot{width:12px;height:3px;border-radius:2px;background:#9d68ff;display:inline-block}
+.live-pulse-ring{animation:live-ring-pulse 2s infinite ease-out}
+@keyframes live-ring-pulse{0%{r:6;stroke-opacity:.8}100%{r:14;stroke-opacity:0}}
+.live-axis-label{fill:#ff7a82;font-weight:700}
+.chart-interactive-point{cursor:pointer;transition:transform .2s cubic-bezier(.34,1.56,.64,1);transform-box:fill-box;transform-origin:center}
+.chart-interactive-point:hover{transform:scale(1.3)}
+.time-interval-toggle{display:inline-flex;align-items:center;background:#181822;border:1px solid #3c3c48;border-radius:8px;padding:2px;gap:2px}
+.time-interval-toggle button{padding:3px 9px;border-radius:6px;border:1px solid transparent;background:transparent;color:#9ca1b0;font-size:10.5px;font-weight:500;cursor:pointer;transition:all .2s ease}
+.time-interval-toggle button:hover{color:#f1f1f7}
+.time-interval-toggle button.active{background:#2d193c;color:#f1f1f7;font-weight:700;border-color:#b640be;box-shadow:0 0 8px rgba(182,64,190,.3)}
+.chart-floating-tooltip{position:absolute;transform:translate(-50%,-100%);background:rgba(22,22,29,.95);border:1px solid #7a49dc;border-radius:10px;padding:8px 12px;box-shadow:0 10px 24px rgba(0,0,0,.6),0 0 12px rgba(122,73,220,.35);pointer-events:none;z-index:100;backdrop-filter:blur(8px);min-width:145px;transition:left .12s ease,top .12s ease;animation:tooltip-fade .15s ease-out}
+@keyframes tooltip-fade{from{opacity:0;transform:translate(-50%,-90%)}to{opacity:1;transform:translate(-50%,-100%)}}
+.tooltip-head{display:flex;justify-content:space-between;align-items:center;gap:8px;padding-bottom:5px;margin-bottom:5px;border-bottom:1px solid rgba(255,255,255,.1)}
+.tooltip-tx{color:#f1f1f7;font-size:11px;font-weight:700}
+.tooltip-time{color:#9ca1b0;font-size:10px}
+.tooltip-body{display:flex;flex-direction:column;gap:3px;font-size:10.5px}
+.tooltip-row{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.tooltip-label{color:#9ca1b0}
+.tooltip-score{font-weight:700}
+.tooltip-amount{color:#cfc6ff;font-weight:600}
+.tooltip-action{margin-top:5px;padding-top:4px;border-top:1px dashed rgba(255,255,255,.08);color:#b640be;font-size:9.5px;font-weight:600;text-align:center}
+.hover-axis-label{fill:#f1f1f7;font-weight:700}
+.suspicious-panel-meta{display:flex;align-items:center;justify-content:flex-end;gap:8px;flex-wrap:wrap}
+.grade-legend-mini{display:inline-flex;align-items:center;gap:7px;background:#181822;padding:3px 8px;border-radius:8px;border:1px solid #3c3c48;font-size:10px;color:#9ca1b0;margin-right:2px}
+.grade-legend-item{display:inline-flex;align-items:center;gap:4px}
+.grade-legend-item i{width:6px;height:6px;border-radius:50%;display:inline-block}
 .suspicious-amount{display:flex;align-items:baseline;gap:8px;white-space:nowrap}
 .suspicious-amount span{color:#9ca1b0;font-size:12px;font-weight:600}
 .suspicious-amount strong{color:#f1f1f7;font-size:22px;line-height:1}
-.agent-summary-head{width:100%;display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:16px}
+.suspicious-count-tag{color:#9ca1b0;font-size:13px;font-weight:500;margin-left:2px}
+.mini-bars-7days{height:105px;clear:both;padding:4px 6px 0;border-bottom:1px solid #3c3c48;display:flex;justify-content:space-around;align-items:flex-end;gap:6px}
+.mini-bar-col-7days{height:100%;flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:space-between;font-size:10px;color:#9ca1b0;cursor:pointer;transition:transform .2s ease}
+.mini-bar-col-7days:hover{transform:translateY(-2px)}
+.bar-count-label{color:#f1f1f7;font-size:11px;font-weight:700;display:flex;align-items:baseline;gap:1px}
+.bar-count-label span{font-size:9px;color:#9ca1b0;font-weight:400}
+.mini-bar-track-7days{width:100%;max-width:28px;flex:1;min-height:28px;display:flex;align-items:flex-end;background:rgba(255,255,255,0.03);border-radius:5px;margin:3px 0;overflow:hidden}
+.mini-bar-fill-7days{width:100%;min-height:4px;border-radius:4px 4px 0 0;background:linear-gradient(180deg,#7a49dc 0%,#4f2e96 100%);transition:height .3s ease}
+.stacked-bar-7days{display:flex;flex-direction:column-reverse;overflow:hidden;border-radius:4px 4px 0 0;background:transparent !important}
+.stack-segment{width:100%;transition:height .3s ease;display:block}
+.segment-critical{background:#ee4047}
+.segment-high{background:#f49121}
+.segment-medium{background:#7a49dc}
+.mini-bar-col-7days:hover .stacked-bar-7days{filter:brightness(1.2) drop-shadow(0 0 6px rgba(122,73,220,.5))}
+.bar-amount-label{color:#cfc6ff;font-size:9.5px;font-weight:600;line-height:1.1;white-space:nowrap}
+.bar-date-label{color:#9ca1b0;font-size:10px;margin-top:1px}
+/* AI 에이전트 패널 헤더 액션 & 새로고침 버튼 */
+.agent-head-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.agent-refresh-btn{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:10px;background:#241b30;border:1px solid #7a49dc;color:#cfc6ff;font-size:11.5px;font-weight:600;cursor:pointer;transition:all .2s ease}
+.agent-refresh-btn:hover:not(:disabled){background:#36234f;border-color:#b640be;color:#ffffff;box-shadow:0 0 12px rgba(182,64,190,.35)}
+.agent-refresh-btn:disabled{opacity:.6;cursor:not-allowed}
+.refresh-icon{display:inline-block;width:10px;height:10px;border:2px solid currentColor;border-top-color:transparent;border-radius:50%;transition:transform .3s}
+.refresh-icon.spin{animation:agent-spin .8s linear infinite}
+@keyframes agent-spin{to{transform:rotate(360deg)}}
+
+/* AI 에이전트 비교 그래프 */
+.agent-graph-section{margin-top:10px;display:flex;flex-direction:column;gap:6px}
+.agent-graph-legend{display:flex;justify-content:flex-end;gap:14px;color:#9ca1b0;font-size:10.5px}
+.legend-item{display:inline-flex;align-items:center;gap:5px}
+.legend-box{width:9px;height:9px;border-radius:2px;display:inline-block}
+.current-box{background:#ee4047}
+.prev-box{background:#4a4a5c}
+
+.agent-bars-comparative{display:flex;flex-direction:column;gap:8px}
+.agent-comparative-row{display:flex;flex-direction:column;gap:4px;padding:7px 10px;border-radius:8px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.04);transition:all .2s ease}
+.agent-comparative-row:hover{background:rgba(255,255,255,0.04);border-color:rgba(182,64,190,0.3)}
+.agent-row-title-wrap{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.agent-row-label{color:#f1f1f7;font-size:12px;font-weight:600}
+.agent-row-stats{display:flex;align-items:center;gap:6px}
+.growth-tag{padding:2px 6px;border-radius:6px;font-size:10px;font-weight:700}
+.growth-tag.positive{background:rgba(238,64,71,0.15);color:#ff6b72;border:1px solid rgba(238,64,71,0.3)}
+.growth-tag.negative{background:rgba(62,200,135,0.15);color:#3ec887}
+.increase-count-tag{color:#ff9d42;font-size:10.5px;font-weight:600}
+.amount-tag{color:#9ca1b0;font-size:10.5px}
+
+.agent-dual-bars{display:flex;flex-direction:column;gap:3px;margin-top:2px}
+.bar-sub-row{display:grid;grid-template-columns:30px minmax(100px,1fr) 46px;align-items:center;gap:8px;font-size:10px}
+.bar-period-tag{color:#9ca1b0;font-size:9.5px}
+.current-bar-row .bar-track{height:9px;border-radius:6px;background:#181822}
+.prev-bar-row .bar-track{height:7px;border-radius:6px;background:#181822}
+.prev-fill{background:#4a4a5c !important}
+.bar-val{color:#f1f1f7;font-size:10.5px;text-align:right}
+.bar-val.prev-val{color:#777788;font-weight:500}
+
+.channel-total-badge{padding:4px 10px;border-radius:12px;background:#1b1b24;border:1px solid #3c3c48;color:#9ca1b0;font-size:11px}
+.channel-total-badge strong{color:#f1f1f7;font-size:12px}
+.channel-vertical-layout{display:flex;flex-direction:column;height:100%;justify-content:space-between;gap:6px}
+.solar-arc-chart-wrap{height:132px;position:relative;width:100%;display:flex;align-items:center;justify-content:center;overflow:visible;margin:0 auto}
+.solar-arc-svg{width:100%;height:100%;overflow:visible}
+.solar-planet-group{cursor:pointer;transition:transform .3s cubic-bezier(.34,1.56,.64,1);transform-box:fill-box;transform-origin:center}
+.solar-planet-group:hover{transform:scale(1.1)}
+.planet-circle{transition:filter .25s ease}
+.solar-planet-group:hover .planet-circle{filter:brightness(1.2) drop-shadow(0 0 6px rgba(255,255,255,.4))}
+.channel-stat-list-bottom{display:flex;flex-direction:column;gap:5px;width:100%}
+.channel-stat-row{display:grid;grid-template-columns:68px minmax(36px,1fr) 76px;align-items:center;gap:6px;font-size:11px}
+.channel-info-main{display:flex;align-items:center;gap:4px;color:#f1f1f7}
+.channel-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.channel-name{font-weight:500;white-space:nowrap}
+.channel-ratio{color:#9ca1b0;font-size:10px}
+.channel-progress-track{height:6px;background:#16161c;border-radius:99px;overflow:hidden}
+.channel-progress-fill{height:100%;display:block;border-radius:inherit}
+.channel-info-sub{display:flex;justify-content:flex-end;align-items:baseline;gap:4px;font-size:10px;white-space:nowrap}
+.channel-count{color:#f1f1f7;font-weight:600}
+.channel-amount{color:#9ca1b0;font-size:9.5px}
 .agent-summary-head span{padding:3px 7px;border-radius:6px;background:#24242d;white-space:nowrap}
 .agent-summary p{margin-bottom:0}
 
-/* 데스크톱에서는 네 영역이 현재 브라우저 높이를 나눠 사용한다. */
-@media(min-width:1440px) and (min-height:800px){
-  .dashboard-content{height:100vh;position:relative;padding:20px 28px;display:grid;grid-template-rows:72px 90px minmax(0,1fr);gap:10px;overflow:hidden}
+/* 1. 데스크톱 와이드 (1440px 이상, 1080p 전체화면) - 스크롤 없이 한 화면에 완벽 핏 & 가독성 높은 폰트 */
+@media(min-width:1440px) and (min-height:760px){
+  .dashboard-content{height:100vh;position:relative;padding:14px 22px;display:flex;flex-direction:column;gap:8px;overflow:hidden}
+  .dashboard-header{min-height:48px;padding-bottom:4px;border-bottom:1px solid #3c3c48;display:flex;justify-content:space-between;align-items:center}
+  .dashboard-header h1{font-size:25px}
+  .eyebrow{font-size:13px}
   .header-actions{padding-top:0}
-  .refresh-error{position:absolute;z-index:2;top:73px;right:28px;margin:0;padding:5px 9px;border-radius:6px;background:#392027}
-  .metric-grid{height:100%;margin:0;gap:10px}
-  .metric-card{height:100%;min-height:0;padding:12px 18px}
-  .metric-card>strong{margin-top:4px;font-size:25px}
-  .metric-card small{margin-top:4px}
-  .dashboard-monitoring-grid{height:100%;min-height:0;grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:minmax(0,calc(50% - 165px)) 150px minmax(0,calc(50% - 5px));grid-template-areas:"trend suspicious" "trend risk" "agent channel";gap:10px}
-  .top-grid,.bottom-grid{height:100%;min-height:0;gap:10px;margin:0}
-  .top-grid{grid-template-columns:minmax(0,1.25fr) minmax(0,1fr)}
-  .bottom-grid{grid-template-columns:minmax(0,1.12fr) minmax(0,1fr)}
-  .left-panels{height:100%;min-height:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:minmax(0,1fr);gap:10px}
-  .panel{height:100%;min-height:0;padding:14px 18px;overflow:hidden}
-  .priority-panel{display:flex;flex-direction:column}
-  .trend-chart-wrap{width:min(820px,100%);height:auto;min-height:0;flex:1}
-  .risk-panel{display:grid;grid-template-columns:150px minmax(0,1fr);grid-template-rows:auto 1fr auto;column-gap:16px}
-  .risk-panel>h2{grid-column:1;grid-row:1}
-  .risk-panel>.panel-caption{grid-column:1;grid-row:2}
-  .risk-list{grid-column:2;grid-row:1/4;margin:0;align-content:space-between;gap:8px}
-  .risk-panel footer{grid-column:1;grid-row:3;margin:0;padding-top:7px;line-height:1.4}
-  .suspicious-panel,.channel-panel,.agent-panel{min-height:0;display:flex;flex-direction:column}
-  .dashboard-monitoring-grid>.left-panels{display:contents}
-  .suspicious-panel{grid-area:suspicious}
-  .channel-panel{grid-area:channel}
-  .mini-bars,.bubble-stage{height:auto;min-height:0;flex:1}
-  .mini-bars{margin-top:6px}
-  .mini-bar-column{min-width:0}
-  .mini-bar-area{max-width:100%}
-  .bubble-stage{margin-top:8px}
-  .channel-panel .bubble{transform:translate(-50%,-50%) scale(1.35)}
-  .agent-bars{margin-top:10px;gap:8px}
-  .agent-row{grid-template-columns:minmax(170px,.72fr) minmax(120px,1fr) auto;gap:12px}
-  .agent-empty{min-height:0;flex:1}
-  .agent-summary{min-height:92px;margin-top:8px;padding:11px 16px}
-  .agent-summary p{margin:5px 0 6px}
+  .refresh-error{position:absolute;z-index:2;top:54px;right:22px;margin:0;padding:4px 8px;border-radius:6px;background:#392027;font-size:13px}
+  .metric-grid{margin:0;gap:8px;grid-template-columns:repeat(5,minmax(0,1fr))}
+  .metric-card{min-height:72px;padding:8px 14px}
+  .metric-card>span{font-size:14px}
+  .metric-card>strong{margin-top:1px;font-size:24px;line-height:1.2}
+  .metric-card small{margin-top:1px;font-size:11.5px}
+
+  /* 상하 2단 독립 모니터링 그리드 */
+  .dashboard-monitoring-grid{flex:1;min-height:0;display:flex;flex-direction:column;gap:8px}
+
+  /* 상단 행: 실시간 위험 거래(가로 대폭 확장) + 최근 7일 추이(가로 슬림하게 축소) */
+  .monitoring-top-row{height:41%;min-height:0;display:grid;grid-template-columns:minmax(0,1.85fr) minmax(280px,.92fr);gap:8px}
+  
+  /* 하단 행: AI 에이전트(가로 대폭 확장) + 우측 위험등급/채널(가로 슬림하게 축소) */
+  .monitoring-bottom-row{height:59%;min-height:0;display:grid;grid-template-columns:minmax(0,1.38fr) minmax(320px,.84fr);gap:8px}
+  .bottom-right-col{height:100%;min-height:0;display:grid;grid-template-rows:minmax(0,.78fr) minmax(0,1.62fr);gap:8px}
+
+  .panel{padding:11px 14px;border-radius:12px;overflow:hidden;height:100%;min-height:0;display:flex;flex-direction:column}
+  .panel h2{font-size:16.5px}
+  .panel-caption{font-size:12px}
+
+  /* 상단 좌측: 실시간 위험 거래 (박스 크기는 유지하고 차트 세로 높이를 시원하게 확장) */
+  .priority-panel{justify-content:space-between}
+  .priority-panel .panel-head{margin-bottom:0}
+  .priority-panel .trend-chart-wrap{width:100%;flex:1;min-height:0;height:auto}
+  .trend-panel-meta{font-size:11.5px}
+  .trend-series-label{font-size:12px}
+  .trend-stat-badge{font-size:12px}
+  .time-interval-toggle button{font-size:11.5px}
+
+  /* 상단 우측: 최근 7일 의심 거래 (가로폭 슬림 & 상하 꽉 찬 배치) */
+  .suspicious-panel{justify-content:space-between}
+  .suspicious-amount strong{font-size:22px}
+  .suspicious-amount span{font-size:13px}
+  .suspicious-count-tag{font-size:14px}
+  .grade-legend-mini{font-size:11px}
+  .mini-bars-7days{flex:1;min-height:0;height:auto;padding-top:2px;border-bottom:1px solid #3c3c48}
+  .bar-count-label{font-size:11.5px}
+  .bar-count-label span{font-size:10px}
+  .bar-amount-label{font-size:11px}
+  .bar-date-label{font-size:11.5px}
+
+  /* 하단 우측 상단: 위험등급별 의심거래 (4개 등급 컴팩트 & 쾌적 배치) */
+  .risk-panel{justify-content:space-between}
+  .risk-list{margin:3px 0;gap:4px;flex:1;display:flex;flex-direction:column;justify-content:space-around}
+  .risk-row{grid-template-columns:86px minmax(75px,1fr) 115px;gap:8px;font-size:12px}
+  .risk-label{font-size:12.5px}
+  .risk-detail{font-size:12px}
+  .risk-panel footer{margin-top:2px;padding-top:2px;font-size:10.5px}
+
+  /* 하단 우측 하단: 채널별 의심거래 (이미지처럼 태양계 궤도 대폭 확대 & 하단 바 슬림 밀착) */
+  .channel-panel{justify-content:space-between;padding:10px 14px}
+  .channel-vertical-layout{height:100%;min-height:0;display:flex;flex-direction:column;justify-content:space-between;gap:4px}
+  .solar-arc-chart-wrap{height:155px;margin:0 auto;width:100%;flex:1;min-height:130px}
+  .solar-arc-svg{width:100%;height:100%}
+  .channel-stat-list-bottom{gap:2.5px;width:100%;display:flex;flex-direction:column}
+  .channel-stat-row{display:grid;grid-template-columns:auto minmax(28px,1fr) auto;align-items:center;gap:6px;font-size:10.5px;line-height:1.15;white-space:nowrap}
+  .channel-info-main{display:flex;align-items:center;gap:3px;white-space:nowrap}
+  .channel-dot{width:6px;height:6px}
+  .channel-name{font-size:11px;font-weight:600}
+  .channel-ratio{font-size:10px;color:#9ca1b0}
+  .channel-progress-track{height:4.5px;border-radius:99px;background:#16161c;overflow:hidden}
+  .channel-info-sub{display:flex;align-items:baseline;justify-content:flex-end;gap:4px;white-space:nowrap}
+  .channel-count{font-size:10.5px;font-weight:600}
+  .channel-amount{font-size:10px;color:#9ca1b0}
+
+  /* 하단 좌측: 대시보드 AI 에이전트 (가로 슬림 & 5개 근거 항목 위아래 꽉 채움) */
+  .agent-panel{justify-content:space-between}
+  .agent-panel-head h2{font-size:16px;margin:1px 0}
+  .agent-refresh-btn{font-size:12.5px;padding:5px 11px}
+  .agent-summary{min-height:0;margin-top:3px;padding:7px 12px;border-radius:8px}
+  .agent-summary-head strong{font-size:12.5px}
+  .agent-summary-head span{font-size:11px;padding:2px 6px}
+  .agent-summary p{font-size:12.5px;line-height:1.35;margin:3px 0 1px}
+  .agent-graph-section{flex:1;min-height:0;display:flex;flex-direction:column;justify-content:space-around;margin-top:3px;gap:4px}
+  .agent-graph-legend{font-size:11px;gap:10px}
+  .agent-bars-comparative{flex:1;min-height:0;display:flex;flex-direction:column;justify-content:space-around;gap:4px}
+  .agent-comparative-row{padding:4.5px 9px;border-radius:6px;gap:2px}
+  .agent-row-label{font-size:12.5px}
+  .agent-row-stats{gap:5px}
+  .growth-tag{font-size:10.5px;padding:1px 4px}
+  .increase-count-tag{font-size:11px}
+  .amount-tag{font-size:11px}
+  .agent-dual-bars{gap:2px;margin-top:2px}
+  .bar-sub-row{grid-template-columns:26px minmax(70px,1fr) 42px;gap:5px;font-size:10.5px}
+  .bar-period-tag{font-size:10px}
+  .current-bar-row .bar-track{height:8px}
+  .prev-bar-row .bar-track{height:5.5px}
+  .bar-val{font-size:11px}
 }
 
-/* 1920×1080 시연에서는 보조 문구도 멀리서 읽을 수 있는 크기를 유지한다. */
-@media(min-width:1600px) and (min-height:900px){
-  .panel-caption{font-size:13px}
-  .metric-card small{font-size:12px}
-  .chart-legend,.trend-panel-meta{font-size:12px}
-  .trend-panel-meta strong{font-size:12px}
-  .chart-axis{font-size:12px}
-  .chart-value{font-size:12px}
-  .risk-detail,.risk-panel footer{font-size:12px}
-  .mini-chart-meta{font-size:12px}
-  .mini-bar-column{font-size:12px}
-  .bubble strong{font-size:12px}
-  .bubble span,.bubble-legend{font-size:12px}
-  .agent-summary span{font-size:12px}
-}
-
-/* 중간 화면에서는 카드 크기를 먼저 줄이고, 좁아지면 열을 접어 가로 잘림을 막는다. */
-@media(min-width:821px) and (max-width:1439px){
-  .dashboard-content{width:100%;padding:24px}
-  .dashboard-header{min-height:88px;align-items:center}
+/* 2. 일반 데스크톱 / 랩탑 (1081px ~ 1439px) */
+@media(min-width:1081px) and (max-width:1439px){
+  .dashboard-content{width:100%;min-height:100vh;height:auto;padding:20px 24px 40px;overflow-y:auto}
+  .dashboard-header{min-height:70px;align-items:center}
   .header-actions{padding-top:0}
-  .metric-grid{gap:10px;margin:18px 0 14px}
-  .metric-card{min-height:108px;padding:16px 14px 13px 18px}
-  .metric-card>strong{font-size:24px}
-  .dashboard-monitoring-grid{grid-template-columns:minmax(0,1.65fr) minmax(280px,1fr);gap:12px}
-  .top-grid{grid-template-columns:minmax(0,1.65fr) minmax(280px,1fr);gap:12px}
-  .bottom-grid{grid-template-columns:minmax(300px,.82fr) minmax(0,1.18fr);gap:12px;margin-top:12px}
-  .left-panels{gap:12px}
-  .panel{padding:16px}
-  .risk-list{margin-top:20px;gap:13px}
-  .risk-row{grid-template-columns:84px minmax(70px,1fr);gap:8px}
-  .risk-detail{grid-column:2;white-space:normal;line-height:1.35}
-  .agent-row{grid-template-columns:120px minmax(80px,1fr) 28px;gap:10px}
+  .metric-grid{gap:10px;margin:12px 0 14px}
+  .metric-card{min-height:92px;padding:12px 14px}
+  .metric-card>strong{font-size:22px}
+  .dashboard-monitoring-grid{display:flex;flex-direction:column;gap:12px}
+  .monitoring-top-row{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(320px,.88fr);gap:12px}
+  .monitoring-bottom-row{display:grid;grid-template-columns:minmax(0,1fr) minmax(320px,1fr);gap:12px}
+  .bottom-right-col{display:grid;gap:12px}
+  .panel{padding:16px;overflow:visible;height:auto}
+  .risk-list{margin-top:16px;gap:10px}
+  .risk-row{grid-template-columns:85px minmax(70px,1fr) 110px;gap:8px}
+  .agent-row{grid-template-columns:minmax(140px,.7fr) minmax(80px,1fr) 28px;gap:10px}
+  .realtime-trend-meta{flex-wrap:wrap;justify-content:flex-end;gap:6px}
   .suspicious-panel .panel-head{flex-wrap:wrap}
   .suspicious-panel-meta{width:100%;flex-wrap:wrap;justify-content:flex-start}
-  .suspicious-amount{display:grid;gap:2px}
-  .suspicious-amount strong{font-size:18px}
 }
 
-@media(max-width:1180px){
-  .dashboard-content{padding:24px 22px 40px}
-  .metric-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
-  .dashboard-monitoring-grid{grid-template-columns:minmax(0,1fr);grid-template-areas:"trend" "risk" "supporting" "agent"}
-  .top-grid,.bottom-grid{grid-template-columns:minmax(0,1fr)}
-  .left-panels{grid-template-columns:repeat(2,minmax(0,1fr))}
-  .risk-row{grid-template-columns:104px minmax(130px,1fr) 110px}
-  .risk-detail{grid-column:auto;white-space:nowrap}
+/* 3. 태블릿 및 좁은 화면 (1080px 이하) - 1열 스택 정렬로 깨짐 방지 */
+@media(max-width:1080px){
+  .dashboard-content{width:100%;padding:20px 16px 40px;height:auto;min-height:100vh;overflow-y:visible}
+  .dashboard-header{min-height:0;padding-bottom:14px;flex-direction:column;align-items:flex-start;gap:12px}
+  .header-actions{padding-top:0;width:100%;flex-wrap:wrap}
+  
+  /* 메트릭 카드 3열/2열 배치 */
+  .metric-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:14px 0 16px}
+  .metric-card{min-height:92px;padding:12px 14px}
+  .metric-card>strong{font-size:20px}
+  .metric-card small{font-size:10px}
+
+  /* 메인 모니터링 그리드: 단일 열 스택으로 깔끔하게 정렬 */
+  .dashboard-monitoring-grid{display:flex;flex-direction:column;gap:14px}
+  .panel{padding:16px;border-radius:14px}
+  
+  /* 실시간 위험 거래 패널 */
+  .realtime-risk-panel .panel-head{display:flex;flex-direction:column;align-items:flex-start;gap:8px}
+  .realtime-trend-meta{width:100%;display:flex;flex-wrap:wrap;align-items:center;justify-content:flex-start;gap:8px}
+  .trend-stat-badge{margin-left:0}
+  .trend-chart-wrap{height:175px;width:100%}
+
+  /* 하단 지원 패널(7일 의심거래 + 채널별) */
+  .left-panels{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+  .suspicious-panel .panel-head{display:flex;flex-direction:column;align-items:flex-start;gap:6px}
+  .suspicious-panel-meta{width:100%;justify-content:flex-start}
+  .mini-bars-7days{height:100px;gap:4px;padding:4px 2px 0}
+  .bar-count-label{font-size:10px}
+  .bar-amount-label{font-size:8.5px}
+  .bar-date-label{font-size:9.5px}
+
+  .channel-panel .panel-head{display:flex;justify-content:space-between;align-items:center}
+  .solar-arc-chart-wrap{height:115px}
+  .channel-stat-row{grid-template-columns:60px minmax(30px,1fr) 72px;gap:5px;font-size:10.5px}
+
+  /* 위험등급별 패널 */
+  .risk-panel{display:flex;flex-direction:column;gap:10px}
+  .risk-list{margin-top:6px;gap:10px}
+  .risk-row{grid-template-columns:85px minmax(60px,1fr) 110px;gap:8px;font-size:11px}
+
+  /* DASHBOARD INSIGHT AGENT 패널 */
+  .agent-panel-head{display:flex;flex-direction:column;align-items:flex-start;gap:8px}
+  .agent-panel-head .status-badge{align-self:flex-start}
+  .agent-row{grid-template-columns:minmax(130px,.65fr) minmax(80px,1fr) 30px;gap:8px;font-size:11.5px}
+  .agent-summary{margin-top:10px;padding:12px 14px}
 }
 
-@media(max-width:960px){
-  .dashboard-header{min-height:0;padding-bottom:16px;align-items:flex-start;flex-direction:column}
-  .header-actions{padding-top:0}
+/* 4. 모바일 화면 (720px 이하) */
+@media(max-width:720px){
   .metric-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
-  .dashboard-monitoring-grid>.left-panels{grid-template-columns:minmax(0,1fr)}
-}
-
-@media(max-width:620px){
-  .dashboard-content{padding:20px 16px 88px}
-  .metric-grid{grid-template-columns:minmax(0,1fr)}
-  .panel{padding:15px}
-  .suspicious-panel .panel-head{display:grid;grid-template-columns:minmax(0,1fr);gap:10px}
-  .suspicious-panel-meta{width:100%;justify-content:space-between;flex-wrap:wrap}
-  .risk-row{grid-template-columns:82px minmax(70px,1fr)}
-  .risk-detail{grid-column:2;white-space:normal}
-  .agent-panel-head{display:grid;grid-template-columns:minmax(0,1fr);gap:10px}
-  .agent-panel-head h2{overflow-wrap:anywhere}
-  .agent-panel-head>.status-badge{justify-self:end}
-  .agent-row{grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"label value" "bar bar";gap:5px 10px}
-  .agent-row>span{grid-area:label;min-width:0;line-height:1.35;overflow-wrap:anywhere}
+  .left-panels{grid-template-columns:minmax(0,1fr)}
+  .risk-row{grid-template-columns:75px minmax(50px,1fr) 95px;font-size:10.5px}
+  .agent-row{grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"label value" "bar bar";gap:4px 8px}
+  .agent-row>span{grid-area:label}
   .agent-row>.bar-track{grid-area:bar}
   .agent-row>strong{grid-area:value}
+}
+
+/* 5. 초소형 모바일 (480px 이하) */
+@media(max-width:480px){
+  .metric-grid{grid-template-columns:minmax(0,1fr)}
+  .dashboard-content{padding:16px 12px 72px}
+  .panel{padding:14px 12px}
+  .mini-bars-7days{gap:2px}
 }

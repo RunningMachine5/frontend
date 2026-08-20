@@ -34,7 +34,7 @@ export async function fetchDashboardOverview(
 }
 
 export async function generateDashboardInsight(
-    params: DashOverviewParams,
+    params: DashOverviewParams & { forceRefresh?: boolean },
 ): Promise<DashboardAgentInsight> {
     const response = await fetch("/api/dashboard/insights/generate", {
         method: "POST",
@@ -42,6 +42,7 @@ export async function generateDashboardInsight(
         body: JSON.stringify({
             period_start: params.periodStart,
             period_end: params.periodEnd,
+            force_refresh: params.forceRefresh ?? false,
         }),
     });
 
