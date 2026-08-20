@@ -22,7 +22,7 @@ import type {
   RuleSetSummary,
   RuleValidation,
 } from "./ruleTypes";
-import { RuleReplayReport } from "./RuleReplayReport";
+import { RuleReplayReport, RuleReplaySummary } from "./RuleReplayReport";
 import "../admin/AdminWorkspace.css";
 
 type WorkspaceTab = "edit" | "verify";
@@ -274,6 +274,7 @@ export function RuleManagementPage() {
           <section aria-busy={isBusy} aria-labelledby="rule-verify-tab" className="rule-verify-workspace" id="rule-verify-workspace" role="tabpanel">
             <article className="admin-panel verify-control-panel">
               <div className="panel-title"><p className="admin-eyebrow">VERIFY FLOW</p><h2>운영 반영 전 확인</h2><small>현재 운영 룰과 DRAFT를 같은 거래 표본으로 비교합니다.</small></div>
+              <RuleReplaySummary replay={replay} />
               <div className="rule-version-compare" aria-label="비교할 룰셋 버전"><div><span>현재 운영</span><strong>{activeSet ? `ACTIVE v${activeSet.version}` : "운영 룰 없음"}</strong><small>{formatDate(activeSet?.updated_at ?? null)}</small></div><i aria-hidden="true">→</i><div><span>검토 대상</span><strong>{draftSet ? `DRAFT v${draftSet.version}` : "DRAFT 없음"}</strong><small>{formatDate(draftSet?.updated_at ?? null)}</small></div></div>
 
               <ol className="verification-flow">

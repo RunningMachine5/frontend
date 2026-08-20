@@ -1,6 +1,6 @@
 import type { RuleReplay } from "./ruleTypes";
 
-type ReplayReportProps = {
+type RuleReplayProps = {
   replay: RuleReplay | null;
 };
 
@@ -38,20 +38,75 @@ function transactionDeltaSummary(deltas: Record<string, number>) {
     .join(" · ");
 }
 
-export function RuleReplayReport({ replay }: ReplayReportProps) {
+export function RuleReplaySummary({ replay }: RuleReplayProps) {
+  return (
+    <section aria-label="Replay 요약" className="verification-summary">
+      <div className="verification-summary-title">
+        <div>
+          <p className="admin-eyebrow">REPLAY SUMMARY</p>
+          <strong>운영 영향 요약</strong>
+        </div>
+        {replay && (
+          <em className="report-scope">
+            평가 {replay.evaluated_count.toLocaleString("ko-KR")}건
+          </em>
+        )}
+      </div>
+
+      {!replay ? (
+        <p className="verification-summary-empty">
+          Replay 비교를 실행하면 변경 거래와 평가 오류를 요약해 보여줍니다.
+        </p>
+      ) : (
+        <dl className="verification-summary-grid">
+          <div className="summary-primary">
+            <dt>변경 거래</dt>
+            <dd>{replay.changed_transaction_count.toLocaleString("ko-KR")}건</dd>
+            <small>평가 거래 중 {formatPercent(replay.changed_transaction_rate)}</small>
+          </div>
+          <div>
+            <dt>점수 변경</dt>
+            <dd>{replay.score_changed_transaction_count.toLocaleString("ko-KR")}건</dd>
+            <small>유형 점수 기준</small>
+          </div>
+          <div>
+            <dt>근거 변경</dt>
+            <dd>{replay.evidence_changed_transaction_count.toLocaleString("ko-KR")}건</dd>
+            <small>구성요소 기준</small>
+          </div>
+          <div>
+            <dt>미매칭 증감</dt>
+            <dd className={deltaTone(replay.no_match_count_delta)}>
+              {formatSigned(replay.no_match_count_delta)}건
+            </dd>
+            <small>ACTIVE {replay.active_no_match_count} → DRAFT {replay.draft_no_match_count}</small>
+          </div>
+          <div>
+            <dt>평가 오류</dt>
+            <dd className={replay.error_count ? "danger" : "positive"}>
+              {replay.error_count.toLocaleString("ko-KR")}건
+            </dd>
+            <small>정상 {replay.evaluated_count.toLocaleString("ko-KR")}건</small>
+          </div>
+        </dl>
+      )}
+    </section>
+  );
+}
+
+export function RuleReplayReport({ replay }: RuleReplayProps) {
   const changedComponents = replay?.component_impacts.filter((item) =>
     item.definition_changed || item.matched_transaction_count_delta !== 0,
   ) ?? [];
 
   return (
     <article className="admin-panel replay-report-panel">
-      <div className="panel-title split">
+      <div className="panel-title">
         <div>
           <p className="admin-eyebrow">IMPACT REPORT</p>
           <h2>ACTIVE 대비 영향 분석</h2>
           <small>유형, 구성요소, 변경 거래 순으로 확인합니다.</small>
         </div>
-        {replay && <em className="report-scope">평가 {replay.evaluated_count.toLocaleString("ko-KR")}건</em>}
       </div>
 
       {!replay && (
@@ -63,14 +118,6 @@ export function RuleReplayReport({ replay }: ReplayReportProps) {
 
       {replay && (
         <div className="replay-report-content">
-          <dl className="replay-summary-grid">
-            <div><dt>변경 거래</dt><dd>{replay.changed_transaction_count.toLocaleString("ko-KR")}건</dd><small>{formatPercent(replay.changed_transaction_rate)}</small></div>
-            <div><dt>점수 변경</dt><dd>{replay.score_changed_transaction_count.toLocaleString("ko-KR")}건</dd><small>유형 점수 기준</small></div>
-            <div><dt>근거 변경</dt><dd>{replay.evidence_changed_transaction_count.toLocaleString("ko-KR")}건</dd><small>구성요소 기준</small></div>
-            <div><dt>미매칭 증감</dt><dd className={deltaTone(replay.no_match_count_delta)}>{formatSigned(replay.no_match_count_delta)}건</dd><small>ACTIVE {replay.active_no_match_count} → DRAFT {replay.draft_no_match_count}</small></div>
-            <div><dt>평가 오류</dt><dd className={replay.error_count ? "danger" : "positive"}>{replay.error_count.toLocaleString("ko-KR")}건</dd><small>정상 {replay.evaluated_count.toLocaleString("ko-KR")}건</small></div>
-          </dl>
-
           <section className="report-section">
             <div className="report-section-title">
               <div><h3>사기유형별 점수 변화</h3><p>평균 점수와 매칭 거래가 어느 방향으로 움직였는지 비교합니다.</p></div>
