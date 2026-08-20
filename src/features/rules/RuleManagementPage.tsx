@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { AppLayout } from "../../components/layout/AppLayout";
 import { PageHeading } from "../../components/layout/PageHeading";
@@ -34,14 +34,65 @@ function formatDate(value: string | null) {
   return new Intl.DateTimeFormat("ko-KR", { dateStyle: "medium" }).format(new Date(value));
 }
 
-function formatExpression(expression: RuleExpression): string {
+const numberFormat = new Intl.NumberFormat("ko-KR");
+
+function formatRuleValue(value: RuleExpression["value"]): string {
+  if (Array.isArray(value)) return value.map(formatRuleValue).join(", ");
+  if (typeof value === "boolean") return value ? "예" : "아니오";
+  if (typeof value === "number") return numberFormat.format(value);
+  return String(value ?? "값 없음");
+}
+
+function isBinaryFeature(feature: RuleFeature | undefined) {
+  if (feature?.value_type === "boolean") return true;
+  return feature?.allowed_values?.length === 2
+    && feature.allowed_values.includes(0)
+    && feature.allowed_values.includes(1);
+}
+
+function formatExpression(
+  expression: RuleExpression,
+  featureByField: Map<string, RuleFeature>,
+): string {
   if (expression.conditions?.length) {
-    return expression.conditions.map(formatExpression).join(` ${expression.operator} `);
+    const conditions = expression.conditions.map((condition) =>
+      formatExpression(condition, featureByField));
+    const guide = expression.operator === "OR" ? "하나 이상 충족" : "모두 충족";
+    return `${conditions.join(" · ")} (${guide})`;
   }
-  const value = Array.isArray(expression.value)
-    ? expression.value.join(", ")
-    : String(expression.value ?? "");
-  return `${expression.field ?? "field"} ${expression.operator} ${value}`;
+
+  const feature = expression.field ? featureByField.get(expression.field) : undefined;
+  const fieldName = feature?.display_name ?? expression.field ?? "조건";
+  const value = expression.value;
+
+  if (
+    isBinaryFeature(feature)
+    && ["EQ", "NE"].includes(expression.operator)
+    && (typeof value === "boolean" || value === 0 || value === 1)
+  ) {
+    const positiveValue = value === true || value === 1;
+    const isMatched = expression.operator === "EQ" ? positiveValue : !positiveValue;
+    const label = feature?.value_type === "boolean"
+      ? isMatched ? "감지" : "미감지"
+      : isMatched ? "예" : "아니오";
+    return `${fieldName}: ${label}`;
+  }
+
+  const displayValue = formatRuleValue(value);
+  const operatorLabel: Record<string, string> = {
+    EQ: "같음",
+    NE: "제외",
+    GT: "초과",
+    GTE: "이상",
+    LT: "미만",
+    LTE: "이하",
+    IN: "중 하나",
+  };
+
+  if (expression.operator === "BETWEEN" && Array.isArray(value)) {
+    return `${fieldName}: ${value.map(formatRuleValue).join("~")}`;
+  }
+  return `${fieldName}: ${displayValue} ${operatorLabel[expression.operator] ?? expression.operator}`;
 }
 
 export function RuleManagementPage() {
@@ -108,6 +159,10 @@ export function RuleManagementPage() {
 
   const activeSet = summaries.find((set) => set.status === "ACTIVE");
   const draftSet = summaries.find((set) => set.status === "DRAFT");
+  const featureByField = useMemo(
+    () => new Map(features.map((feature) => [feature.field, feature])),
+    [features],
+  );
   const componentTotal = editingRule?.components.reduce((sum, item) => sum + item.weight, 0) ?? 0;
   const runAction = async (action: () => Promise<void>) => {
     setIsBusy(true);
@@ -262,7 +317,7 @@ export function RuleManagementPage() {
                 {selectedSet?.rules.map((rule) => <button aria-selected={selectedRuleId === rule.id} className={selectedRuleId === rule.id ? "active" : ""} key={rule.id} onClick={() => setSelectedRuleId(rule.id)} role="tab" type="button">{rule.display_name}</button>)}
               </div>
               <div className="component-list">
-                {editingRule?.components.map((component) => <article className="component-row" key={component.id}><div><strong>{component.name}</strong><code>{formatExpression(component.condition_expression)}</code></div><label><span>가중치</span><input disabled={!canEdit} max="1" min="0.001" onChange={(event) => updateWeight(component.id, Number(event.target.value))} step="0.01" type="number" value={component.weight} /></label><div className="weight-track"><i style={{ width: `${Math.min(component.weight * 100, 100)}%` }} /></div></article>)}
+                {editingRule?.components.map((component) => <article className="component-row" key={component.id}><div><strong>{component.name}</strong><p className="condition-summary">{formatExpression(component.condition_expression, featureByField)}</p></div><label><span>가중치</span><input disabled={!canEdit} max="1" min="0.001" onChange={(event) => updateWeight(component.id, Number(event.target.value))} step="0.01" type="number" value={component.weight} /></label><div className="weight-track"><i style={{ width: `${Math.min(component.weight * 100, 100)}%` }} /></div></article>)}
               </div>
               <footer className="rule-total"><span>{editingRule?.display_name ?? "선택된 유형 없음"} 구성요소 합계</span><strong className={Math.abs(componentTotal - 1) < 0.0001 ? "positive" : "danger"}>{componentTotal.toFixed(3)} · {Math.abs(componentTotal - 1) < 0.0001 ? "정상" : "확인 필요"}</strong></footer>
               <div className="editor-actions"><small>{canEdit ? "저장하면 기존 검증과 Replay 결과가 초기화됩니다." : `${selectedSet?.status ?? "선택한"} 버전은 조회만 가능합니다.`}</small><button className="admin-button primary" disabled={!canEdit || isBusy || !editingRule} onClick={saveCurrentRule} type="button">DRAFT 가중치 저장</button></div>

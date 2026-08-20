@@ -22,6 +22,18 @@ export const ACTION_REQUIRED_STATUSES = new Set([
   "DEPLOYMENT_FAILED",
 ]);
 
+const ACTION_LABELS: Record<string, string> = {
+  CANDIDATE: "후보 지표 검토",
+  STAGED: "후보 예측 검증",
+  PROMOTING: "배포 완료 확인",
+  FAILED: "학습 실패 원인 확인",
+  DEPLOYMENT_FAILED: "배포 실패 원인 확인",
+};
+
+export function actionLabel(status: string) {
+  return ACTION_LABELS[status] ?? "학습 상태 확인";
+}
+
 export const ACTIVE_RUN_STATUSES = new Set(["REQUESTED", "RUNNING", "PROMOTING"]);
 
 export const COMPARISON_METRICS = [

@@ -7,6 +7,7 @@ import { AdminAlert } from "../admin/AdminAlert";
 import { ModelPageShell } from "./components/ModelPageShell";
 import {
   ACTION_REQUIRED_STATUSES,
+  actionLabel,
   formatClock,
   formatDate,
   latestRevisionTraffic,
@@ -314,7 +315,7 @@ export function ModelManagementPage() {
               <div className="model-empty-state"><strong>대기 중인 작업이 없습니다.</strong><span>후보 검토나 배포 확인이 필요하면 여기에 표시됩니다.</span></div>
             ) : visibleActionRuns.map((run) => (
               <Link key={run.id} to={`/models/runs/${run.id}`}>
-                <div><strong>학습 #{run.id}</strong><span>{formatDate(run.created_at)}</span></div>
+                <div><strong>{actionLabel(run.status)}</strong><span>학습 #{run.id} · {formatDate(run.created_at)}</span></div>
                 <em className={`status ${run.status.toLowerCase()}`}>{STATUS_LABELS[run.status]}</em>
               </Link>
             ))}
