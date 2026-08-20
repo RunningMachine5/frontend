@@ -164,12 +164,22 @@ export function ModelManagementPage() {
           <small>01 · HUMAN LABELS</small>
           <h3>거래 라벨링</h3>
           <p>담당자가 확정한 정상·사기 판정만 다음 학습 데이터에 반영합니다.</p>
+          <ol>
+            <li><span>1</span><strong>미판정 거래 선택</strong></li>
+            <li><span>2</span><strong>정상·사기 확정</strong></li>
+            <li><span>3</span><strong>학습 라벨 반영</strong></li>
+          </ol>
           <footer><strong>미판정 거래 검토</strong><em>열기 →</em></footer>
         </Link>
         <Link to="/models/training">
           <small>02 · TRAIN & RELEASE</small>
           <h3>학습 · 배포</h3>
           <p title={latestDataset?.version}>{latestDataset?.version ?? "학습 데이터셋을 먼저 준비하세요."}</p>
+          <ol>
+            <li><span>1</span><strong>데이터셋 생성</strong></li>
+            <li><span>2</span><strong>Cloud Run 학습</strong></li>
+            <li><span>3</span><strong>후보 검토·배포</strong></li>
+          </ol>
           <footer>
             <strong>{latestRun ? `Run #${latestRun.id} · ${STATUS_LABELS[latestRun.status]}` : "실행 이력 없음"}</strong>
             <em>열기 →</em>
@@ -179,6 +189,11 @@ export function ModelManagementPage() {
           <small>03 · RUNTIME HEALTH</small>
           <h3>서버 모니터링</h3>
           <p>추론 서비스, 학습 Job, VM·DB 상태와 시계열을 분리해 확인합니다.</p>
+          <ol>
+            <li><span>1</span><strong>추론 서비스</strong></li>
+            <li><span>2</span><strong>학습 Job</strong></li>
+            <li><span>3</span><strong>VM · DB</strong></li>
+          </ol>
           <footer><strong>{serving ? "Serving 연결됨" : "상태 확인 필요"}</strong><em>열기 →</em></footer>
         </Link>
       </section>
