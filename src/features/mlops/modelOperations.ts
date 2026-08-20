@@ -71,6 +71,30 @@ export function latestRevisionTraffic(status: ServingStatus | null) {
   return Math.min(100, Math.max(0, percent));
 }
 
+export function isModelRevisionReady(
+  status: ServingStatus | null,
+  modelVersion: string | undefined,
+) {
+  // 승인 직후에는 DB 상태만 STAGED이고 Cloud Run 리비전은 아직 생성 중일 수 있다.
+  // 승인한 모델 tag가 최신 Ready 리비전을 가리킬 때만 검증 버튼을 연다.
+  if (!status || status.reconciling || !modelVersion) return false;
+  const latestCreated = resourceName(status.latest_created_revision);
+  const latestReady = resourceName(status.latest_ready_revision);
+  if (!latestCreated || latestCreated !== latestReady) return false;
+
+  const modelTag = `model-v${modelVersion}`;
+  return status.traffic.some((target) => {
+    const revision = target.revision
+      ? resourceName(target.revision)
+      : target.type === "TRAFFIC_TARGET_ALLOCATION_TYPE_LATEST"
+        ? latestCreated
+        : null;
+    return target.tag === modelTag
+      && revision === latestCreated
+      && (target.percent ?? 0) === 0;
+  });
+}
+
 export function metric(details: ModelDetails | null, ...keys: string[]) {
   for (const key of keys) {
     if (details?.metrics[key] !== undefined) return details.metrics[key];
@@ -94,10 +118,16 @@ export function recommendationLabel(value: string | undefined) {
   return "추천 정보 없음";
 }
 
-export function actionGuide(run: TrainingRun, isCurrentProduction: boolean) {
+export function actionGuide(
+  run: TrainingRun,
+  isCurrentProduction: boolean,
+  candidateReady = true,
+) {
   switch (run.status) {
     case "CANDIDATE": return "운영 모델과 지표를 비교한 뒤 승인하거나 거절하세요.";
-    case "STAGED": return "0% 후보 리비전이 준비됐습니다. 실제 거래로 예측을 검증하세요.";
+    case "STAGED": return candidateReady
+      ? "0% 후보 리비전이 준비됐습니다. 실제 거래로 예측을 검증하세요."
+      : "Cloud Run이 승인 모델의 0% 후보를 준비 중입니다. 완료될 때까지 자동으로 확인합니다.";
     case "DEPLOYMENT_FAILED": return "실패 원인을 확인한 뒤 예측 검증과 전환을 다시 요청하세요.";
     case "PROMOTING": return "Cloud Run 트래픽 전환이 끝나면 배포 완료를 확인하세요.";
     case "PRODUCTION": return isCurrentProduction
@@ -116,7 +146,11 @@ export type WorkflowStep = {
   state: "complete" | "active" | "pending" | "error";
 };
 
-export function workflowForRun(run: TrainingRun, trafficPercent: number): WorkflowStep[] {
+export function workflowForRun(
+  run: TrainingRun,
+  trafficPercent: number,
+  candidateReady = true,
+): WorkflowStep[] {
   const reviewed = ["STAGED", "PROMOTING", "PRODUCTION"].includes(run.status);
   const verified = ["PROMOTING", "PRODUCTION"].includes(run.status);
   return [
@@ -142,7 +176,7 @@ export function workflowForRun(run: TrainingRun, trafficPercent: number): Workfl
     {
       label: "0% 후보 검증",
       status: run.status === "STAGED"
-        ? "검증 필요"
+        ? (candidateReady ? "검증 필요" : "리비전 준비 중")
         : run.status === "DEPLOYMENT_FAILED" ? "재시도" : verified ? "통과" : "대기",
       state: run.status === "STAGED"
         ? "active"
