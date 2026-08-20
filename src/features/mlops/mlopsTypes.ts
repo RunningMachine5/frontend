@@ -99,18 +99,89 @@ export type ServingMonitoring = {
     request_count: number;
     error_rate_percent: number;
     p95_latency_ms: number | null;
+    p99_latency_ms: number | null;
+    pending_p95_latency_ms: number | null;
     active_instances: number | null;
     idle_instances: number | null;
     cpu_utilization_percent: number | null;
     memory_utilization_percent: number | null;
   };
   series: {
-    requests_per_minute: MonitoringPoint[];
+    request_count: MonitoringPoint[];
     error_rate_percent: MonitoringPoint[];
     p95_latency_ms: MonitoringPoint[];
+    p99_latency_ms: MonitoringPoint[];
+    pending_p95_latency_ms: MonitoringPoint[];
     active_instances: MonitoringPoint[];
     cpu_utilization_percent: MonitoringPoint[];
     memory_utilization_percent: MonitoringPoint[];
+  };
+};
+
+export type TrainingMonitoring = {
+  window_minutes: number;
+  alignment_seconds: number;
+  data_delay_seconds: number;
+  job_name: string;
+  region: string;
+  queried_at: string;
+  latest_sample_at: string | null;
+  summary: {
+    running_executions: number | null;
+    completed_executions: number;
+    cpu_utilization_percent: number | null;
+    memory_utilization_percent: number | null;
+    billable_instance_seconds: number;
+  };
+  series: {
+    running_executions: MonitoringPoint[];
+    completed_executions: MonitoringPoint[];
+    cpu_utilization_percent: MonitoringPoint[];
+    memory_utilization_percent: MonitoringPoint[];
+    billable_instance_seconds: MonitoringPoint[];
+  };
+};
+
+export type TrainingExecution = {
+  name: string;
+  outcome: "RUNNING" | "SUCCEEDED" | "FAILED" | "UNKNOWN";
+  create_time: string | null;
+  start_time: string | null;
+  completion_time: string | null;
+  running_count: number;
+  succeeded_count: number;
+  failed_count: number;
+  cancelled_count: number;
+  retried_count: number;
+  log_uri: string | null;
+  failure_reason: string | null;
+};
+
+export type PlatformStatus = {
+  backend_status: "UP";
+  database_status: "UP" | "DOWN";
+  database_latency_ms: number | null;
+};
+
+export type PlatformMonitoring = {
+  window_minutes: number;
+  alignment_seconds: number;
+  data_delay_seconds: number;
+  instance_id: string;
+  instance_name: string;
+  zone: string;
+  queried_at: string;
+  latest_sample_at: string | null;
+  ops_agent_available: boolean;
+  summary: {
+    cpu_utilization_percent: number | null;
+    memory_utilization_percent: number | null;
+    disk_utilization_percent: number | null;
+  };
+  series: {
+    cpu_utilization_percent: MonitoringPoint[];
+    memory_utilization_percent: MonitoringPoint[];
+    disk_utilization_percent: MonitoringPoint[];
   };
 };
 

@@ -6,9 +6,13 @@ import type {
   DatasetVersion,
   InferencePerformance,
   ModelDetails,
+  PlatformMonitoring,
+  PlatformStatus,
   ServingStatus,
   ServingMonitoring,
   TrainingActionResult,
+  TrainingExecution,
+  TrainingMonitoring,
   TrainingReconcileResult,
   TrainingRun,
 } from "./mlopsTypes";
@@ -42,6 +46,9 @@ export const fetchTrainingRuns = () =>
 export const fetchTrainingRun = (runId: number) =>
   adminRequest<TrainingRun>(`/mlops/training/runs/${runId}`);
 
+export const fetchTrainingExecution = (runId: number) =>
+  adminRequest<TrainingExecution>(`/mlops/training/runs/${runId}/execution`);
+
 export const startTraining = (datasetId: number) =>
   adminRequest<TrainingActionResult>("/mlops/training/runs", {
     method: "POST",
@@ -69,6 +76,19 @@ export const fetchInferencePerformance = () =>
 export const fetchServingMonitoring = (windowMinutes: number) =>
   adminRequest<ServingMonitoring>(
     `/mlops/serving/monitoring?window_minutes=${windowMinutes}`,
+  );
+
+export const fetchTrainingMonitoring = (windowMinutes: number) =>
+  adminRequest<TrainingMonitoring>(
+    `/mlops/training/monitoring?window_minutes=${windowMinutes}`,
+  );
+
+export const fetchPlatformStatus = () =>
+  adminRequest<PlatformStatus>("/mlops/platform/status");
+
+export const fetchPlatformMonitoring = (windowMinutes: number) =>
+  adminRequest<PlatformMonitoring>(
+    `/mlops/platform/monitoring?window_minutes=${windowMinutes}`,
   );
 
 export const reconcileTrainingRun = (runId: number) =>

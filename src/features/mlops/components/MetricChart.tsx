@@ -14,6 +14,7 @@ type MetricChartProps = {
   series: ChartSeries[];
   unit: string;
   decimals?: number;
+  showDate?: boolean;
 };
 
 const WIDTH = 640;
@@ -32,9 +33,10 @@ function linePoints(points: MonitoringPoint[], maxValue: number) {
   }).join(" ");
 }
 
-function timeLabel(value: string | undefined) {
+function timeLabel(value: string | undefined, showDate: boolean) {
   if (!value) return "—";
   return new Intl.DateTimeFormat("ko-KR", {
+    ...(showDate ? { month: "numeric", day: "numeric" } : {}),
     hour: "2-digit",
     minute: "2-digit",
   }).format(new Date(value));
@@ -46,6 +48,7 @@ export function MetricChart({
   series,
   unit,
   decimals = 0,
+  showDate = false,
 }: MetricChartProps) {
   const allPoints = series.flatMap((item) => item.points);
   const maxValue = Math.max(1, ...allPoints.map((point) => point.value));
@@ -74,8 +77,8 @@ export function MetricChart({
           <line x1={PADDING_X} x2={WIDTH - PADDING_X} y1={PADDING_TOP} y2={PADDING_TOP} />
           <line x1={PADDING_X} x2={WIDTH - PADDING_X} y1={HEIGHT - PADDING_BOTTOM} y2={HEIGHT - PADDING_BOTTOM} />
           <text x={PADDING_X} y={12}>{maxValue.toFixed(decimals)}{unit}</text>
-          <text x={PADDING_X} y={HEIGHT - 7}>{timeLabel(firstTime)}</text>
-          <text textAnchor="end" x={WIDTH - PADDING_X} y={HEIGHT - 7}>{timeLabel(lastTime)}</text>
+          <text x={PADDING_X} y={HEIGHT - 7}>{timeLabel(firstTime, showDate)}</text>
+          <text textAnchor="end" x={WIDTH - PADDING_X} y={HEIGHT - 7}>{timeLabel(lastTime, showDate)}</text>
           {series.map((item) => (
             <polyline
               fill="none"
