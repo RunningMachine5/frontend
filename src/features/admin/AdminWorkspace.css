@@ -204,7 +204,7 @@
 @media(min-width:1440px) and (min-height:700px){
   .model-section-page{height:100vh;overflow:hidden}
   .model-section-content{overflow:hidden}
-  .model-command-grid{flex:0 0 500px}
+  .model-command-grid{flex:0 0 clamp(420px, 47vh, 490px)}
   .model-workflow-grid{flex:1}
   .labeling-status-strip{flex:0 0 68px}
   .labeling-workspace{flex:1}
