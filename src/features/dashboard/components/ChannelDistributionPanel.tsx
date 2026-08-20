@@ -89,7 +89,7 @@ function SolarArcOrbitChart({
   return (
     <div className="solar-arc-chart-wrap">
       <svg
-        aria-label="채널별 태양계 부채꼴 궤도 노출도"
+        aria-label="채널별 의심거래 노출도"
         className="solar-arc-svg"
         viewBox={`0 0 ${width} ${height}`}
         role="img"
@@ -97,40 +97,35 @@ function SolarArcOrbitChart({
         <defs>
           {/* 좌측 태양/코어 방사형 그라디언트 */}
           <radialGradient id="sun-glow-grad" cx="0%" cy="50%" r="100%">
-            <stop offset="0%" stopColor="#c548cf" stopOpacity="0.95" />
-            <stop offset="50%" stopColor="#7a49dc" stopOpacity="0.45" />
-            <stop offset="100%" stopColor="#121217" stopOpacity="0" />
+            <stop offset="0%" stopColor="#6f8fe6" stopOpacity="0.42" />
+            <stop offset="100%" stopColor="#6f8fe6" stopOpacity="0" />
           </radialGradient>
 
           {/* 3D 행성 구체 그라디언트 4종 */}
           <radialGradient id="planet-sphere-0" cx="30%" cy="30%" r="70%">
-            <stop offset="0%" stopColor="#ff7b82" />
-            <stop offset="45%" stopColor="#ee4047" />
-            <stop offset="100%" stopColor="#8b1117" />
+            <stop offset="0%" stopColor="#7897e7" />
+            <stop offset="100%" stopColor="#5872b8" />
           </radialGradient>
 
           <radialGradient id="planet-sphere-1" cx="30%" cy="30%" r="70%">
-            <stop offset="0%" stopColor="#e280eb" />
-            <stop offset="45%" stopColor="#b640be" />
-            <stop offset="100%" stopColor="#580f5f" />
+            <stop offset="0%" stopColor="#75ae91" />
+            <stop offset="100%" stopColor="#4e8068" />
           </radialGradient>
 
           <radialGradient id="planet-sphere-2" cx="30%" cy="30%" r="70%">
-            <stop offset="0%" stopColor="#ffbf66" />
-            <stop offset="45%" stopColor="#f49121" />
-            <stop offset="100%" stopColor="#8f4400" />
+            <stop offset="0%" stopColor="#d8b56b" />
+            <stop offset="100%" stopColor="#9e8145" />
           </radialGradient>
 
           <radialGradient id="planet-sphere-3" cx="30%" cy="30%" r="70%">
-            <stop offset="0%" stopColor="#ab87f8" />
-            <stop offset="45%" stopColor="#7a49dc" />
-            <stop offset="100%" stopColor="#35137a" />
+            <stop offset="0%" stopColor="#9b96a0" />
+            <stop offset="100%" stopColor="#6a6570" />
           </radialGradient>
         </defs>
 
         {/* 1. 좌측 태양(중심 코어) 아크 */}
         <circle cx={cx} cy={cy} fill="url(#sun-glow-grad)" r="45" />
-        <circle cx={cx} cy={cy} fill="#c548cf" opacity="0.9" r="8" />
+        <circle cx={cx} cy={cy} fill="#6f8fe6" opacity="0.9" r="8" />
         <circle cx={cx} cy={cy} fill="#ffffff" opacity="0.95" r="3.5" />
 
         {/* 2. 부채꼴 점선 공전 궤도선 (4중 아크) */}
@@ -139,7 +134,7 @@ function SolarArcOrbitChart({
             key={`orbit-${i}`}
             d={createArcPath(cx, cy, orbit.r, orbit.startDeg, orbit.endDeg)}
             fill="none"
-            stroke="#ffffff"
+            stroke="#5a565f"
             strokeDasharray="4 4"
             strokeOpacity={orbit.opacity}
             strokeWidth="1.2"

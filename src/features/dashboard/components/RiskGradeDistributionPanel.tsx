@@ -1,7 +1,7 @@
 import type { DashboardOverviewSummary, DistributionItem } from "../dashboardOverviewTypes";
 import { formatCompactMoney, formatNumber } from "../dashboardFormatters";
 
-const riskColors = ["#ee4047", "#f49121", "#7a49dc", "#3ec887"];
+const riskColors = ["#e45b64", "#db934b", "#c2a24f", "#5d9f7e"];
 
 export function RiskGradeDistributionPanel({ items, summary }: { items: DistributionItem[]; summary: DashboardOverviewSummary }) {
   const maxCount = Math.max(...items.map((item) => item.count), 1);

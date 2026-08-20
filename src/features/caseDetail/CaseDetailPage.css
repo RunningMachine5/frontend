@@ -60,15 +60,15 @@
 
 /* 1. 상단 프로파일 헤더 바 (j-profile-header) */
 .j-profile-header {
-  background: #1e1d27;
-  border: 1px solid #343245;
-  border-radius: 12px;
+  background: #1b2028;
+  border: 1px solid #303743;
+  border-radius: 10px;
   padding: 14px 24px;
   display: grid;
   grid-template-columns: 1.35fr 1.15fr 1.25fr 1fr;
   align-items: center;
   gap: 16px;
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+  box-shadow: none;
 }
 
 .j-header-meta {
@@ -180,19 +180,19 @@
 
 /* Card Common */
 .j-card {
-  background: #1c1b24;
-  border: 1px solid #2f2d3e;
-  border-radius: 12px;
+  background: #1b2028;
+  border: 1px solid #303743;
+  border-radius: 10px;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
+  box-shadow: none;
   overflow: hidden;
 }
 
 .j-card-header {
   padding: 13px 18px;
-  background: #1e1d27;
-  border-bottom: 1px solid #2c2a3b;
+  background: #202630;
+  border-bottom: 1px solid #303743;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -332,10 +332,90 @@
   word-break: keep-all;
 }
 
-.j-callout-sub {
+/* Card 1: 유사 사례 분석 & 비슷한 점 박스 */
+.j-similar-box {
+  background: #171620;
+  border: 1px solid #323044;
+  border-radius: 8px;
+  padding: 9px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.j-similar-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px dashed #2b293c;
+  padding-bottom: 6px;
+}
+
+.j-similar-title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.j-similar-icon {
+  padding: 2px 5px;
+  border: 1px solid #4a5262;
+  border-radius: 4px;
+  color: #b8c0cf;
+  font-size: 9px;
+  font-weight: 800;
+}
+
+.j-similar-label {
   font-size: 11px;
-  color: #8c89a0;
+  font-weight: 700;
+  color: #c084fc;
+}
+
+.j-similar-score {
+  font-size: 11px;
+  font-weight: 700;
+  color: #34d399;
+  background: rgba(16, 185, 129, 0.15);
+  padding: 1px 6px;
+  border-radius: 4px;
+}
+
+.j-similar-score.muted {
+  color: #9d9aa8;
+  background: #252433;
+}
+
+.j-similar-content {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.j-similar-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.j-similar-case-id {
+  font-size: 11px;
+  font-weight: 700;
+  color: #c4c1d6;
+}
+
+.j-similar-reason {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.45;
+  color: #e2e0ea;
   word-break: keep-all;
+}
+
+.j-similar-highlight {
+  color: #fbbf24;
+  font-weight: 700;
+  margin-right: 4px;
 }
 
 .j-signals-dual {
@@ -1116,4 +1196,173 @@
   .j-dashboard-grid {
     gap: 14px;
   }
+}
+
+/* 1920 운영 상세: 판정 → 증거 → 대응 → 근거 → 최종 조치 순서로 읽힌다. */
+@media(min-width:1440px){
+  .case-content{
+    max-width:none;
+    padding:16px 22px 26px;
+    gap:10px;
+    background:
+      radial-gradient(circle at 94% 5%,rgb(121 98 140 / 10%),transparent 28%),
+      #100c19;
+  }
+
+  .j-profile-header{
+    grid-template-columns:1.25fr 1fr 1fr .85fr;
+    min-height:66px;
+    padding:10px 18px;
+    border-radius:6px;
+    background:#191522;
+    border-color:#332b40;
+  }
+  .j-status-chip{border-radius:4px;border-left-width:3px}
+
+  .j-dashboard-grid{
+    grid-template-columns:minmax(0,1.12fr) minmax(0,1.12fr) minmax(360px,.88fr);
+    grid-template-areas:
+      "verdict verdict evidence"
+      "guide guide signals"
+      "device action action";
+    gap:10px;
+  }
+  .j-verdict-card{grid-area:verdict}
+  .j-tx-card{grid-area:evidence}
+  .j-guide-card{grid-area:guide}
+  .j-signals-card{grid-area:signals}
+  .j-device-card{grid-area:device}
+  .j-action-card{grid-area:action}
+
+  .j-card{height:100%;box-sizing:border-box;border-radius:7px;background:#191522;border-color:#332b40}
+  .j-card-header{
+    min-height:48px;
+    padding:9px 14px;
+    background:#211c2b;
+    border-color:#332b40;
+  }
+  .j-card-body{padding:12px 14px;gap:10px}
+
+  .j-verdict-card .j-card-body{
+    display:grid;
+    grid-template-columns:.72fr 1.28fr;
+    grid-template-areas:
+      "score callout"
+      "score similar"
+      "signals similar";
+    align-items:stretch;
+  }
+  .j-verdict-card .j-score-hero{grid-area:score;align-items:flex-start}
+  .j-verdict-card .j-callout-box{grid-area:callout;margin:0}
+  .j-verdict-card .j-similar-box{grid-area:similar;margin:0}
+  .j-verdict-card .j-signals-dual{grid-area:signals}
+
+  .j-guide-card{border-left:3px solid #c2ef4e}
+  .j-guide-card .j-card-body{
+    display:grid;
+    grid-template-columns:1.2fr .8fr;
+    align-items:start;
+  }
+  .j-guide-card .j-action-step-list{grid-row:1 / span 2}
+  .j-guide-card .j-checklist-section{margin:0}
+  .j-guide-card .j-btn-detail-toggle{align-self:end}
+
+  .j-score-number,.j-amount-val,.j-meta-value,.j-status-score{font-variant-numeric:tabular-nums}
+}
+
+/* 상세 화면은 판정, 근거, 다음 조치의 의미만 색으로 구분한다. */
+.case-content{background:var(--ops-canvas);color:var(--ops-text)}
+.j-profile-header,.j-card{border-color:var(--ops-line);border-radius:4px;background:var(--ops-surface);box-shadow:none}
+.j-card-header{border-color:var(--ops-line);background:var(--ops-surface-raised)}
+.j-title-wrap h2,.j-meta-value,.j-score-number,.j-signal-val,.j-kv-value,.j-step-content strong,.j-prog-val,.j-drawer-header h2,.j-bubble-text{color:var(--ops-text)}
+.j-section-tag,.j-meta-label{color:var(--ops-text-muted);letter-spacing:.07em}
+.j-meta-sub,.j-status-label,.j-risk-grade-sub,.j-signal-lbl,.j-amount-lbl,.j-kv-label,.j-step-content p,.j-field-label,.j-timeline-head,.j-empty-desc{color:var(--ops-text-muted)}
+.j-meta-highlight{color:#c7d2ef}
+.j-status-pill,.j-card-badge,.j-chip{border-color:var(--ops-line);border-radius:3px;background:var(--ops-surface-sunken);color:var(--ops-text-muted)}
+.j-status-chip{border-radius:3px;background:rgb(194 162 79 / 10%);border-color:rgb(194 162 79 / 36%)}
+.j-status-chip.critical{background:rgb(228 91 100 / 11%);border-color:rgb(228 91 100 / 38%)}
+.j-status-chip.warning{background:rgb(219 147 75 / 11%);border-color:rgb(219 147 75 / 38%)}
+.j-status-chip.normal{background:rgb(93 159 126 / 11%);border-color:rgb(93 159 126 / 38%)}
+.j-status-chip.critical .j-status-val{color:#ef858d}
+.j-status-chip.warning .j-status-val,.j-status-val{color:#e0b96b}
+.j-status-chip.normal .j-status-val{color:#8bc4a7}
+.j-status-dot{background:var(--ops-medium)}
+.j-status-score{color:var(--ops-text)}
+.j-agent-badge{color:#8bc4a7}
+.j-badge-pulse{background:var(--ops-low);box-shadow:none}
+.j-card-badge.primary{border-color:rgb(111 143 230 / 34%);background:var(--ops-focus-soft);color:#b9c9f4}
+.j-card-badge.success{border-color:rgb(93 159 126 / 34%);background:rgb(93 159 126 / 12%);color:#8bc4a7}
+.j-card-divider{background:var(--ops-line)}
+.j-risk-grade-badge{border-color:rgb(219 147 75 / 38%);border-radius:3px;background:rgb(219 147 75 / 12%);color:#e2a469}
+.j-verdict-tag-wrap{border-color:var(--ops-line);border-radius:3px;background:var(--ops-surface-sunken)}
+.j-verdict-tag-label{color:var(--ops-text-muted)}
+.j-verdict-tag-val{color:#c7d2ef}
+.j-callout-box{border-left-color:var(--ops-info);border-radius:2px;background:var(--ops-surface-sunken)}
+.j-callout-text{color:var(--ops-text)}
+.j-similar-box,.j-signal-box,.j-action-step-list li,.j-checklist-section,.j-chat-type-card,.j-type-chip,.j-empty-state{border-color:var(--ops-line);border-radius:3px;background:var(--ops-surface-raised)}
+.j-similar-head{border-color:var(--ops-line)}
+.j-similar-icon{border-color:var(--ops-line-strong);border-radius:2px;color:var(--ops-text-muted)}
+.j-similar-label{color:#b9c9f4}
+.j-similar-score{border-radius:2px;background:rgb(93 159 126 / 13%);color:#8bc4a7}
+.j-similar-score.muted{background:var(--ops-surface-sunken);color:var(--ops-text-muted)}
+.j-similar-case-id{color:var(--ops-text-muted)}
+.j-similar-reason{color:#d8d5da}
+.j-similar-highlight{color:#e2a469}
+.j-signal-box.ml .j-signal-dot{background:var(--ops-info);box-shadow:none}
+.j-signal-box.rule .j-signal-dot{background:var(--ops-medium);box-shadow:none}
+.j-amount-banner{border-color:var(--ops-line);border-radius:3px;background:var(--ops-surface-sunken)}
+.j-amount-val{color:#9fc8b3}
+.j-channel-chip{border-color:rgb(111 143 230 / 35%);border-radius:3px;background:var(--ops-focus-soft);color:#c7d2ef}
+.j-kv-value.danger{color:#ef858d}
+.j-guide-card{border-left:2px solid var(--ops-info)}
+.j-step-num{border-radius:3px;background:#627fce}
+.j-check-item label{color:#d0cdd3}
+.j-check-item.checked label{color:var(--ops-text)}
+.j-check-item input[type="checkbox"]{accent-color:#627fce}
+.j-required-badge{border-radius:2px;background:rgb(219 147 75 / 12%);color:#e2a469}
+.j-btn-detail-toggle{border-color:var(--ops-line-strong);border-radius:3px;background:var(--ops-surface-sunken);color:var(--ops-text-muted)}
+.j-btn-detail-toggle:hover{border-color:var(--ops-focus);background:var(--ops-focus-soft);color:var(--ops-text)}
+.j-guide-table-wrap{border-color:var(--ops-line);border-radius:3px}
+.j-table th,.j-table td{border-color:var(--ops-line)}
+.j-table th{background:var(--ops-surface-sunken);color:var(--ops-text-muted)}
+.j-table td{background:var(--ops-surface);color:var(--ops-text)}
+.j-prog-name{color:var(--ops-text-muted)}
+.j-prog-track{border-radius:2px;background:var(--ops-surface-sunken)}
+.j-prog-bar{border-radius:2px;background:var(--ops-info)}
+.j-evidence-tag{color:var(--ops-text)}
+.j-evidence-desc{color:#e2a469}
+.j-chip.active.danger{border-color:rgb(228 91 100 / 38%);background:rgb(228 91 100 / 11%);color:#ef858d}
+.j-chip.active.danger .j-chip-dot,.j-seg-btn.fraud .j-seg-dot{background:var(--ops-critical)}
+.j-seg-btn.normal .j-seg-dot{background:var(--ops-low)}
+.j-seg-btn.hold .j-seg-dot{background:var(--ops-high)}
+.j-decision-segmented{border-color:var(--ops-line);border-radius:3px;background:var(--ops-surface-sunken)}
+.j-seg-btn{border-radius:2px;color:var(--ops-text-muted)}
+.j-seg-btn.fraud.selected{background:var(--ops-critical)}
+.j-seg-btn.normal.selected{background:var(--ops-low)}
+.j-seg-btn.hold.selected{background:var(--ops-high)}
+.j-input,.j-textarea{border-color:var(--ops-line);border-radius:3px;background:var(--ops-surface-sunken);color:var(--ops-text)}
+.j-input:focus,.j-textarea:focus{border-color:var(--ops-focus);outline:1px solid var(--ops-focus);outline-offset:1px}
+.j-btn-primary{border:1px solid #7d99e6;border-radius:3px;background:#627fce;box-shadow:none;color:#fff}
+.j-btn-primary:hover:not(:disabled){background:#6d89d5;box-shadow:none}
+.j-feedback-msg{border-radius:3px}
+.j-feedback-msg.success{border-color:rgb(93 159 126 / 38%);background:rgb(93 159 126 / 12%);color:#8bc4a7}
+.j-feedback-msg.danger{border-color:rgb(228 91 100 / 38%);background:rgb(228 91 100 / 12%);color:#ef858d}
+.j-btn-chat-trigger{border-color:var(--ops-line-strong);border-radius:3px;background:var(--ops-surface-sunken);color:var(--ops-text)}
+.j-btn-chat-trigger:hover,.j-btn-chat-trigger.active{border-color:var(--ops-focus);background:var(--ops-focus-soft);box-shadow:none}
+.j-drawer-overlay{border-color:var(--ops-line);background:var(--ops-sidebar);box-shadow:-8px 0 24px rgb(0 0 0 / 35%)}
+.j-drawer-header{border-color:var(--ops-line);background:var(--ops-surface)}
+.j-drawer-close,.j-empty-icon{color:var(--ops-text-muted)}
+.j-bubble{border-radius:3px}
+.j-bubble.customer{border-color:var(--ops-line);background:var(--ops-surface-raised)}
+.j-bubble.agent{border-color:rgb(111 143 230 / 32%);background:var(--ops-focus-soft)}
+.j-bubble-sender,.j-type-score{color:#b9c9f4}
+.j-bubble.customer .j-bubble-sender{color:#8fc5d3}
+.j-bubble-time,.j-type-name{color:var(--ops-text-muted)}
+.j-empty-title{color:var(--ops-text)}
+
+@media(min-width:1440px){
+  .case-content{background:var(--ops-canvas)}
+  .j-profile-header,.j-card{border-color:var(--ops-line);background:var(--ops-surface)}
+  .j-card-header{border-color:var(--ops-line);background:var(--ops-surface-raised)}
+  .j-guide-card{border-left-color:var(--ops-info)}
 }
