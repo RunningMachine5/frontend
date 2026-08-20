@@ -48,7 +48,6 @@ export function ModelRunPage() {
   const [details, setDetails] = useState<ModelDetails | null>(null);
   const [productionDetails, setProductionDetails] = useState<ModelDetails | null>(null);
   const [serving, setServing] = useState<ServingStatus | null>(null);
-  const [featureJson, setFeatureJson] = useState("{}");
   const [operationId, setOperationId] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [isBusy, setIsBusy] = useState(false);
@@ -136,13 +135,7 @@ export function ModelRunPage() {
 
   const promote = () => runAction(async () => {
     if (!run) return "";
-    let features: unknown;
-    try {
-      features = JSON.parse(featureJson);
-    } catch {
-      throw new Error("Feature JSON 형식을 확인해 주세요.");
-    }
-    const result = await promoteModel(run.id, features);
+    const result = await promoteModel(run.id);
     setOperationId(result.operation_id ?? "");
     return "후보 예측을 검증하고 운영 트래픽 전환을 요청했습니다.";
   });
@@ -255,12 +248,16 @@ export function ModelRunPage() {
               )}
 
               {["STAGED", "DEPLOYMENT_FAILED"].includes(run.status) && (
-                <form className="run-smoke-form" onSubmit={(event) => { event.preventDefault(); void promote(); }}>
-                  <label><span>검증할 거래의 raw51 Feature JSON</span><textarea autoComplete="off" name="verification-features" onChange={(event) => setFeatureJson(event.target.value)} required spellCheck={false} value={featureJson} /></label>
-                  <button className="admin-button primary" disabled={isBusy || isCandidatePreparing} type="submit">
-                    {isCandidatePreparing ? "0% 후보 준비 중…" : "검증 후 100% 전환"}
+                <div className="automatic-smoke-card">
+                  <div>
+                    <span>{isCandidatePreparing ? "후보 리비전 준비 중" : "자동 검증 준비 완료"}</span>
+                    <strong>{isCandidatePreparing ? "새 모델을 추론 서버에 준비하고 있습니다." : "저장된 최근 거래로 후보 모델을 검증합니다."}</strong>
+                    <p>{isCandidatePreparing ? "준비 상태는 자동으로 확인합니다. 입력할 값은 없습니다." : "거래와 검증 데이터는 서버가 자동으로 선택합니다."}</p>
+                  </div>
+                  <button className="admin-button primary" disabled={isBusy || isCandidatePreparing} onClick={() => void promote()} type="button">
+                    {isCandidatePreparing ? "0% 후보 준비 중…" : "자동 검증 후 100% 전환"}
                   </button>
-                </form>
+                </div>
               )}
 
               {run.status === "PROMOTING" && (
@@ -273,7 +270,16 @@ export function ModelRunPage() {
               )}
 
               {["REQUESTED", "RUNNING"].includes(run.status) && (
-                <button className="admin-button" disabled={isBusy} onClick={() => void reconcile()} type="button">Cloud Run 상태 확인</button>
+                <button
+                  className="admin-button"
+                  disabled={isBusy || !run.cloud_run_execution_name}
+                  onClick={() => void reconcile()}
+                  type="button"
+                >
+                  {run.cloud_run_execution_name
+                    ? "Cloud Run 상태 확인"
+                    : "Cloud Run 실행 연결 대기 중"}
+                </button>
               )}
             </aside>
           </section>
