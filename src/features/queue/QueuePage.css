@@ -63,7 +63,7 @@
   .queue-state{min-height:0;flex:1}
 }
 
-/* 1920×1080 F11 전체화면(높이 1000px 이상): 좌우 13행씩 총 26건 표시 */
+/* 1920×1080 F11 전체화면에서는 좌우 7행씩 총 14건을 한눈에 표시한다. */
 @media(min-width:1600px) and (min-height:1000px){
   .queue-header p,.queue-panel-head p{font-size:12px}
   .queue-filter label,.queue-summary span,.queue-panel-head>span{font-size:12px}
@@ -142,7 +142,7 @@
   .queue-panel{border-radius:7px;background:#191522;border-color:#332b40}
   .queue-panel-head{padding-bottom:10px;border-bottom:1px solid #332b40}
   .queue-dual-table-wrap{margin-top:8px;overflow:auto}
-  .queue-dual-table-wrap{display:block}
+  .queue-dual-table-wrap{display:grid}
   .queue-table-column table{font-variant-numeric:tabular-nums}
   .queue-table-column th{height:34px;padding:7px 8px;background:#211c2b;border-bottom:1px solid #443850}
   .queue-table-column td{height:38px;padding:6px 8px;border-color:#30283b}
