@@ -80,10 +80,10 @@
 .app-page-heading .app-page-title{color:var(--ops-text);font-size:28px;letter-spacing:-.025em}
 .app-skip-link{border-radius:3px;background:var(--ops-text);color:var(--ops-sidebar)}
 .app-sidebar{background:var(--ops-sidebar);border-color:var(--ops-line)}
-.app-brand{justify-content:center;margin-bottom:38px;color:var(--ops-text)}
+.app-brand{justify-content:flex-start;margin-bottom:38px;color:var(--ops-text)}
 .app-brand-mark{border-color:var(--ops-line-strong);border-radius:5px;background:var(--ops-surface-sunken)}
 .app-brand-mark img{filter:none}
-.app-brand-copy{text-align:center}
+.app-brand-copy{text-align:left}
 .app-brand-copy b{font-size:19px;font-weight:700}
 .app-brand-copy small,.app-nav-title{color:var(--ops-text-subtle);letter-spacing:.04em}
 .app-sidebar nav{gap:3px}
