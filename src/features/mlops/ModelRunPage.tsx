@@ -10,6 +10,7 @@ import {
   ACTIVE_RUN_STATUSES,
   COMPARISON_METRICS,
   formatDate,
+  isModelRevisionReady,
   latestRevisionTraffic,
   metric,
   metricDeltaText,
@@ -54,6 +55,8 @@ export function ModelRunPage() {
   const [isBusy, setIsBusy] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const candidateReady = isModelRevisionReady(serving, details?.model_version);
+  const isCandidatePreparing = run?.status === "STAGED" && !candidateReady;
 
   const load = useCallback(async (showLoading = false) => {
     if (showLoading) setIsLoading(true);
@@ -93,12 +96,16 @@ export function ModelRunPage() {
   }, [load]);
 
   useEffect(() => {
-    if (!run || !ACTIVE_RUN_STATUSES.has(run.status)) return;
+    const shouldRefresh = run && (
+      ACTIVE_RUN_STATUSES.has(run.status)
+      || isCandidatePreparing
+    );
+    if (!shouldRefresh) return;
     const timer = window.setInterval(() => {
       if (document.visibilityState === "visible") void load();
     }, RUN_REFRESH_MS);
     return () => window.clearInterval(timer);
-  }, [load, run]);
+  }, [isCandidatePreparing, load, run]);
 
   const runAction = async (action: () => Promise<string>) => {
     setIsBusy(true);
@@ -124,7 +131,7 @@ export function ModelRunPage() {
       : "관리자 검토에서 후보를 거절함";
     await decideModel(run.id, decision, reason);
     return decision === "APPROVE"
-      ? "후보 모델을 승인하고 0% 검증 단계로 이동했습니다."
+      ? "후보 모델을 승인하고 Cloud Run에 0% 리비전 준비를 요청했습니다."
       : "후보 모델을 거절했습니다.";
   });
 
@@ -155,7 +162,7 @@ export function ModelRunPage() {
 
   const trafficPercent = latestRevisionTraffic(serving);
   const isCurrentProduction = run?.id === productionRun?.id;
-  const workflow = run ? workflowForRun(run, trafficPercent) : [];
+  const workflow = run ? workflowForRun(run, trafficPercent, candidateReady) : [];
   const recommendation = recommendationLabel(details?.tags.promotion_recommendation);
 
   return (
@@ -235,8 +242,8 @@ export function ModelRunPage() {
             <aside className="admin-panel run-action-panel">
               <div>
                 <p className="admin-eyebrow">CURRENT ACTION</p>
-                <h2>{STATUS_LABELS[run.status]}</h2>
-                <p className="run-action-guide">{actionGuide(run, isCurrentProduction)}</p>
+                <h2>{isCandidatePreparing ? "0% 후보 준비 중" : STATUS_LABELS[run.status]}</h2>
+                <p className="run-action-guide">{actionGuide(run, isCurrentProduction, candidateReady)}</p>
               </div>
 
               {run.error_message && <div className="run-error-message"><strong>실패 원인</strong><span>{run.error_message}</span></div>}
@@ -244,7 +251,7 @@ export function ModelRunPage() {
               {run.status === "CANDIDATE" && (
                 <div className="run-action-buttons">
                   <button className="admin-button danger-button" disabled={isBusy} onClick={() => void decide("REJECT")} type="button">후보 거절</button>
-                  <button className="admin-button primary" disabled={isBusy} onClick={() => void decide("APPROVE")} type="button">승인 후 0% 검증</button>
+                  <button className="admin-button primary" disabled={isBusy} onClick={() => void decide("APPROVE")} type="button">승인 후 0% 후보 준비</button>
                 </div>
               )}
 
@@ -252,7 +259,9 @@ export function ModelRunPage() {
                 <form className="run-smoke-form" onSubmit={(event) => { event.preventDefault(); void promote(); }}>
                   <label><span>검증 거래 ID</span><input autoComplete="off" min="1" name="verification-transaction-id" onChange={(event) => setTransactionId(event.target.value)} required type="number" value={transactionId} /></label>
                   <label><span>같은 거래의 raw51 Feature JSON</span><textarea autoComplete="off" name="verification-features" onChange={(event) => setFeatureJson(event.target.value)} required spellCheck={false} value={featureJson} /></label>
-                  <button className="admin-button primary" disabled={isBusy} type="submit">검증 후 100% 전환</button>
+                  <button className="admin-button primary" disabled={isBusy || isCandidatePreparing} type="submit">
+                    {isCandidatePreparing ? "0% 후보 준비 중…" : "검증 후 100% 전환"}
+                  </button>
                 </form>
               )}
 
