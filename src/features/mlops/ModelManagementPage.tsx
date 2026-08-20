@@ -15,23 +15,33 @@ import {
 } from "./modelOperations";
 import {
   fetchDatasets,
+  fetchInferencePerformance,
   fetchModelDetails,
+  fetchPlatformStatus,
   fetchServingStatus,
   fetchTrainingRuns,
 } from "./mlopsApi";
+import { fetchTransactionLabelQueue } from "./transactionLabelingApi";
 import type {
   DatasetVersion,
+  InferencePerformance,
   ModelDetails,
+  PlatformStatus,
   ServingStatus,
   TrainingRun,
 } from "./mlopsTypes";
+import type { TransactionLabelQueueSummary } from "./transactionLabelingTypes";
 
 const OVERVIEW_REFRESH_MS = 15_000;
+const numberFormat = new Intl.NumberFormat("ko-KR");
 
 interface ModelOverviewSnapshot {
   datasets: DatasetVersion[];
   runs: TrainingRun[];
   serving: ServingStatus | null;
+  labelSummary: TransactionLabelQueueSummary | null;
+  inference: InferencePerformance | null;
+  platform: PlatformStatus | null;
   updatedAt: Date;
 }
 
@@ -56,11 +66,23 @@ async function fetchOverview(force = false) {
     fetchDatasets(),
     runsRequest,
     fetchServingStatus().catch(() => null),
-  ]).then(([datasets, runs, serving]) => {
+    fetchTransactionLabelQueue({
+      labelStatus: "ALL",
+      prediction: "ALL",
+      transactionId: null,
+      page: 1,
+      pageSize: 1,
+    }).then((response) => response.summary).catch(() => null),
+    fetchInferencePerformance().catch(() => null),
+    fetchPlatformStatus().catch(() => null),
+  ]).then(([datasets, runs, serving, labelSummary, inference, platform]) => {
     overviewCache = {
       datasets,
       runs,
       serving,
+      labelSummary,
+      inference,
+      platform,
       updatedAt: new Date(),
     };
     return overviewCache;
@@ -113,9 +135,9 @@ function ModelOverviewSkeleton() {
           {Array.from({ length: 5 }, (_, index) => <i key={index} />)}
         </aside>
       </section>
-      <section aria-hidden="true" className="model-workflow-grid">
+      <section aria-hidden="true" className="model-summary-grid">
         {Array.from({ length: 3 }, (_, index) => (
-          <article className="model-overview-skeleton-card model-overview-skeleton-workflow" key={index}>
+          <article className="model-overview-skeleton-card model-overview-skeleton-summary" key={index}>
             <i /><i /><i /><i />
           </article>
         ))}
@@ -168,6 +190,9 @@ export function ModelManagementPage() {
   const datasets = overview?.datasets ?? [];
   const runs = overview?.runs ?? [];
   const serving = overview?.serving ?? null;
+  const labelSummary = overview?.labelSummary ?? null;
+  const inference = overview?.inference ?? null;
+  const platform = overview?.platform ?? null;
   const updatedAt = overview?.updatedAt ?? null;
   const productionRun = runs.find((run) => run.status === "PRODUCTION") ?? null;
 
@@ -191,6 +216,28 @@ export function ModelManagementPage() {
   const actionRuns = runs.filter((run) => ACTION_REQUIRED_STATUSES.has(run.status));
   const trafficPercent = latestRevisionTraffic(serving);
   const latestRevision = resourceName(serving?.latest_ready_revision);
+  const hasDisconnectedRun = Boolean(serving && trafficPercent > 0 && !productionRun);
+  const confirmedLabelCount = labelSummary
+    ? labelSummary.normal_count + labelSummary.fraud_count
+    : null;
+  const labelingCompletion = labelSummary && labelSummary.total_count > 0
+    ? Math.round((confirmedLabelCount ?? 0) / labelSummary.total_count * 100)
+    : 0;
+  const latestDatasetLabelCount = latestDataset
+    ? latestDataset.period_normal_count + latestDataset.period_fraud_count
+    : null;
+  const productionTitle = productionDetails?.model_version
+    ? `운영 모델 v${productionDetails.model_version}`
+    : productionRun?.model_key ?? (hasDisconnectedRun ? "운영 Run 미연결" : "운영 모델 없음");
+  let productionDescription = "운영 모델과 Serving 연결 상태를 확인하세요.";
+  if (productionRun) {
+    productionDescription = "현재 거래 트래픽을 받는 모델과 Serving 연결 상태입니다.";
+  } else if (serving) {
+    productionDescription = "Serving은 연결됐지만 운영 트래픽을 받는 Run이 없습니다.";
+  }
+  if (hasDisconnectedRun) {
+    productionDescription = "Cloud Run은 트래픽을 처리 중이지만 Backend 운영 Run 연결 정보가 없습니다.";
+  }
   const isOverviewRefreshing = isRefreshing || isDetailsLoading;
 
   return (
@@ -206,8 +253,8 @@ export function ModelManagementPage() {
           <header>
             <div>
               <p className="admin-eyebrow">LIVE MODEL</p>
-              <span className={`status ${productionRun ? "production" : "failed"}`}>
-                {productionRun ? "PRODUCTION" : "미배포"}
+              <span className={`status ${productionRun ? "production" : hasDisconnectedRun ? "staged" : "failed"}`}>
+                {productionRun ? "PRODUCTION" : hasDisconnectedRun ? "RUN 미연결" : "미배포"}
               </span>
             </div>
             <small
@@ -221,22 +268,20 @@ export function ModelManagementPage() {
           <div className="production-overview">
             <div className="production-overview-copy">
               <div className="production-command-main">
-                <span>{productionRun ? `Run #${productionRun.id}` : "배포 대기"}</span>
-                <h2>{productionDetails?.model_version
-                  ? `운영 모델 v${productionDetails.model_version}`
-                  : productionRun ? productionRun.model_key : "운영 모델 없음"}</h2>
-                <p>현재 거래 트래픽을 받는 모델의 배포 식별 정보입니다.</p>
+                <span>{productionRun ? `Backend Run #${productionRun.id}` : serving ? "Cloud Run Serving" : "배포 대기"}</span>
+                <h2>{productionTitle}</h2>
+                <p>{productionDescription}</p>
               </div>
               <dl className="production-facts">
-                <div><dt>MLflow 모델</dt><dd title={productionDetails?.model_name}>{productionDetails?.model_name ?? productionRun?.model_key ?? "—"}</dd></div>
-                <div><dt>Feature 계약</dt><dd>{productionDetails?.tags.feature_contract ?? "—"}</dd></div>
+                <div><dt>Backend 운영 Run</dt><dd className={hasDisconnectedRun ? "accent" : undefined}>{productionRun ? `#${productionRun.id}` : hasDisconnectedRun ? "미연결" : "—"}</dd></div>
                 <div><dt>결정 임계값</dt><dd>{productionDetails?.params.decision_threshold ?? "—"}</dd></div>
                 <div><dt>Ready 리비전</dt><dd title={latestRevision ?? undefined}>{latestRevision ?? "—"}</dd></div>
+                <div><dt>최근 추론</dt><dd>{inference?.latest_inference_at ? formatClock(inference.latest_inference_at) : inference ? "최근 5분 없음" : "—"}</dd></div>
               </dl>
             </div>
             <div className="production-live-state">
               <strong className={serving?.reconciling ? "accent" : serving ? "positive" : ""}>
-                {serving?.reconciling ? "트래픽 전환 중" : serving ? "정상 운영" : "상태 확인 불가"}
+                {serving?.reconciling ? "트래픽 전환 중" : serving ? "Serving 연결" : "상태 확인 불가"}
               </strong>
               <div
                 aria-label={`Ready 리비전 운영 트래픽 ${serving ? `${trafficPercent}%` : "확인 불가"}`}
@@ -245,7 +290,7 @@ export function ModelManagementPage() {
                 style={{ "--traffic": `${trafficPercent * 3.6}deg` } as CSSProperties}
               >
                 <strong>{serving ? `${trafficPercent}%` : "—"}</strong>
-                <span>운영 트래픽</span>
+                <span>Ready 트래픽</span>
               </div>
             </div>
           </div>
@@ -267,42 +312,54 @@ export function ModelManagementPage() {
         </aside>
         </section>
 
-        <section aria-label="모델 운영 업무" className="model-workflow-grid">
+        <section aria-label="모델 운영 핵심 지표" className="model-summary-grid">
         <Link to="/models/labeling">
-          <small>01 · HUMAN LABELS</small>
-          <h3>거래 라벨링</h3>
-          <p>담당자가 확정한 정상·사기 판정만 다음 학습 데이터에 반영합니다.</p>
-          <ol>
-            <li><span>1</span><strong>미판정 거래 선택</strong></li>
-            <li><span>2</span><strong>정상·사기 확정</strong></li>
-            <li><span>3</span><strong>학습 라벨 반영</strong></li>
-          </ol>
-          <footer><strong>미판정 거래 검토</strong><em>열기 →</em></footer>
+          <header>
+            <div><small>HUMAN LABELS</small><h3>거래 라벨링</h3></div>
+            <em>검토 열기 →</em>
+          </header>
+          <div className="model-summary-primary">
+            <span>미판정 거래</span>
+            <strong>{labelSummary ? numberFormat.format(labelSummary.unlabeled_count) : "—"}<small>건</small></strong>
+            <p>{labelSummary ? `전체 ${numberFormat.format(labelSummary.total_count)}건 중 담당자 확인 대기` : "라벨 집계를 확인하고 있습니다."}</p>
+          </div>
+          <dl>
+            <div><dt>판정 완료율</dt><dd>{labelSummary ? `${labelingCompletion}%` : "—"}</dd></div>
+            <div><dt>정상 확정</dt><dd className="positive">{labelSummary ? numberFormat.format(labelSummary.normal_count) : "—"}</dd></div>
+            <div><dt>사기 확정</dt><dd className="danger">{labelSummary ? numberFormat.format(labelSummary.fraud_count) : "—"}</dd></div>
+          </dl>
         </Link>
         <Link to="/models/training">
-          <small>02 · TRAIN & RELEASE</small>
-          <h3>학습 · 배포</h3>
-          <p title={latestDataset?.version}>{latestDataset?.version ?? "학습 데이터셋을 먼저 준비하세요."}</p>
-          <ol>
-            <li><span>1</span><strong>데이터셋 생성</strong></li>
-            <li><span>2</span><strong>Cloud Run 학습</strong></li>
-            <li><span>3</span><strong>후보 검토·배포</strong></li>
-          </ol>
-          <footer>
-            <strong>{latestRun ? `Run #${latestRun.id} · ${STATUS_LABELS[latestRun.status]}` : "실행 이력 없음"}</strong>
-            <em>열기 →</em>
-          </footer>
+          <header>
+            <div><small>TRAIN & RELEASE</small><h3>학습 · 배포</h3></div>
+            <em>이력 열기 →</em>
+          </header>
+          <div className="model-summary-primary">
+            <span>최근 학습 상태</span>
+            <strong className="text-value">{latestRun ? STATUS_LABELS[latestRun.status] : "실행 이력 없음"}</strong>
+            <p>{latestRun ? `Run #${latestRun.id} · ${formatDate(latestRun.created_at)}` : "새 데이터셋을 만든 뒤 학습을 실행하세요."}</p>
+          </div>
+          <dl>
+            <div><dt>조치 필요 Run</dt><dd className={actionRuns.length > 0 ? "accent" : undefined}>{numberFormat.format(actionRuns.length)}</dd></div>
+            <div><dt>최신 데이터셋 행</dt><dd>{latestDataset ? numberFormat.format(latestDataset.row_count) : "—"}</dd></div>
+            <div><dt>반영 라벨</dt><dd>{latestDatasetLabelCount === null ? "—" : numberFormat.format(latestDatasetLabelCount)}</dd></div>
+          </dl>
         </Link>
         <Link to="/models/monitoring">
-          <small>03 · RUNTIME HEALTH</small>
-          <h3>서버 모니터링</h3>
-          <p>추론 서비스, 학습 Job, VM·DB 상태와 시계열을 분리해 확인합니다.</p>
-          <ol>
-            <li><span>1</span><strong>추론 서비스</strong></li>
-            <li><span>2</span><strong>학습 Job</strong></li>
-            <li><span>3</span><strong>VM · DB</strong></li>
-          </ol>
-          <footer><strong>{serving ? "Serving 연결됨" : "상태 확인 필요"}</strong><em>열기 →</em></footer>
+          <header>
+            <div><small>RUNTIME HEALTH</small><h3>서버 상태</h3></div>
+            <em>모니터링 열기 →</em>
+          </header>
+          <div className="model-summary-primary">
+            <span>최근 {inference?.window_minutes ?? 5}분 추론</span>
+            <strong>{inference ? numberFormat.format(inference.inference_count) : "—"}<small>건</small></strong>
+            <p>{inference?.latest_inference_at ? `마지막 추론 ${formatClock(inference.latest_inference_at)}` : inference ? "최근 추론 요청이 없습니다." : "추론 성능을 확인하고 있습니다."}</p>
+          </div>
+          <dl>
+            <div><dt>추론 P95</dt><dd>{inference?.p95_latency_ms === null || inference?.p95_latency_ms === undefined ? "—" : `${numberFormat.format(inference.p95_latency_ms)}ms`}</dd></div>
+            <div><dt>PostgreSQL</dt><dd className={platform ? platform.database_status === "UP" ? "positive" : "danger" : undefined}>{platform?.database_status ?? "—"}</dd></div>
+            <div><dt>Cloud Run</dt><dd className={serving?.reconciling ? "accent" : serving ? "positive" : "danger"}>{serving?.reconciling ? "전환 중" : serving ? "연결" : "확인 필요"}</dd></div>
+          </dl>
         </Link>
         </section>
       </>}
