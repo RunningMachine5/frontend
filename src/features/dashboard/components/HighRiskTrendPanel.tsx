@@ -512,7 +512,7 @@ export function HighRiskTrendPanel({
       <div className="panel-head">
         <div>
           <h2>실시간 위험 거래 반영 현황</h2>
-          <p className="panel-caption">실시간 인입 위험 거래의 금액(원)과 위험 점수(Score) 추이 · 점 클릭 시 상세 분석 이동</p>
+          <p className="panel-caption">위험 거래 금액·점수 추이</p>
         </div>
         <div className="trend-panel-meta realtime-trend-meta">
           {/* 초 단위 / 분 단위 선택 토글 */}
