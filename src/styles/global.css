@@ -16,10 +16,10 @@ optgroup {
   font-family: inherit;
 }
 
-/* 코드·수치처럼 고정폭이 필요한 자리만 예외로 둔다. */
+/* 코드 및 텍스트 요소도 기본 브랜드 폰트를 상속한다. */
 code,
 kbd,
 pre,
 samp {
-  font-family: Consolas, "SF Mono", Menlo, monospace;
+  font-family: inherit;
 }
