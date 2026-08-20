@@ -13,7 +13,7 @@ import type {
   TransactionPredictionFilter,
 } from "./transactionLabelingTypes";
 
-const PAGE_SIZE = 30;
+const PAGE_SIZE = 8;
 const numberFormat = new Intl.NumberFormat("ko-KR");
 const dateTimeFormat = new Intl.DateTimeFormat("ko-KR", {
   month: "2-digit",
@@ -68,6 +68,7 @@ export function TransactionLabelingPage() {
   const [searchText, setSearchText] = useState("");
   const [transactionId, setTransactionId] = useState<number | null>(null);
   const [page, setPage] = useState(1);
+  const [pageInput, setPageInput] = useState("1");
   const [data, setData] = useState<TransactionLabelQueueResponse | null>(null);
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -109,6 +110,21 @@ export function TransactionLabelingPage() {
     [data?.items, selectedId],
   );
   const totalPages = Math.max(1, Math.ceil((data?.total_count ?? 0) / PAGE_SIZE));
+
+  useEffect(() => {
+    setPageInput(String(page));
+  }, [page]);
+
+  const moveToPage = (value: string) => {
+    const requestedPage = Number(value);
+    if (!Number.isInteger(requestedPage)) {
+      setPageInput(String(page));
+      return;
+    }
+    const nextPage = Math.min(totalPages, Math.max(1, requestedPage));
+    setPageInput(String(nextPage));
+    setPage(nextPage);
+  };
 
   const nextTransactionId = () => {
     if (!selected || !data || data.items.length < 2) {
@@ -260,7 +276,7 @@ export function TransactionLabelingPage() {
           <div className="labeling-queue-list">
             {isLoading && !data ? (
               <div aria-label="거래 목록을 불러오는 중" className="labeling-list-skeleton">
-                <i /><i /><i /><i />
+                {Array.from({ length: PAGE_SIZE }, (_, index) => <i key={index} />)}
               </div>
             ) : data?.items.length ? data.items.map((item) => (
               <button
@@ -294,7 +310,21 @@ export function TransactionLabelingPage() {
 
           <footer className="labeling-pagination">
             <button disabled={page <= 1 || isLoading} onClick={() => setPage(page - 1)} type="button">이전</button>
-            <span>{page} / {totalPages}</span>
+            <form onSubmit={(event) => { event.preventDefault(); moveToPage(pageInput); }}>
+              <input
+                aria-label="이동할 페이지"
+                disabled={isLoading}
+                inputMode="numeric"
+                max={totalPages}
+                min="1"
+                onBlur={() => moveToPage(pageInput)}
+                onChange={(event) => setPageInput(event.target.value)}
+                type="number"
+                value={pageInput}
+              />
+              <span>/ {totalPages}</span>
+              <button disabled={isLoading} type="submit">이동</button>
+            </form>
             <button disabled={page >= totalPages || isLoading} onClick={() => setPage(page + 1)} type="button">다음</button>
           </footer>
         </aside>
