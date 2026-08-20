@@ -16,6 +16,7 @@ import type {
     ChatMessage,
     ChatSessionDetail,
     ChatViewStatus,
+    FraudTypeCode,
 } from "./chatbotTypes";
 
 // 인증 성공 화면을 보여주는 시간. 디자인 원본의 전환 연출 길이다.
@@ -37,6 +38,9 @@ export function useChatSession(chatSessionId: string) {
     const [status, setStatus] = useState<ChatViewStatus>("URL_SENT");
     const [isOlder, setIsOlder] = useState(false);
     const [bubbles, setBubbles] = useState<ChatBubble[]>([]);
+    // 헤더 알림 버튼과 알림 모달이 쓰는 의심 사기 유형.
+    // 백엔드가 fraud_type 을 내려주기 전까지는 계속 null 이라 알림 버튼이 꺼져 있다.
+    const [fraudType, setFraudType] = useState<FraudTypeCode | null>(null);
 
     const [verifyBusy, setVerifyBusy] = useState(false);
     const [verifyError, setVerifyError] = useState<string | null>(null);
@@ -50,6 +54,7 @@ export function useChatSession(chatSessionId: string) {
     const applyDetail = useCallback((detail: ChatSessionDetail) => {
         setStatus(detail.status);
         setIsOlder(detail.is_older);
+        setFraudType(detail.fraud_type ?? null);
         setBubbles(toBubbles(detail.messages));
     }, []);
 
@@ -131,6 +136,10 @@ export function useChatSession(chatSessionId: string) {
                     })),
                 ]);
                 setStatus(result.status);
+                // 턴마다 유형이 좁혀질 수 있다. 아직 못 정한 턴은 값을 지우지 않는다.
+                if (result.fraud_type) {
+                    setFraudType(result.fraud_type);
+                }
             } catch (error) {
                 await handleTurnError(error);
                 setStatus((current) =>
@@ -176,6 +185,9 @@ export function useChatSession(chatSessionId: string) {
                     })),
                 ]);
                 setStatus(result.status);
+                if (result.fraud_type) {
+                    setFraudType(result.fraud_type);
+                }
             } catch (error) {
                 // 보낸 말풍선은 지우지 않는다. 백엔드가 이미 저장했을 수 있고,
                 // 지우면 고객이 같은 말을 두 번 하게 된다.
@@ -191,6 +203,7 @@ export function useChatSession(chatSessionId: string) {
         phase,
         status,
         isOlder,
+        fraudType,
         bubbles,
         verifyBusy,
         verifyError,

@@ -18,6 +18,14 @@ export type ChatViewStatus = ChatSessionStatus | "SUBMITTING";
 // 최초 알림 뒤 고객이 선택할 수 있는 버튼 3종 (PRD 2.3).
 export type ChatButtonAction = "START_CHAT" | "REQUEST_HANDOFF" | "END_CHAT";
 
+// 백엔드 app/domain/fraud_type_codes.py 의 FINAL_FRAUD_TYPE_CODES 4종.
+// 헤더 알림 버튼과 사기 유형 알림 모달이 이 코드로 문구·아이콘을 고른다.
+export type FraudTypeCode =
+    | "VOICE_PHISHING"
+    | "MESSENGER_PHISHING"
+    | "ACCOUNT_TAKEOVER"
+    | "FRAUD_USED_ACCOUNT";
+
 export type ChatMessageSender = "AI" | "HUMAN" | "SYSTEM";
 
 export type ChatMessage = {
@@ -35,6 +43,9 @@ export type ChatSessionDetail = {
     // 참이면 고령자 대상이다. 챗봇 화면의 글씨·여백·버튼을 키우는 데 쓴다(chatbotSizes.ts).
     is_older: boolean;
     question_step: number;
+    // 이 상담에서 의심되는 사기 유형. 아직 백엔드 계약에 없는 선택 필드다.
+    // 내려오기 시작하면 헤더 알림 버튼이 점등되고, 없으면 알림 버튼은 꺼진 채로 있는다.
+    fraud_type?: FraudTypeCode | null;
     messages: ChatMessage[];
 };
 
@@ -44,6 +55,8 @@ export type ChatTurnResult = {
     chat_session_id: string;
     status: ChatSessionStatus;
     question_step: number;
+    // 턴을 돌면서 유형이 좁혀질 수 있어 상세 조회와 같은 선택 필드를 둔다.
+    fraud_type?: FraudTypeCode | null;
     messages: string[];
 };
 

@@ -110,10 +110,15 @@ CHAT_BASE_URL=http://localhost:5173
 | `_ds/tokens/{colors,fonts,effects,spacing}.css` | `src/styles/tokens/` — 값 수정 없이 복사 |
 | `assets/fonts/KBFGText-{Light,Medium}.otf` | `public/fonts/` — `@font-face` url만 `/fonts/`로 수정 |
 | `uploads/financial-chatbot-hamster-70.png` | `src/assets/chatbot/` — 디자인이 쓰는 캐릭터(햄주임) |
-| `@keyframes typingDot` / `shieldPop` | `src/styles/chatbot.css` |
+| `uploads/suspicious-transaction-{cat,dog,fox,rabbit}-01-150.png` | `src/assets/chatbot/` — 사기 유형 알림 모달의 유형별 아이콘 |
+| `@keyframes typingDot` / `shieldPop` / `alertPulse` / `fadeIn` | `src/styles/chatbot.css` |
 
-번들의 다른 캐릭터 5종(fox·bear·cat·dog·rabbit)은 `Chat.dc.html`이 참조하지 않으므로
-복사하지 않는다.
+번들의 나머지 캐릭터(bear 등)는 `Chat.dc.html`이 참조하지 않으므로 복사하지 않는다.
+
+강조색은 디자인 개편으로 그린(`--color-primary-*`)에서 노랑 `#FFCC46`으로 바뀌었다.
+토큰에 없는 값이고 `src/styles/tokens/`는 원본이라 고치지 않으므로
+[chatbotColors.ts](../src/features/chatbot/chatbotColors.ts) 한 곳에 두고 참조한다.
+사용자 말풍선·주요 버튼·전송 버튼·본인인증 확인 버튼이 이 색을 쓴다.
 
 화면 골격도 원본 그대로다 — 390×844 카드, `border-radius:32px`,
 `box-shadow:0 24px 64px rgba(40,47,50,.18)`, 헤더 / 스크롤 영역 / 입력줄 3단 세로 배치.
@@ -143,6 +148,21 @@ PRD 2.3은 「챗봇 상담 / 상담사 연결 / 종료」로 부른다. 라벨�
 어느 쪽이든 프론트 상수가 되므로 **PRD 표기를 쓴다.** 문구 권한이 PRD에 있고,
 `END_CHAT` 안내(B.2)가 "상담을 종료합니다"라 「대화 종료」와 어긋나기 때문이다.
 디자인 쪽 라벨을 살리려면 `messages.md`에 먼저 추가하는 것이 문서 규칙이다.
+
+### 3.4 사기 유형 알림 — 헤더 버튼과 모달
+
+헤더 우측의 더보기(점 3개) 자리를 원형 알림 버튼으로 바꿨다. 의심 사기 유형이 잡힌
+세션에서만 빨간 점이 `alertPulse`로 점등되고, 누르면 유형별 아이콘·문구를 담은 모달이
+카드 위에 뜬다. 유형이 없으면 버튼은 회색으로 꺼진 채 눌리지 않는다.
+
+유형은 백엔드가 정한다. `ChatSessionDetail`·`ChatTurnResult`에 선택 필드 `fraud_type`
+(코드 4종은 `app/domain/fraud_type_codes.py`의 `FINAL_FRAUD_TYPE_CODES`)을 두고,
+내려오면 점등한다. **`app/dto/chatbot.py`가 아직 이 필드를 내보내지 않으므로 현재는
+항상 꺼진 상태다.** 디자인 원본이 `START_CHAT` 1.4초 뒤 `VOICE_PHISHING`을 심는 것은
+시연용 목이라 옮기지 않았다 — 고객에게 보이는 화면에 근거 없는 유형을 띄우게 된다.
+
+모달의 유형별 문구(「현재 보이스피싱이 의심되는 상황이에요」)와 공통 본문은 말풍선이 아니라
+화면 고정 문구라 3.3의 예외에 해당한다. 버튼 라벨과 같은 이유로 프론트 상수로 둔다.
 
 ---
 
@@ -202,17 +222,20 @@ src/
 ├─ App.tsx                        (신규) /chat/:chatSessionId → ChatbotPage, / → DashboardPage
 ├─ styles/
 │  ├─ tokens/{colors,fonts,effects,spacing}.css   (복사)
-│  └─ chatbot.css                 (신규) typingDot·shieldPop 키프레임
-├─ assets/chatbot/financial-chatbot-hamster-70.png (복사)
+│  └─ chatbot.css                 (신규) typingDot·shieldPop·alertPulse·fadeIn 키프레임
+├─ assets/chatbot/                (복사) 햄주임 + 사기 유형 아이콘 4종
 └─ features/chatbot/
    ├─ chatbotTypes.ts             app/dto/chatbot.py 대응 타입
    ├─ chatbotApi.ts               verify / get / actions / messages + ApiResponse 언랩
+   ├─ chatbotSizes.ts             is_older 세션의 크기 표
+   ├─ chatbotColors.ts            토큰에 없는 강조색(#FFCC46)
    ├─ useChatSession.ts           상태·이력·턴 실행·오류를 쥔 훅
    ├─ ChatbotPage.tsx             라우트 진입점, 게이트/전환/채팅 전환
    └─ components/
       ├─ IdentityGate.tsx         출생연도 4자리 입력
       ├─ VerifiedTransition.tsx   방패 SVG 1.4초 전환 화면
-      ├─ ChatHeader.tsx           캐릭터·이름·상태 점
+      ├─ ChatHeader.tsx           캐릭터·이름·상태 점 + 사기 유형 알림 버튼
+      ├─ FraudAlertModal.tsx      사기 유형 알림 모달
       ├─ MessageList.tsx          말풍선 목록 + 타이핑 인디케이터 + 버튼 카드
       └─ ChatComposer.tsx         입력창 + 전송 버튼
 ```

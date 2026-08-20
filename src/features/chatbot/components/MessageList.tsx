@@ -4,6 +4,7 @@
 import type { RefObject } from "react";
 
 import hamsterImage from "../../../assets/chatbot/financial-chatbot-hamster-70.png";
+import { ACCENT } from "../chatbotColors";
 import type { ChatSizes } from "../chatbotSizes";
 import type { ChatBubble, ChatButtonAction } from "../chatbotTypes";
 
@@ -166,7 +167,7 @@ const botBubbleStyle = {
 const userBubbleStyle = {
     alignSelf: "flex-end",
     maxWidth: "82%",
-    background: "var(--color-primary-200)",
+    background: ACCENT,
     color: "var(--color-text-strong)",
     borderRadius: "16px 4px 16px 16px",
     lineHeight: 1.5,
@@ -209,7 +210,7 @@ const baseActionStyle = {
 const primaryActionStyle = {
     ...baseActionStyle,
     border: "none",
-    background: "var(--color-primary-200)",
+    background: ACCENT,
     color: "var(--color-text-strong)",
     fontWeight: 600,
 };
