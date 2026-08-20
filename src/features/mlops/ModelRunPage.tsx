@@ -48,7 +48,6 @@ export function ModelRunPage() {
   const [details, setDetails] = useState<ModelDetails | null>(null);
   const [productionDetails, setProductionDetails] = useState<ModelDetails | null>(null);
   const [serving, setServing] = useState<ServingStatus | null>(null);
-  const [transactionId, setTransactionId] = useState("");
   const [featureJson, setFeatureJson] = useState("{}");
   const [operationId, setOperationId] = useState("");
   const [isLoading, setIsLoading] = useState(true);
@@ -143,7 +142,7 @@ export function ModelRunPage() {
     } catch {
       throw new Error("Feature JSON 형식을 확인해 주세요.");
     }
-    const result = await promoteModel(run.id, Number(transactionId), features);
+    const result = await promoteModel(run.id, features);
     setOperationId(result.operation_id ?? "");
     return "후보 예측을 검증하고 운영 트래픽 전환을 요청했습니다.";
   });
@@ -257,8 +256,7 @@ export function ModelRunPage() {
 
               {["STAGED", "DEPLOYMENT_FAILED"].includes(run.status) && (
                 <form className="run-smoke-form" onSubmit={(event) => { event.preventDefault(); void promote(); }}>
-                  <label><span>검증 거래 ID</span><input autoComplete="off" min="1" name="verification-transaction-id" onChange={(event) => setTransactionId(event.target.value)} required type="number" value={transactionId} /></label>
-                  <label><span>같은 거래의 raw51 Feature JSON</span><textarea autoComplete="off" name="verification-features" onChange={(event) => setFeatureJson(event.target.value)} required spellCheck={false} value={featureJson} /></label>
+                  <label><span>검증할 거래의 raw51 Feature JSON</span><textarea autoComplete="off" name="verification-features" onChange={(event) => setFeatureJson(event.target.value)} required spellCheck={false} value={featureJson} /></label>
                   <button className="admin-button primary" disabled={isBusy || isCandidatePreparing} type="submit">
                     {isCandidatePreparing ? "0% 후보 준비 중…" : "검증 후 100% 전환"}
                   </button>

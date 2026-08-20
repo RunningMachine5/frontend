@@ -1,4 +1,4 @@
-// 추론, 학습 Job, 운영 VM을 한곳에서 보되 선택한 영역의 지표만 조회한다.
+// 추론, 학습 작업, 운영 VM을 한곳에서 보되 선택한 영역의 지표만 조회한다.
 
 import { useCallback, useEffect, useState, type ReactNode } from "react";
 
@@ -29,6 +29,12 @@ type MonitoringTarget = "serving" | "training" | "platform";
 
 const MONITORING_REFRESH_MS = 60_000;
 const WINDOWS = [15, 60, 360, 1440] as const;
+const EXECUTION_OUTCOME_LABELS: Record<TrainingExecution["outcome"], string> = {
+  RUNNING: "실행 중",
+  SUCCEEDED: "완료",
+  FAILED: "실패",
+  UNKNOWN: "확인 불가",
+};
 
 function numberText(value: number | null | undefined, decimals = 0) {
   return value === null || value === undefined ? "—" : value.toFixed(decimals);
@@ -73,7 +79,7 @@ function MonitoringSkeleton({ target }: { target: MonitoringTarget }) {
   const label = target === "serving"
     ? "추론 서비스"
     : target === "training"
-      ? "학습 Job"
+      ? "학습 작업"
       : "VM · DB";
 
   return (
@@ -191,9 +197,9 @@ export function ModelMonitoringPage() {
       ? trainingMonitoring?.data_delay_seconds
       : platformMonitoring?.data_delay_seconds;
   const activeResource = target === "serving"
-    ? latestRevision ?? "Ready 리비전 없음"
+    ? latestRevision ?? "준비된 버전 없음"
     : target === "training"
-      ? trainingMonitoring?.job_name ?? "Training Job"
+      ? trainingMonitoring?.job_name ?? "학습 작업"
       : platformMonitoring?.instance_name ?? "운영 VM";
 
   return (
@@ -220,19 +226,19 @@ export function ModelMonitoringPage() {
           <small>01 · ONLINE INFERENCE</small>
           <strong>추론 서비스</strong>
           <span>{serving?.reconciling ? "트래픽 전환 중" : serving ? "정상 운영" : "확인 불가"}</span>
-          <em>{serving ? `${trafficPercent}% 트래픽` : "Cloud Run Serving"}</em>
+          <em>{serving ? `${trafficPercent}% 트래픽` : "Cloud Run 추론"}</em>
         </button>
         <button className={target === "training" ? "active" : undefined} onClick={() => setTarget("training")} type="button">
           <small>02 · BATCH TRAINING</small>
-          <strong>학습 Job</strong>
+          <strong>학습 작업</strong>
           <span>{latestRun ? STATUS_LABELS[latestRun.status] : "실행 이력 없음"}</span>
-          <em>{latestRun ? `최근 Run #${latestRun.id}` : "Cloud Run Job"}</em>
+          <em>{latestRun ? `최근 학습 #${latestRun.id}` : "Cloud Run 작업"}</em>
         </button>
         <button className={target === "platform" ? "active" : undefined} onClick={() => setTarget("platform")} type="button">
           <small>03 · APPLICATION CORE</small>
           <strong>VM · DB</strong>
           <span>{platformStatus?.database_status === "UP" ? "정상 운영" : "확인 필요"}</span>
-          <em>Backend · PostgreSQL</em>
+          <em>백엔드 · PostgreSQL</em>
         </button>
       </section>
 
@@ -259,11 +265,11 @@ export function ModelMonitoringPage() {
       {!isInitialLoading && target === "serving" && (
         <>
           <section aria-label="추론 서비스 핵심 지표" className="monitoring-summary-grid">
-            <SummaryCard description={`최근 ${windowLabel(windowMinutes)} 합계`} label="Cloud 요청" unit="건" value={servingSummary?.request_count.toLocaleString("ko-KR") ?? "—"} />
+            <SummaryCard description={`최근 ${windowLabel(windowMinutes)} 합계`} label="요청 수" unit="건" value={servingSummary?.request_count.toLocaleString("ko-KR") ?? "—"} />
             <SummaryCard description="느린 상위 5%의 경계" label="응답 P95" unit="ms" value={numberText(servingSummary?.p95_latency_ms)} />
             <SummaryCard description="가장 느린 상위 1%의 경계" label="응답 P99" unit="ms" value={numberText(servingSummary?.p99_latency_ms)} />
             <SummaryCard description="인스턴스 대기 구간" label="대기 P95" unit="ms" value={numberText(servingSummary?.pending_p95_latency_ms)} />
-            <SummaryCard description="Cloud Run 5xx 응답" label="오류율" tone={(servingSummary?.error_rate_percent ?? 0) > 0 ? "negative" : "positive"} unit="%" value={numberText(servingSummary?.error_rate_percent, 2)} />
+            <SummaryCard description="서버 오류 응답" label="오류율" tone={(servingSummary?.error_rate_percent ?? 0) > 0 ? "negative" : "positive"} unit="%" value={numberText(servingSummary?.error_rate_percent, 2)} />
             <SummaryCard description={`활성 ${numberText(servingSummary?.active_instances)} · 유휴 ${numberText(servingSummary?.idle_instances)}`} label="인스턴스" unit="개" value={numberText(instanceCount)} />
           </section>
           <section className="monitoring-chart-grid">
@@ -310,28 +316,28 @@ export function ModelMonitoringPage() {
 
       {!isInitialLoading && target === "training" && (
         <>
-          <section aria-label="학습 Job 핵심 지표" className="monitoring-summary-grid">
-            <SummaryCard description={latestRun ? STATUS_LABELS[latestRun.status] : "실행 이력 없음"} label="최근 학습" value={latestRun ? `Run #${latestRun.id}` : "—"} />
-            <SummaryCard description="현재 실행 중인 Execution" label="실행 중" tone={(trainingSummary?.running_executions ?? 0) > 0 ? "accent" : undefined} unit="개" value={numberText(trainingSummary?.running_executions)} />
+          <section aria-label="학습 작업 핵심 지표" className="monitoring-summary-grid">
+            <SummaryCard description={latestRun ? STATUS_LABELS[latestRun.status] : "실행 이력 없음"} label="최근 학습" value={latestRun ? `학습 #${latestRun.id}` : "—"} />
+            <SummaryCard description="현재 실행 중인 학습" label="실행 중" tone={(trainingSummary?.running_executions ?? 0) > 0 ? "accent" : undefined} unit="개" value={numberText(trainingSummary?.running_executions)} />
             <SummaryCard description={`최근 ${windowLabel(windowMinutes)} 합계`} label="완료 실행" unit="개" value={trainingSummary?.completed_executions.toLocaleString("ko-KR") ?? "—"} />
             <SummaryCard description="청구 대상 인스턴스 시간" label="사용 시간" unit="분" value={trainingSummary ? Math.round(trainingSummary.billable_instance_seconds / 60) : "—"} />
-            <SummaryCard description="Job 컨테이너 중앙값" label="CPU" unit="%" value={numberText(trainingSummary?.cpu_utilization_percent, 1)} />
-            <SummaryCard description="Job 컨테이너 중앙값" label="메모리" unit="%" value={numberText(trainingSummary?.memory_utilization_percent, 1)} />
+            <SummaryCard description="학습 컨테이너 중앙값" label="CPU" unit="%" value={numberText(trainingSummary?.cpu_utilization_percent, 1)} />
+            <SummaryCard description="학습 컨테이너 중앙값" label="메모리" unit="%" value={numberText(trainingSummary?.memory_utilization_percent, 1)} />
           </section>
           <section className="monitoring-chart-grid">
             <MetricChart
-              description="실행 중인 Job과 구간별 완료 수"
+              description="실행 중인 학습과 구간별 완료 수"
               series={[
                 { label: "실행 중", color: "#f1b54a", points: trainingMonitoring?.series.running_executions ?? [] },
                 { label: "완료", color: "#45d49a", points: trainingMonitoring?.series.completed_executions ?? [] },
               ]}
               showDate={showDate}
-              title="Execution 활동"
+              title="학습 실행 현황"
               unit="개"
             />
             <MetricChart
               decimals={1}
-              description="Training Job 컨테이너 자원 사용률"
+              description="학습 작업 컨테이너의 자원 사용률"
               series={[
                 { label: "CPU", color: "#6ca9ff", points: trainingMonitoring?.series.cpu_utilization_percent ?? [] },
                 { label: "메모리", color: "#6f8fe6", points: trainingMonitoring?.series.memory_utilization_percent ?? [] },
@@ -345,24 +351,23 @@ export function ModelMonitoringPage() {
               description="구간별 청구 대상 인스턴스 시간"
               series={[{ label: "사용 시간", color: "#9b7cff", points: trainingMonitoring?.series.billable_instance_seconds ?? [] }]}
               showDate={showDate}
-              title="Billable time"
+              title="청구 대상 사용 시간"
               unit="초"
             />
             <article className="monitoring-detail-panel">
-              <header><div><h2>최근 Execution</h2><p>가장 최근 학습 Run의 실제 실행 결과</p></div><em className={`status ${(execution?.outcome ?? "unknown").toLowerCase()}`}>{execution?.outcome ?? "정보 없음"}</em></header>
+              <header><div><h2>최근 학습 실행</h2><p>가장 최근 학습의 실제 실행 결과</p></div><em className={`status ${(execution?.outcome ?? "unknown").toLowerCase()}`}>{execution ? EXECUTION_OUTCOME_LABELS[execution.outcome] : "정보 없음"}</em></header>
               {execution ? (
                 <>
                   <strong>{resourceName(execution.name)}</strong>
                   <dl>
                     <div><dt>실행 시간</dt><dd>{durationText(execution.start_time, execution.completion_time)}</dd></div>
-                    <div><dt>성공 Task</dt><dd>{execution.succeeded_count}</dd></div>
-                    <div><dt>실패 Task</dt><dd>{execution.failed_count}</dd></div>
+                    <div><dt>완료 작업</dt><dd>{execution.succeeded_count}</dd></div>
+                    <div><dt>실패 작업</dt><dd>{execution.failed_count}</dd></div>
                     <div><dt>재시도</dt><dd>{execution.retried_count}</dd></div>
                   </dl>
                   {execution.failure_reason && <p className="negative">{execution.failure_reason}</p>}
-                  {execution.log_uri && <a href={execution.log_uri} rel="noreferrer" target="_blank">Cloud Logging 열기</a>}
                 </>
-              ) : <div className="monitoring-detail-empty">최근 Run에 연결된 실행 정보가 없습니다.</div>}
+              ) : <div className="monitoring-detail-empty">최근 학습에 연결된 실행 정보가 없습니다.</div>}
             </article>
           </section>
         </>
@@ -371,9 +376,9 @@ export function ModelMonitoringPage() {
       {!isInitialLoading && target === "platform" && (
         <>
           <section aria-label="운영 VM과 DB 핵심 지표" className="monitoring-summary-grid">
-            <SummaryCard description="관리 API 응답 가능" label="Backend" tone={platformStatus ? "positive" : "negative"} value={platformStatus?.backend_status ?? "확인 불가"} />
+            <SummaryCard description="관리 API 응답 가능" label="백엔드" tone={platformStatus ? "positive" : "negative"} value={platformStatus?.backend_status ?? "확인 불가"} />
             <SummaryCard description="SELECT 1 연결 확인" label="PostgreSQL" tone={platformStatus?.database_status === "UP" ? "positive" : "negative"} value={platformStatus?.database_status ?? "확인 불가"} />
-            <SummaryCard description="Backend에서 DB까지" label="DB 응답" unit="ms" value={numberText(platformStatus?.database_latency_ms, 1)} />
+            <SummaryCard description="백엔드에서 DB까지" label="DB 응답" unit="ms" value={numberText(platformStatus?.database_latency_ms, 1)} />
             <SummaryCard description="Compute Engine 기본 지표" label="VM CPU" unit="%" value={numberText(platformSummary?.cpu_utilization_percent, 1)} />
             <SummaryCard description="Ops Agent 수집 지표" label="VM 메모리" unit="%" value={numberText(platformSummary?.memory_utilization_percent, 1)} />
             <SummaryCard description="Ops Agent 수집 지표" label="디스크" unit="%" value={numberText(platformSummary?.disk_utilization_percent, 1)} />
@@ -404,13 +409,13 @@ export function ModelMonitoringPage() {
               unit="%"
             />
             <article className="monitoring-detail-panel platform-identity-panel">
-              <header><div><h2>플랫폼 연결</h2><p>거래 처리 Backend와 저장소 상태</p></div><em className={`status ${platformStatus?.database_status === "UP" ? "production" : "failed"}`}>{platformStatus?.database_status === "UP" ? "HEALTHY" : "CHECK"}</em></header>
+              <header><div><h2>플랫폼 연결</h2><p>거래 처리 백엔드와 저장소 상태</p></div><em className={`status ${platformStatus?.database_status === "UP" ? "production" : "failed"}`}>{platformStatus?.database_status === "UP" ? "정상" : "확인 필요"}</em></header>
               <strong>{platformMonitoring?.instance_name ?? "운영 VM 확인 중"}</strong>
               <dl>
-                <div><dt>Zone</dt><dd>{platformMonitoring?.zone ?? "—"}</dd></div>
-                <div><dt>Backend</dt><dd>{platformStatus?.backend_status ?? "—"}</dd></div>
-                <div><dt>Database</dt><dd>{platformStatus?.database_status ?? "—"}</dd></div>
-                <div><dt>수집 Agent</dt><dd>{platformMonitoring?.ops_agent_available ? "연결됨" : "확인 필요"}</dd></div>
+                <div><dt>배포 영역</dt><dd>{platformMonitoring?.zone ?? "—"}</dd></div>
+                <div><dt>백엔드</dt><dd>{platformStatus?.backend_status ?? "—"}</dd></div>
+                <div><dt>데이터베이스</dt><dd>{platformStatus?.database_status ?? "—"}</dd></div>
+                <div><dt>수집 도구</dt><dd>{platformMonitoring?.ops_agent_available ? "연결됨" : "확인 필요"}</dd></div>
               </dl>
               {!platformMonitoring?.ops_agent_available && (
                 <p>메모리·디스크가 비어 있으면 VM에 Ops Agent 설치 상태를 확인하세요.</p>

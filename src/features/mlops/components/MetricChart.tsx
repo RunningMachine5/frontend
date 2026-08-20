@@ -151,11 +151,7 @@ export function MetricChart({
     <article className="monitoring-chart-panel">
       <header>
         <div><h2>{title}</h2><p>{description}</p></div>
-      </header>
-      {allPoints.length === 0 ? (
-        <div className="chart-empty">선택 구간에 수집된 지표가 없습니다.</div>
-      ) : (
-        <>
+        {allPoints.length > 0 && (
           <div aria-label="현재값과 구간 최고값" className="chart-legend">
             {seriesStats.map((item) => (
               <span key={item.label}>
@@ -166,7 +162,12 @@ export function MetricChart({
               </span>
             ))}
           </div>
-          <div className="metric-chart-body">
+        )}
+      </header>
+      {allPoints.length === 0 ? (
+        <div className="chart-empty">선택 구간에 수집된 지표가 없습니다.</div>
+      ) : (
+        <div className="metric-chart-body">
             <svg
               aria-label={`${title} 시계열. ${ariaSummary}`}
               className="metric-chart"
@@ -299,8 +300,7 @@ export function MetricChart({
                 })}
               </div>
             )}
-          </div>
-        </>
+        </div>
       )}
     </article>
   );
