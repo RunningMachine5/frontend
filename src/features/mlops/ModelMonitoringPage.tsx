@@ -7,7 +7,6 @@ import { MetricChart } from "./components/MetricChart";
 import { ModelPageShell } from "./components/ModelPageShell";
 import { formatClock, latestRevisionTraffic, resourceName, STATUS_LABELS } from "./modelOperations";
 import {
-  fetchInferencePerformance,
   fetchPlatformMonitoring,
   fetchPlatformStatus,
   fetchServingMonitoring,
@@ -17,7 +16,6 @@ import {
   fetchTrainingRuns,
 } from "./mlopsApi";
 import type {
-  InferencePerformance,
   PlatformMonitoring,
   PlatformStatus,
   ServingMonitoring,
@@ -77,7 +75,6 @@ export function ModelMonitoringPage() {
   const [servingMonitoring, setServingMonitoring] = useState<ServingMonitoring | null>(null);
   const [trainingMonitoring, setTrainingMonitoring] = useState<TrainingMonitoring | null>(null);
   const [platformMonitoring, setPlatformMonitoring] = useState<PlatformMonitoring | null>(null);
-  const [performance, setPerformance] = useState<InferencePerformance | null>(null);
   const [serving, setServing] = useState<ServingStatus | null>(null);
   const [runs, setRuns] = useState<TrainingRun[]>([]);
   const [execution, setExecution] = useState<TrainingExecution | null>(null);
@@ -102,12 +99,7 @@ export function ModelMonitoringPage() {
 
     try {
       if (target === "serving") {
-        const [metrics, inference] = await Promise.all([
-          fetchServingMonitoring(windowMinutes),
-          fetchInferencePerformance().catch(() => null),
-        ]);
-        setServingMonitoring(metrics);
-        setPerformance(inference);
+        setServingMonitoring(await fetchServingMonitoring(windowMinutes));
       }
 
       if (target === "training") {
@@ -276,12 +268,6 @@ export function ModelMonitoringPage() {
               unit="%"
             />
           </section>
-          <footer className="monitoring-context-note">
-            <span>Backend 저장 기준 최근 {performance?.window_minutes ?? 5}분</span>
-            <strong>{performance?.inference_count.toLocaleString("ko-KR") ?? "—"}건 추론</strong>
-            <strong>P95 {performance?.p95_latency_ms ?? "—"}ms</strong>
-            <em>마지막 요청 {performance?.latest_inference_at ? formatClock(performance.latest_inference_at) : "대기 중"}</em>
-          </footer>
         </>
       )}
 
