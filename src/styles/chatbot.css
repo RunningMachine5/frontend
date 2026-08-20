@@ -6,6 +6,25 @@ body {
   margin: 0;
 }
 
+/* 챗봇 화면은 스크롤 막대를 그리지 않는다. 휠·트랙패드·키보드 스크롤은 그대로 되고
+   막대만 감춘다. 390x844 모바일 카드를 옮긴 화면이라 데스크톱 스크롤바가 카드 옆에
+   붙으면 원본과 어긋난다.
+   - 뷰포트 막대: 카드(844px)가 대부분의 창 높이보다 커서 생기는 화면 우측 막대다.
+     루트에 걸어야 해서 :has() 로 챗봇 라우트를 짚는다(배색도 global.css 가 같은 방식이다).
+   - 카드 안 막대: 말풍선 목록(MessageList)의 세로 막대다.
+   Firefox 는 scrollbar-width, Chrome·Safari 는 ::-webkit-scrollbar 로만 먹는다. */
+html:has(.chatbot-page),
+.chatbot-page,
+.chatbot-page * {
+  scrollbar-width: none;
+}
+
+html:has(.chatbot-page)::-webkit-scrollbar,
+.chatbot-page::-webkit-scrollbar,
+.chatbot-page *::-webkit-scrollbar {
+  display: none;
+}
+
 @keyframes typingDot {
   0%, 60%, 100% { opacity: 0.25; transform: translateY(0); }
   30% { opacity: 1; transform: translateY(-3px); }
