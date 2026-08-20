@@ -27,6 +27,7 @@ import type {
 
 const TRAINING_REFRESH_MS = 5_000;
 const MIN_DATASET_PERIOD_START = "2026-08-01";
+const DATASETS_PER_PAGE = 2;
 
 const todayInputValue = () => {
   const today = new Date();
@@ -42,6 +43,7 @@ const formatPeriodDate = (value: string | null) =>
 export function ModelTrainingPage() {
   const navigate = useNavigate();
   const [datasets, setDatasets] = useState<DatasetVersion[]>([]);
+  const [datasetPage, setDatasetPage] = useState(1);
   const [runs, setRuns] = useState<TrainingRun[]>([]);
   const [dialog, setDialog] = useState<"dataset" | "training" | null>(null);
   const [trainingDatasetId, setTrainingDatasetId] = useState<number | null>(null);
@@ -81,6 +83,12 @@ export function ModelTrainingPage() {
   useEffect(() => {
     void load(true);
   }, [load]);
+
+  const datasetPageCount = Math.max(1, Math.ceil(datasets.length / DATASETS_PER_PAGE));
+
+  useEffect(() => {
+    if (datasetPage > datasetPageCount) setDatasetPage(datasetPageCount);
+  }, [datasetPage, datasetPageCount]);
 
   const hasActiveRun = runs.some((run) => ACTIVE_RUN_STATUSES.has(run.status));
 
@@ -151,6 +159,7 @@ export function ModelTrainingPage() {
   const createDataset = () => runAction(async () => {
     const created = await buildDataset(periodStart, periodEnd);
     setDialog(null);
+    setDatasetPage(1);
     setNotice(`${created.version} 데이터셋을 생성했습니다.`);
     await load();
   });
@@ -183,6 +192,11 @@ export function ModelTrainingPage() {
   };
 
   const usedDatasetIds = new Set(runs.map((run) => run.dataset_version_id));
+  const datasetPageStart = (datasetPage - 1) * DATASETS_PER_PAGE;
+  const visibleDatasets = datasets.slice(
+    datasetPageStart,
+    datasetPageStart + DATASETS_PER_PAGE,
+  );
 
   return (
     <ModelPageShell
@@ -219,7 +233,8 @@ export function ModelTrainingPage() {
           <div className="dataset-ledger-list">
             {datasets.length === 0 && !isLoading ? (
               <div className="model-empty-state"><strong>데이터셋이 없습니다.</strong><span>새 버전을 만들어 학습을 준비하세요.</span></div>
-            ) : datasets.map((dataset, index) => {
+            ) : visibleDatasets.map((dataset, index) => {
+              const datasetIndex = datasetPageStart + index;
               const labeledCount = (
                 dataset.period_normal_count + dataset.period_fraud_count
               );
@@ -229,12 +244,12 @@ export function ModelTrainingPage() {
               const isUsed = usedDatasetIds.has(dataset.id);
 
               return (
-                <article className={index === 0 ? "latest" : undefined} key={dataset.id}>
+                <article className={datasetIndex === 0 ? "latest" : undefined} key={dataset.id}>
                   <header className="dataset-card-header">
                     <div>
                       <strong title={dataset.version}>{dataset.version}</strong>
                       <span className="dataset-card-badges">
-                        {index === 0 && <em>최신</em>}
+                        {datasetIndex === 0 && <em>최신</em>}
                         {isUsed && <em className="used">학습 사용됨</em>}
                       </span>
                     </div>
@@ -283,6 +298,25 @@ export function ModelTrainingPage() {
               );
             })}
           </div>
+          {datasetPageCount > 1 && (
+            <nav aria-label="학습 데이터셋 페이지" className="dataset-pagination">
+              <button
+                disabled={datasetPage === 1}
+                onClick={() => setDatasetPage((page) => page - 1)}
+                type="button"
+              >
+                이전
+              </button>
+              <span><strong>{datasetPage}</strong> / {datasetPageCount}</span>
+              <button
+                disabled={datasetPage === datasetPageCount}
+                onClick={() => setDatasetPage((page) => page + 1)}
+                type="button"
+              >
+                다음
+              </button>
+            </nav>
+          )}
         </aside>
 
         <article className="admin-panel training-runs-panel">
