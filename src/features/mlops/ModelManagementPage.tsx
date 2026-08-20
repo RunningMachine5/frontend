@@ -34,6 +34,7 @@ import type { TransactionLabelQueueSummary } from "./transactionLabelingTypes";
 
 const OVERVIEW_REFRESH_MS = 15_000;
 const numberFormat = new Intl.NumberFormat("ko-KR");
+const ACTION_RUNS_PER_PAGE = 4;
 
 interface ModelOverviewSnapshot {
   datasets: DatasetVersion[];
@@ -151,6 +152,7 @@ export function ModelManagementPage() {
   const [productionDetails, setProductionDetails] = useState<ModelDetails | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(() => overview === null);
   const [isDetailsLoading, setIsDetailsLoading] = useState(false);
+  const [actionPage, setActionPage] = useState(1);
   const [error, setError] = useState<string | null>(null);
 
   const loadOverview = useCallback(async (force = false) => {
@@ -214,6 +216,12 @@ export function ModelManagementPage() {
   const latestDataset = datasets[0] ?? null;
   const latestRun = runs[0] ?? null;
   const actionRuns = runs.filter((run) => ACTION_REQUIRED_STATUSES.has(run.status));
+  const actionPageCount = Math.max(1, Math.ceil(actionRuns.length / ACTION_RUNS_PER_PAGE));
+  const currentActionPage = Math.min(actionPage, actionPageCount);
+  const visibleActionRuns = actionRuns.slice(
+    (currentActionPage - 1) * ACTION_RUNS_PER_PAGE,
+    currentActionPage * ACTION_RUNS_PER_PAGE,
+  );
   const trafficPercent = latestRevisionTraffic(serving);
   const latestRevision = resourceName(serving?.latest_ready_revision);
   const hasDisconnectedRun = Boolean(serving && trafficPercent > 0 && !productionRun);
@@ -300,18 +308,27 @@ export function ModelManagementPage() {
         </article>
 
         <aside className="admin-panel model-action-inbox">
-          <header><div><p className="admin-eyebrow">ACTION QUEUE</p><h2>조치가 필요한 Run</h2></div><strong>{actionRuns.length}</strong></header>
+          <header><div><p className="admin-eyebrow">ACTION QUEUE</p><h2>조치가 필요한 학습</h2></div><strong>{actionRuns.length}</strong></header>
           <div className="model-action-list">
             {actionRuns.length === 0 ? (
               <div className="model-empty-state"><strong>대기 중인 작업이 없습니다.</strong><span>후보 검토나 배포 확인이 필요하면 여기에 표시됩니다.</span></div>
-            ) : actionRuns.slice(0, 5).map((run) => (
+            ) : visibleActionRuns.map((run) => (
               <Link key={run.id} to={`/models/runs/${run.id}`}>
-                <div><strong>Run #{run.id}</strong><span>{formatDate(run.created_at)}</span></div>
+                <div><strong>학습 #{run.id}</strong><span>{formatDate(run.created_at)}</span></div>
                 <em className={`status ${run.status.toLowerCase()}`}>{STATUS_LABELS[run.status]}</em>
               </Link>
             ))}
           </div>
-          <Link className="inbox-footer-link" to="/models/training">학습·배포 이력 전체 보기</Link>
+          <footer className="model-action-footer">
+            <Link className="inbox-footer-link" to="/models/training">학습·배포 이력 전체 보기</Link>
+            {actionRuns.length > ACTION_RUNS_PER_PAGE && (
+              <nav aria-label="조치가 필요한 학습 페이지" className="model-action-pagination">
+                <button disabled={currentActionPage === 1} onClick={() => setActionPage(currentActionPage - 1)} type="button">이전</button>
+                <span><strong>{currentActionPage}</strong> / {actionPageCount}</span>
+                <button disabled={currentActionPage === actionPageCount} onClick={() => setActionPage(currentActionPage + 1)} type="button">다음</button>
+              </nav>
+            )}
+          </footer>
         </aside>
         </section>
 
