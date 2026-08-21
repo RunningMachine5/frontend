@@ -18,6 +18,11 @@ export type RuleComponent = {
   updated_at: string;
 };
 
+export type RuleComponentInput = Pick<
+  RuleComponent,
+  "component_key" | "name" | "condition_expression" | "weight" | "sort_order"
+>;
+
 export type FraudRule = {
   id: number;
   type_code: string;
