@@ -18,8 +18,8 @@ import {
   fetchDatasetPreview,
   fetchDatasets,
   fetchTrainingRuns,
+  prepareTrainingRun,
   reconcileTrainingRun,
-  startTraining,
 } from "./mlopsApi";
 import type {
   DatasetPeriodSummary,
@@ -189,9 +189,9 @@ export function ModelTrainingPage() {
 
   const launchTraining = () => runAction(async () => {
     if (!trainingDatasetId) return;
-    const result = await startTraining(trainingDatasetId);
+    const run = await prepareTrainingRun(trainingDatasetId);
     setDialog(null);
-    navigate(`/models/runs/${result.training_run.id}`);
+    navigate(`/models/runs/${run.id}`, { state: { executeTraining: true } });
   });
 
   const reconcile = (run: TrainingRun) => runAction(async () => {

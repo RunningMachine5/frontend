@@ -1,7 +1,7 @@
 // 선택한 학습 Run의 지표 비교와 승인·배포 작업을 한 흐름으로 보여준다.
 
-import { useCallback, useEffect, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 
 import { AdminAlert } from "../admin/AdminAlert";
 import { ModelPageShell } from "./components/ModelPageShell";
@@ -24,6 +24,7 @@ import {
 import {
   completeDeployment,
   decideModel,
+  executeTrainingRun,
   fetchDatasets,
   fetchModelDetails,
   fetchServingStatus,
@@ -42,8 +43,14 @@ import type {
 const RUN_REFRESH_MS = 5_000;
 
 export function ModelRunPage() {
+  const location = useLocation();
+  const navigate = useNavigate();
   const { runId: runIdParam } = useParams();
   const runId = Number(runIdParam);
+  const executeOnOpen = Boolean(
+    (location.state as { executeTraining?: boolean } | null)?.executeTraining,
+  );
+  const executionRequestStarted = useRef(false);
   const [run, setRun] = useState<TrainingRun | null>(null);
   const [dataset, setDataset] = useState<DatasetVersion | null>(null);
   const [productionRun, setProductionRun] = useState<TrainingRun | null>(null);
@@ -91,9 +98,39 @@ export function ModelRunPage() {
     }
   }, [runId]);
 
+  const requestExecution = useCallback(async (selectedRunId: number) => {
+    setIsBusy(true);
+    setError(null);
+    setNotice(null);
+    try {
+      const result = await executeTrainingRun(selectedRunId);
+      setOperationId(result.operation_id ?? "");
+      await load();
+      setNotice("Cloud Run 학습 실행을 요청했습니다.");
+    } catch (cause) {
+      await load();
+      setError(cause instanceof Error ? cause.message : "학습 실행을 요청하지 못했습니다.");
+    } finally {
+      setIsBusy(false);
+    }
+  }, [load]);
+
   useEffect(() => {
     void load(true);
   }, [load]);
+
+  useEffect(() => {
+    if (
+      !executeOnOpen
+      || !run
+      || run.status !== "REQUESTED"
+      || executionRequestStarted.current
+    ) return;
+
+    executionRequestStarted.current = true;
+    navigate(location.pathname, { replace: true, state: null });
+    void requestExecution(run.id);
+  }, [executeOnOpen, location.pathname, navigate, requestExecution, run]);
 
   useEffect(() => {
     const shouldRefresh = run && (
@@ -276,7 +313,18 @@ export function ModelRunPage() {
                 </div>
               )}
 
-              {["REQUESTED", "RUNNING"].includes(run.status) && (
+              {run.status === "REQUESTED" && (
+                <button
+                  className="admin-button primary"
+                  disabled={isBusy}
+                  onClick={() => void requestExecution(run.id)}
+                  type="button"
+                >
+                  {isBusy ? "학습 요청 중…" : "Cloud Run 학습 시작"}
+                </button>
+              )}
+
+              {run.status === "RUNNING" && (
                 <button
                   className="admin-button"
                   disabled={isBusy || !run.cloud_run_execution_name}
