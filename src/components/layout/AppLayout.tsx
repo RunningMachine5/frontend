@@ -42,7 +42,7 @@ function demoStatusText(status: DemoTransactionInjectionStatus | null) {
   }
   if (status?.state === "COMPLETED") return "완료";
   if (status?.state === "FAILED") return "실패";
-  return "실행";
+  return "대기";
 }
 
 // 모든 화면에서 같은 사이드바와 화면 폭을 사용한다.
@@ -135,7 +135,7 @@ export function AppLayout({ activeNav, children }: AppLayoutProps) {
         <div className="app-sidebar-controls">
           <section aria-label="시연 테스트 설정" className="app-demo-test-panel">
             <div className="app-demo-test-heading">
-              <span><small>DEMO</small><b>시연 테스트 설정</b></span>
+              <b>시연 테스트</b>
               <em aria-live="polite">
                 {demoError ? "오류" : demoStatusText(demoStatus)}
               </em>
@@ -144,7 +144,7 @@ export function AppLayout({ activeNav, children }: AppLayoutProps) {
               className="app-demo-count-fieldset"
               disabled={demoStatus?.state === "RUNNING"}
             >
-              <legend>거래 건수</legend>
+              <legend>건수</legend>
               <div className="app-demo-count-options">
                 {DEMO_TRANSACTION_COUNTS.map((count) => (
                   <button
@@ -160,7 +160,7 @@ export function AppLayout({ activeNav, children }: AppLayoutProps) {
             </fieldset>
             <div className="app-demo-speed-control">
               <label htmlFor="demo-transactions-per-second">
-                최대 처리 속도
+                최대 속도
                 <output>{demoTransactionsPerSecond}건/초</output>
               </label>
               <input
@@ -183,8 +183,7 @@ export function AppLayout({ activeNav, children }: AppLayoutProps) {
               title={demoError ?? `테스트 거래 ${demoTransactionCount.toLocaleString()}건을 최대 초당 ${demoTransactionsPerSecond}건씩 주입합니다.`}
               type="button"
             >
-              <span><small>RUN</small><b>{demoTransactionCount.toLocaleString()}건 시연 테스트</b></span>
-              <em>{demoStatus?.state === "RUNNING" ? "진행 중" : "실행"}</em>
+              {demoStatus?.state === "RUNNING" ? "주입 중" : "시연 시작"}
             </button>
           </section>
           <button
