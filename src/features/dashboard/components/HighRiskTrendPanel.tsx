@@ -14,9 +14,17 @@ export type RealtimeRiskPoint = {
   isLatest?: boolean;
 };
 
+type RealtimeChartRow = {
+  transaction_id: number;
+  transaction_amount: number;
+  transaction_datetime: string;
+  received_at?: string;
+  risk_score: number | null;
+};
+
 export type TimeInterval = "second" | "minute";
 
-function getEventTime(row: CaseListItem) {
+function getEventTime(row: RealtimeChartRow) {
   // 이전 API 응답에는 received_at이 없으므로 실제 거래 시각을 함께 사용한다.
   return row.received_at || row.transaction_datetime;
 }
@@ -39,7 +47,7 @@ function formatDate(value: string | number, includeYear = false) {
 }
 
 export function buildRealtimeRiskPoints(
-  rows: CaseListItem[],
+  rows: RealtimeChartRow[],
   interval: TimeInterval,
 ): RealtimeRiskPoint[] {
   const timeRows = [...rows]
@@ -498,7 +506,7 @@ export function HighRiskTrendPanel({
   return (
     <article className="panel priority-panel realtime-risk-panel">
       <div className="panel-head">
-        <h2>실시간 위험 거래 반영 현황</h2>
+        <h2>실시간 사기 의심 거래 반영 현황</h2>
         <div className="trend-panel-meta realtime-trend-meta">
           {/* 초 단위 / 분 단위 선택 토글 */}
           <div className="time-interval-toggle" role="group" aria-label="시간 단위 선택">
@@ -518,7 +526,10 @@ export function HighRiskTrendPanel({
             </button>
           </div>
 
-          <span className="live-status-tag"><i className="live-green-dot" /> 실시간 감시</span>
+          <span className="live-status-tag">
+            <i aria-hidden="true" className="live-green-dot" />
+            실시간 감시
+          </span>
           <span className="trend-series-label score-legend" title="80점 이상: 심각(레드), 60~79점: 경고(오렌지), 40~59점: 주의(퍼플), 40점 미만: 정상(그린)">
             <span className="grade-color-dots">
               <i className="score-dot dot-critical" />
@@ -536,7 +547,7 @@ export function HighRiskTrendPanel({
             <span>평균 위험도 <strong className="score-text">{avgScore}점</strong></span>
           </div>
         </div>
-        <p className="panel-caption">서버 수신 시각 기준 위험 거래 금액(원)과 위험 점수 추이 · 점 클릭 시 상세 분석 이동</p>
+        <p className="panel-caption">서버 수신 시각 기준 사기 의심 거래의 금액(원)과 위험 점수 추이 · 점 클릭 시 상세 분석 이동</p>
       </div>
       {items.length > 0 ? (
         <RealtimeRiskTrendChart items={items} />

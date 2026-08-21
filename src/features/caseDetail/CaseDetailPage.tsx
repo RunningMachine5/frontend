@@ -18,6 +18,7 @@ const RULE_LABELS: Record<string, string> = {
   ACCOUNT_TAKEOVER: "계정 탈취",
   FRAUD_USED_ACCOUNT: "사기 이용 계좌",
   MESSENGER_PHISHING: "메신저피싱",
+  UNCLASSIFIED: "유형 미분류",
   severe_amount_context: "고액 거래 정황",
   recipient_transfer_with_severe_amount: "고액 수취계좌 이체",
   new_recipient: "신규 수취인",
@@ -34,6 +35,10 @@ const DECISION_LABELS: Record<ReviewDecision, string> = {
 };
 
 function getTransactionId() {
+  const hashQuery = window.location.hash.split("?")[1];
+  const urlTransactionId = Number(new URLSearchParams(hashQuery).get("transaction_id"));
+  if (Number.isInteger(urlTransactionId) && urlTransactionId > 0) return urlTransactionId;
+
   const storedId = Number(sessionStorage.getItem(SELECTED_TRANSACTION_ID_KEY));
   return Number.isInteger(storedId) && storedId > 0 ? storedId : null;
 }
@@ -135,6 +140,128 @@ function DeviceRiskInfo({ transaction }: { transaction: TransactionView | null }
   );
 }
 
+type WorkflowStage = 1 | 2 | 3;
+
+const WORKFLOW_STAGES = [
+  {
+    id: 1 as WorkflowStage,
+    code: "01 · FACT VERIFICATION",
+    title: "거래 상세 정보 확인",
+    description: "거래 팩트, AI 판정, Rule·접속 신호를 먼저 확인합니다.",
+    workspace: "거래 상세 정보 확인",
+  },
+  {
+    id: 2 as WorkflowStage,
+    code: "02 · RESPONSE GUIDE",
+    title: "체크리스트 확인 및 가이드 수행",
+    description: "권장 조치와 필수 점검 항목을 순서대로 수행합니다.",
+    workspace: "체크리스트 확인 및 가이드 수행",
+  },
+  {
+    id: 3 as WorkflowStage,
+    code: "03 · FINAL DECISION",
+    title: "사기 여부 확정 및 처리",
+    description: "판정과 조치 사유를 기록하고 사건 처리를 완료합니다.",
+    workspace: "최종 판정 및 처리",
+  },
+] as const;
+
+function CaseWorkflowCards({
+  activeStep,
+  checkedCount,
+  checklistCount,
+  currentStep,
+  guideCount,
+  onSelect,
+}: {
+  activeStep: WorkflowStage;
+  checkedCount: number;
+  checklistCount: number;
+  currentStep: WorkflowStage;
+  guideCount: number;
+  onSelect: (step: WorkflowStage) => void;
+}) {
+  return (
+    <section className="j-workflow-cards" aria-label="사건 처리 단계">
+      {WORKFLOW_STAGES.map((stage) => {
+        const state = stage.id < currentStep ? "done" : stage.id === currentStep ? "current" : "pending";
+        const status = state === "done" ? "완료" : state === "current" ? "진행 중" : "대기";
+        const detail = stage.id === 1
+          ? `점검 ${checkedCount}/${checklistCount} 완료`
+          : stage.id === 2
+            ? `권장 조치 ${guideCount}개`
+            : state === "done" ? "처리 기록 저장됨" : "판정 및 사유 입력 필요";
+
+        return (
+          <button
+            aria-pressed={activeStep === stage.id}
+            className={`j-workflow-card ${state} ${activeStep === stage.id ? "active" : ""}`}
+            key={stage.id}
+            onClick={() => onSelect(stage.id)}
+            type="button"
+          >
+            <span className="j-workflow-code">{stage.code}</span>
+            <strong>{stage.title}</strong>
+            <span className="j-workflow-description">{stage.description}</span>
+            <span className="j-workflow-footer">
+              <em>{status}</em>
+              <small>{detail}</small>
+            </span>
+          </button>
+        );
+      })}
+    </section>
+  );
+}
+
+function CaseActivityHistory({
+  transactionTime,
+  agentStatus,
+  reviewerId,
+  reviewedAt,
+  reviewDecision,
+  resolutionSummary,
+}: {
+  transactionTime: string | null;
+  agentStatus: string;
+  reviewerId: string | null | undefined;
+  reviewedAt: string | null | undefined;
+  reviewDecision: ReviewDecision | null;
+  resolutionSummary: string | null | undefined;
+}) {
+  return (
+    <article className="j-card j-history-card j-stage-guide j-stage-decision">
+      <header className="j-card-header">
+        <div className="j-title-wrap">
+          <span className="j-section-tag">CASE ACTIVITY</span>
+          <h2>처리 이력</h2>
+        </div>
+      </header>
+      <div className="j-card-body">
+        <ol className="j-activity-list">
+          <li>
+            <time>{formatDate(transactionTime)}</time>
+            <div><strong>시스템</strong><span>의심 거래가 접수되었습니다.</span></div>
+          </li>
+          <li>
+            <time>현재 상태</time>
+            <div><strong>AI Agent</strong><span>사건 분석 상태: {agentStatus}</span></div>
+          </li>
+          {reviewDecision && (
+            <li>
+              <time>{formatDate(reviewedAt ?? null)}</time>
+              <div>
+                <strong>{reviewerId ?? "담당자 정보 없음"}</strong>
+                <span>{DECISION_LABELS[reviewDecision]}으로 처리했습니다.{resolutionSummary ? ` ${resolutionSummary}` : ""}</span>
+              </div>
+            </li>
+          )}
+        </ol>
+      </div>
+    </article>
+  );
+}
+
 export function CaseDetailPage() {
   const transactionId = useMemo(getTransactionId, []);
   const {
@@ -152,6 +279,7 @@ export function CaseDetailPage() {
   const [resolutionSummary, setResolutionSummary] = useState("");
   const [saveMessage, setSaveMessage] = useState<string | null>(null);
   const [isGuideDetailsOpen, setIsGuideDetailsOpen] = useState(false);
+  const [activeWorkflowStep, setActiveWorkflowStep] = useState<WorkflowStage>(1);
 
   useEffect(() => {
     const review = detail?.review.data;
@@ -166,12 +294,23 @@ export function CaseDetailPage() {
     setResolutionSummary(review?.resolution_summary ?? "");
     setIsGuideDetailsOpen(false);
     setIsChatOpen(false);
+    setActiveWorkflowStep(review ? 3 : 1);
     setCheckedItems(new Set(
       (review?.checklist_results ?? [])
         .filter((item) => item.checked ?? item.cheked ?? false)
         .map((item) => item.item_code),
     ));
   }, [detail?.case_id]);
+
+  useEffect(() => {
+    if (!isGuideDetailsOpen) return;
+
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setIsGuideDetailsOpen(false);
+    };
+    window.addEventListener("keydown", closeOnEscape);
+    return () => window.removeEventListener("keydown", closeOnEscape);
+  }, [isGuideDetailsOpen]);
 
   if (transactionId === null) {
     return <CaseAnalysisPageShell activeSection="detail" contentClassName="case-content" headerClassName="case-header"><main className="case-state">거래 탐색 탭에서 분석할 거래를 먼저 선택해주세요.</main></CaseAnalysisPageShell>;
@@ -195,10 +334,21 @@ export function CaseDetailPage() {
   const recommendedActions = responsePlan?.recommended_actions ?? [];
   const similarCases = agent?.similar_case_results ?? [];
   const chat = detail.chat.data;
+  // 거래 탐색의 예상 사기유형과 같은 Agent 대응 유형을 표시한다.
+  const inferredFraudType = responsePlan?.applied_fraud_type
+    ?? ruleResult?.primary_fraud_type
+    ?? "UNCLASSIFIED";
+  const chatFraudType = [...(chat?.type_scores ?? [])]
+    .sort((left, right) => right.score - left.score)[0]?.display_name ?? "데이터 없음";
   const riskGrade = agent?.risk_grade ?? "데이터 없음";
   const investigationReason = typeof agent?.investigation_result?.recommendation_reason === "string"
     ? agent.investigation_result.recommendation_reason
     : "추가 조사 결과가 없습니다.";
+  const workflowStep: WorkflowStage = detail.review.status === "AVAILABLE"
+    ? 3
+    : checklist.length > 0 && checkedItems.size === checklist.length
+      ? 2
+      : 1;
 
   function toggleSet(
     setter: React.Dispatch<React.SetStateAction<Set<string>>>,
@@ -239,16 +389,6 @@ export function CaseDetailPage() {
   return (
     <CaseAnalysisPageShell
       activeSection="detail"
-      actions={
-        <button
-          className={`j-btn-chat-trigger ${isChatOpen ? "active" : ""}`}
-          onClick={() => setIsChatOpen((prev) => !prev)}
-          type="button"
-        >
-          <span className="j-btn-icon">AI</span>
-          <span>채팅으로 판단된 결과 보기</span>
-        </button>
-      }
       contentClassName="case-content"
       headerClassName="case-header"
     >
@@ -270,25 +410,32 @@ export function CaseDetailPage() {
         </div>
 
         <div className="j-header-meta">
-          <span className="j-meta-label">예상 사기유형</span>
+          <span className="j-meta-label">룰 규칙 추론 사기 유형</span>
           <strong className="j-meta-highlight">
-            {translateRule(responsePlan?.applied_fraud_type ?? ruleResult?.primary_fraud_type ?? "데이터 없음")}
+            {translateRule(inferredFraudType)}
           </strong>
         </div>
 
         <div className="j-header-meta">
-          <span className="j-meta-label">AGENT 분석상태</span>
-          <span className="j-agent-badge">
-            <i className="j-badge-pulse" />
-            {agent?.execution_status ?? detail.case_agent.status}
-          </span>
+          <span className="j-meta-label">채팅으로 추론된 사기유형</span>
+          <strong className="j-meta-highlight">{chatFraudType}</strong>
         </div>
       </section>
 
-      {/* 2. 6-카드 대시보드 그리드 (3열 2행) */}
-      <section className="j-dashboard-grid">
+      <CaseWorkflowCards
+        activeStep={activeWorkflowStep}
+        checkedCount={checkedItems.size}
+        checklistCount={checklist.length}
+        currentStep={workflowStep}
+        guideCount={recommendedActions.length}
+        onSelect={setActiveWorkflowStep}
+      />
+
+      <section className="j-stage-workspace">
+      {/* 선택한 처리 단계에 필요한 카드만 표시한다. */}
+      <section className={`j-dashboard-grid j-stage-grid stage-${activeWorkflowStep}`}>
         {/* Card 1: AI 종합 판정 브리핑 */}
-        <article className="j-card j-verdict-card">
+        <article className="j-card j-verdict-card j-stage-check">
           <header className="j-card-header">
             <div className="j-title-wrap">
               <span className="j-section-tag">AI AGENT VERDICT</span>
@@ -378,7 +525,7 @@ export function CaseDetailPage() {
         </article>
 
         {/* Card 2: 거래 팩트 증거 */}
-        <article className="j-card j-tx-card">
+        <article className="j-card j-tx-card j-stage-check">
           <header className="j-card-header">
             <div className="j-title-wrap">
               <span className="j-section-tag">TRANSACTION EVIDENCE</span>
@@ -427,7 +574,7 @@ export function CaseDetailPage() {
         </article>
 
         {/* Card 3: 대응 가이드 & 점검표 */}
-        <article className="j-card j-guide-card">
+        <article className="j-card j-guide-card j-stage-guide">
           <header className="j-card-header">
             <div className="j-title-wrap">
               <span className="j-section-tag">AGENT RESPONSE PLAN</span>
@@ -482,55 +629,27 @@ export function CaseDetailPage() {
               <>
                 <button
                   className="j-btn-detail-toggle"
-                  onClick={() => setIsGuideDetailsOpen((prev) => !prev)}
+                  onClick={() => setIsGuideDetailsOpen(true)}
                   type="button"
                 >
-                  {isGuideDetailsOpen ? "▲ 대응 가이드 절차 닫기" : "▼ 대응 가이드 절차 상세 보기"}
+                  대응 가이드 자세히 보기
                 </button>
-
-                {isGuideDetailsOpen && (
-                  <div className="j-guide-table-wrap">
-                    <table className="j-table">
-                      <thead>
-                        <tr><th>항목</th><th>내용</th></tr>
-                      </thead>
-                      <tbody>
-                        <tr><td>적용 사기유형</td><td>{translateRule(responsePlan.applied_fraud_type ?? "데이터 없음")}</td></tr>
-                        <tr>
-                          <td>단계별 권장 조치</td>
-                          <td>
-                            <ol className="j-nested-list">
-                              {recommendedActions.map((action) => (
-                                <li key={action.action_code}>
-                                  <strong>{action.action}</strong> - {action.reason}
-                                </li>
-                              ))}
-                            </ol>
-                          </td>
-                        </tr>
-                        <tr>
-                          <td>필수 점검 항목</td>
-                          <td>
-                            <ul className="j-nested-list">
-                              {checklist.map((checkItem) => (
-                                <li key={checkItem.item_code}>
-                                  [{checkItem.item_code}] {checkItem.label}
-                                </li>
-                              ))}
-                            </ul>
-                          </td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </div>
-                )}
               </>
             )}
           </div>
         </article>
 
+        <CaseActivityHistory
+          agentStatus={agent?.execution_status ?? detail.case_agent.status}
+          resolutionSummary={detail.review.data?.resolution_summary}
+          reviewDecision={detail.review.data?.decision ?? null}
+          reviewedAt={detail.review.data?.reviewed_at}
+          reviewerId={detail.review.data?.reviewer_id}
+          transactionTime={transaction?.transaction_datetime ?? null}
+        />
+
         {/* Card 4: Rule 엔진 & 모델 기여도 */}
-        <article className="j-card j-signals-card">
+        <article className="j-card j-signals-card j-stage-check">
           <header className="j-card-header">
             <div className="j-title-wrap">
               <span className="j-section-tag">RULE & ML SIGNALS</span>
@@ -565,7 +684,7 @@ export function CaseDetailPage() {
         </article>
 
         {/* Card 5: 단말 · 접속 보안 신호 */}
-        <article className="j-card j-device-card">
+        <article className="j-card j-device-card j-stage-check">
           <header className="j-card-header">
             <div className="j-title-wrap">
               <span className="j-section-tag">DEVICE & NETWORK SIGNALS</span>
@@ -621,7 +740,7 @@ export function CaseDetailPage() {
         </article>
 
         {/* Card 6: 최종 판정 및 즉각 조치 */}
-        <article className="j-card j-action-card">
+        <article className="j-card j-action-card j-stage-decision">
           <header className="j-card-header">
             <div className="j-title-wrap">
               <span className="j-section-tag">REVIEW & DECISION</span>
@@ -695,6 +814,62 @@ export function CaseDetailPage() {
           </div>
         </article>
       </section>
+      </section>
+
+      {isGuideDetailsOpen && responsePlan && (
+        <div
+          className="j-guide-modal-backdrop"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget) setIsGuideDetailsOpen(false);
+          }}
+        >
+          <section aria-labelledby="guide-modal-title" aria-modal="true" className="j-guide-modal" role="dialog">
+            <header>
+              <div>
+                <span className="j-section-tag">AGENT RESPONSE PLAN</span>
+                <h2 id="guide-modal-title">대응 가이드 전체 절차</h2>
+              </div>
+              <button aria-label="대응 가이드 닫기" onClick={() => setIsGuideDetailsOpen(false)} type="button">×</button>
+            </header>
+            <div className="j-guide-modal-body">
+              <section className="j-guide-overview">
+                <span>{translateRule(responsePlan.applied_fraud_type ?? "데이터 없음")}</span>
+                <p>{responsePlan.summary ?? "대응 계획 요약이 없습니다."}</p>
+              </section>
+              <ol className="j-guide-action-details">
+                {recommendedActions.map((action) => (
+                  <li key={action.action_code}>
+                    <header>
+                      <span>{action.priority}단계</span>
+                      <strong>{action.action}</strong>
+                      {action.required && <em>필수</em>}
+                    </header>
+                    <p className="j-guide-action-reason">{action.reason}</p>
+                    <div className="j-guide-detail-columns">
+                      <section>
+                        <h3>수행 절차</h3>
+                        <ol>
+                          {action.procedure_steps.map((step) => <li key={step}>{step}</li>)}
+                        </ol>
+                      </section>
+                      <section className="cautions">
+                        <h3>주의 사항</h3>
+                        <ul>
+                          {action.cautions.map((caution) => <li key={caution}>{caution}</li>)}
+                        </ul>
+                      </section>
+                    </div>
+                  </li>
+                ))}
+              </ol>
+              <section className="j-guide-checklist-modal">
+                <h3>필수 점검 항목</h3>
+                <ul>{checklist.map((checkItem) => <li key={checkItem.item_code}>{checkItem.label}</li>)}</ul>
+              </section>
+            </div>
+          </section>
+        </div>
+      )}
 
       {/* 우측 슬라이드 드로어: 채팅 분석 및 상담 소통 이력 */}
       {isChatOpen && (

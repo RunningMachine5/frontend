@@ -23,6 +23,7 @@ export type QueueSearchFilters = {
   transactionId: string;
   ipAddress: string;
   riskGrades: string[];
+  reviewStatuses: string[];
   periodStart: string;
   periodEnd: string;
   page: number;

@@ -25,6 +25,9 @@ export async function fetchQueueRows(
   filters.riskGrades.forEach((riskGrade) => {
     params.append("risk_grades", riskGrade);
   });
+  filters.reviewStatuses.forEach((reviewStatus) => {
+    params.append("review_statuses", reviewStatus);
+  });
   appendDateTime(params, "period_start", filters.periodStart);
   appendDateTime(params, "period_end", filters.periodEnd);
 
