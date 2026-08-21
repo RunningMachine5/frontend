@@ -4,6 +4,10 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 
 import { AdminAlert } from "../admin/AdminAlert";
+import {
+  ModelLoadingStatus,
+  type ModelLoadingStatusProps,
+} from "./components/ModelLoadingStatus";
 import { ModelPageShell } from "./components/ModelPageShell";
 import {
   actionGuide,
@@ -60,6 +64,7 @@ export function ModelRunPage() {
   const [operationId, setOperationId] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [isBusy, setIsBusy] = useState(false);
+  const [busyActivity, setBusyActivity] = useState<ModelLoadingStatusProps | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const candidateReady = isModelRevisionReady(serving, details?.model_version);
@@ -100,6 +105,11 @@ export function ModelRunPage() {
 
   const requestExecution = useCallback(async (selectedRunId: number) => {
     setIsBusy(true);
+    setBusyActivity({
+      description: "요청이 접수되면 Run 상태가 자동으로 갱신됩니다.",
+      label: "CLOUD RUN JOB",
+      title: `Run #${selectedRunId} 학습 요청을 전달하고 있습니다`,
+    });
     setError(null);
     setNotice(null);
     try {
@@ -112,6 +122,7 @@ export function ModelRunPage() {
       setError(cause instanceof Error ? cause.message : "학습 실행을 요청하지 못했습니다.");
     } finally {
       setIsBusy(false);
+      setBusyActivity(null);
     }
   }, [load]);
 
@@ -144,8 +155,12 @@ export function ModelRunPage() {
     return () => window.clearInterval(timer);
   }, [isCandidatePreparing, load, run]);
 
-  const runAction = async (action: () => Promise<string>) => {
+  const runAction = async (
+    activity: ModelLoadingStatusProps,
+    action: () => Promise<string>,
+  ) => {
     setIsBusy(true);
+    setBusyActivity(activity);
     setError(null);
     setNotice(null);
     try {
@@ -155,10 +170,15 @@ export function ModelRunPage() {
       setError(cause instanceof Error ? cause.message : "요청을 처리하지 못했습니다.");
     } finally {
       setIsBusy(false);
+      setBusyActivity(null);
     }
   };
 
-  const decide = (decision: "APPROVE" | "REJECT") => runAction(async () => {
+  const decide = (decision: "APPROVE" | "REJECT") => runAction({
+    description: "검토 결과와 변경 사유를 저장하고 다음 운영 단계를 준비합니다.",
+    label: "MODEL REVIEW",
+    title: decision === "APPROVE" ? "후보 모델을 승인하고 있습니다" : "후보 모델을 거절하고 있습니다",
+  }, async () => {
     if (!run) return "";
     if (decision === "REJECT" && !window.confirm(`Run #${run.id} 후보를 거절할까요?`)) {
       return "후보 검토를 계속할 수 있습니다.";
@@ -172,20 +192,32 @@ export function ModelRunPage() {
       : "후보 모델을 거절했습니다.";
   });
 
-  const promote = () => runAction(async () => {
+  const promote = () => runAction({
+    description: "최근 거래로 후보 모델을 검증한 뒤 운영 트래픽 전환을 요청합니다.",
+    label: "MODEL PROMOTION",
+    title: "후보 모델을 검증하고 있습니다",
+  }, async () => {
     if (!run) return "";
     const result = await promoteModel(run.id);
     setOperationId(result.operation_id ?? "");
     return "후보 예측을 검증하고 운영 트래픽 전환을 요청했습니다.";
   });
 
-  const complete = () => runAction(async () => {
+  const complete = () => runAction({
+    description: "Cloud Run 트래픽과 MLflow 운영 alias를 최종 확정합니다.",
+    label: "PRODUCTION SYNC",
+    title: "운영 전환을 확정하고 있습니다",
+  }, async () => {
     if (!run) return "";
     await completeDeployment(run.id, operationId);
     return "운영 전환과 MLflow 운영 alias 지정을 완료했습니다.";
   });
 
-  const reconcile = () => runAction(async () => {
+  const reconcile = () => runAction({
+    description: "Cloud Run 실행 결과와 저장된 Run 상태를 맞춥니다.",
+    label: "CLOUD RUN",
+    title: `Run #${run?.id ?? ""} 실행 상태를 확인하고 있습니다`,
+  }, async () => {
     if (!run) return "";
     const result = await reconcileTrainingRun(run.id);
     return `Cloud Run 실행 상태: ${result.execution_outcome}`;
@@ -208,11 +240,19 @@ export function ModelRunPage() {
     >
       {error && <AdminAlert message={error} onDismiss={() => setError(null)} tone="error" />}
       {notice && <AdminAlert message={notice} onDismiss={() => setNotice(null)} tone="success" />}
+      {busyActivity && <ModelLoadingStatus {...busyActivity} />}
 
       {!run && isLoading ? (
-        <div aria-label="Run 상세 정보 로딩" className="run-detail-skeleton">
-          <i /><i /><i />
-        </div>
+        <>
+          <ModelLoadingStatus
+            description="Run 상태, 데이터셋, 운영 모델과 Serving 정보를 함께 확인합니다."
+            label="RUN DETAIL"
+            title="학습 Run 상세 정보를 불러오고 있습니다"
+          />
+          <div aria-label="Run 상세 정보 로딩" className="run-detail-skeleton">
+            <i /><i /><i />
+          </div>
+        </>
       ) : run ? (
         <>
           <header className="run-detail-header">

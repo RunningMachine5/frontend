@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState, type CSSProperties } from "react";
 import { Link } from "react-router-dom";
 
 import { AdminAlert } from "../admin/AdminAlert";
+import { ModelLoadingStatus } from "./components/ModelLoadingStatus";
 import { ModelPageShell } from "./components/ModelPageShell";
 import {
   ACTION_REQUIRED_STATUSES,
@@ -123,9 +124,11 @@ async function fetchProductionDetails(runId: number) {
 function ModelOverviewSkeleton() {
   return (
     <>
-      <span className="model-overview-loading-label" role="status">
-        모델 운영 정보를 불러오는 중입니다.
-      </span>
+      <ModelLoadingStatus
+        description="운영 Run, Serving, 라벨과 인프라 상태를 함께 확인합니다."
+        label="MODEL STATUS"
+        title="모델 운영 정보를 불러오고 있습니다"
+      />
       <section aria-hidden="true" className="model-command-grid">
         <article className="admin-panel production-command model-overview-skeleton-card model-overview-skeleton-production">
           <i /><i />
