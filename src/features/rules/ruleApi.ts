@@ -1,7 +1,9 @@
 import { adminRequest } from "../admin/adminApi";
 import type {
   FraudRule,
+  RuleComponentInput,
   RuleFeature,
+  RulePatternStatistics,
   RuleReplay,
   RuleSet,
   RuleSetSummary,
@@ -16,6 +18,21 @@ export const fetchRuleSet = (id: number) =>
 
 export const fetchRuleFeatures = () =>
   adminRequest<RuleFeature[]>("/rule-features");
+
+export const fetchRulePatternStatistics = (
+  patterns: RuleComponentInput[],
+  sampleSize = 1000,
+) =>
+  adminRequest<RulePatternStatistics>("/rule-pattern-statistics", {
+    method: "POST",
+    body: JSON.stringify({
+      sample_size: sampleSize,
+      patterns: patterns.map((pattern) => ({
+        component_key: pattern.component_key,
+        condition_expression: pattern.condition_expression,
+      })),
+    }),
+  });
 
 export const createRuleDraft = (sourceId?: number) =>
   adminRequest<RuleSet>("/rule-sets/drafts", {

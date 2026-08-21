@@ -56,6 +56,37 @@ export type RuleFeature = {
   source_fields: string[];
 };
 
+export type RulePatternValueCount = {
+  value: string | number | boolean;
+  count: number;
+  rate: number | null;
+};
+
+export type RulePatternFeatureStatistics = {
+  field: string;
+  value_type: "integer" | "number" | "boolean" | "enum";
+  value_count: number;
+  average: number | null;
+  median: number | null;
+  p90: number | null;
+  value_counts: RulePatternValueCount[];
+};
+
+export type RulePatternStatisticsItem = {
+  component_key: string;
+  matched_count: number;
+  matched_rate: number | null;
+  feature_statistics: RulePatternFeatureStatistics | null;
+};
+
+export type RulePatternStatistics = {
+  selection_basis: "LATEST_ML_POSITIVE";
+  requested_count: number;
+  sample_count: number;
+  has_more: boolean;
+  patterns: RulePatternStatisticsItem[];
+};
+
 export type RuleValidation = {
   rule_set_id: number;
   valid: boolean;
