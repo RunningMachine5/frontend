@@ -398,11 +398,11 @@ export function ModelRunPage() {
         <>
           <header className="run-detail-header">
             <div className="run-detail-identity">
-              <div>
-                <p className="admin-eyebrow">SELECTED TRAINING RUN</p>
+              <p className="admin-eyebrow">SELECTED TRAINING RUN</p>
+              <div className="run-detail-title-row">
                 <h2>Run #{run.id}{details?.model_version ? ` · model v${details.model_version}` : ""}</h2>
+                <em className={`status ${displayStatus?.toLowerCase()}`}>{displayStatus && STATUS_LABELS[displayStatus]}</em>
               </div>
-              <em className={`status ${displayStatus?.toLowerCase()}`}>{displayStatus && STATUS_LABELS[displayStatus]}</em>
             </div>
             <dl>
               <div><dt>데이터셋</dt><dd>{dataset?.version ?? `#${run.dataset_version_id}`}</dd></div>
