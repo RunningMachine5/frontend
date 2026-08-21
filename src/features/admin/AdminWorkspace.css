@@ -344,6 +344,10 @@
 :root[data-theme="light"] .admin-page .status.running,
 :root[data-theme="light"] .admin-page .status.requested,
 :root[data-theme="light"] .admin-page .status.promoting{background:rgb(185 111 46 / 10%);color:var(--ops-high)}
+:root[data-theme="light"] .training-progress-phases li{background:var(--ops-surface);color:var(--ops-text-muted)}
+:root[data-theme="light"] .training-progress-phases li.complete{border-color:rgb(46 107 75 / 30%);background:rgb(46 107 75 / 8%);color:var(--ops-low)}
+:root[data-theme="light"] .training-progress-phases li.active{border-color:var(--ops-focus);background:var(--ops-focus-soft);color:var(--ops-focus)}
+:root[data-theme="light"] .training-progress-phases li.error{border-color:rgb(184 62 72 / 38%);background:rgb(184 62 72 / 8%);color:var(--ops-critical)}
 
 :root[data-theme="light"] .version-list button,
 :root[data-theme="light"] .component-row,
