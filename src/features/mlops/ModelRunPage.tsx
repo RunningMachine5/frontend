@@ -21,7 +21,6 @@ import {
   metric,
   metricDeltaText,
   metricText,
-  recommendationLabel,
   STATUS_LABELS,
   trainingDisplayStatus,
   workflowForRun,
@@ -32,6 +31,7 @@ import {
   executeTrainingRun,
   fetchDatasets,
   fetchModelDetails,
+  fetchModelReview,
   fetchServingStatus,
   fetchTrainingExecution,
   fetchTrainingRun,
@@ -42,6 +42,7 @@ import {
 import type {
   DatasetVersion,
   ModelDetails,
+  ModelReview,
   ServingStatus,
   TrainingExecution,
   TrainingRun,
@@ -58,11 +59,15 @@ export function ModelRunPage() {
     (location.state as { executeTraining?: boolean } | null)?.executeTraining,
   );
   const executionRequestStarted = useRef(false);
+  const reviewRequestedRunId = useRef<number | null>(null);
   const [run, setRun] = useState<TrainingRun | null>(null);
   const [dataset, setDataset] = useState<DatasetVersion | null>(null);
   const [productionRun, setProductionRun] = useState<TrainingRun | null>(null);
   const [details, setDetails] = useState<ModelDetails | null>(null);
   const [productionDetails, setProductionDetails] = useState<ModelDetails | null>(null);
+  const [modelReview, setModelReview] = useState<ModelReview | null>(null);
+  const [modelReviewError, setModelReviewError] = useState<string | null>(null);
+  const [isModelReviewLoading, setIsModelReviewLoading] = useState(false);
   const [serving, setServing] = useState<ServingStatus | null>(null);
   const [execution, setExecution] = useState<TrainingExecution | null>(null);
   const [lastRefreshedAt, setLastRefreshedAt] = useState<Date | null>(null);
@@ -136,9 +141,43 @@ export function ModelRunPage() {
     }
   }, [load]);
 
+  const requestModelReview = useCallback(async (selectedRunId: number) => {
+    setIsModelReviewLoading(true);
+    setModelReviewError(null);
+    try {
+      setModelReview(await fetchModelReview(selectedRunId));
+    } catch (cause) {
+      setModelReview(null);
+      setModelReviewError(
+        cause instanceof Error
+          ? cause.message
+          : "AI 판단을 불러오지 못했습니다.",
+      );
+    } finally {
+      setIsModelReviewLoading(false);
+    }
+  }, []);
+
   useEffect(() => {
     void load(true);
   }, [load]);
+
+  useEffect(() => {
+    setModelReview(null);
+    setModelReviewError(null);
+    setIsModelReviewLoading(false);
+  }, [runId]);
+
+  useEffect(() => {
+    if (
+      run?.status !== "CANDIDATE"
+      || !details
+      || reviewRequestedRunId.current === run.id
+    ) return;
+
+    reviewRequestedRunId.current = run.id;
+    void requestModelReview(run.id);
+  }, [details, requestModelReview, run]);
 
   useEffect(() => {
     if (
@@ -271,6 +310,24 @@ export function ModelRunPage() {
         : trainingPhase === "starting"
           ? "실행 연결을 마쳤으며 학습 컨테이너가 시작되기를 기다리고 있습니다."
           : "모델 학습과 MLflow 등록이 진행 중입니다.";
+  const modelReviewLabel = modelReview?.decision === "RECOMMENDED"
+    ? "승격 추천"
+    : modelReview?.decision === "NOT_RECOMMENDED"
+      ? "승격 비추천"
+      : isModelReviewLoading
+        ? "판단 중…"
+        : modelReviewError
+          ? "판단 불가"
+          : run?.status === "CANDIDATE"
+            ? "판단 준비"
+            : isCurrentProduction
+              ? "운영 기준"
+              : "해당 없음";
+  const modelReviewTone = modelReview?.decision === "RECOMMENDED"
+    ? "recommended"
+    : modelReview?.decision === "NOT_RECOMMENDED"
+      ? "not-recommended"
+    : "pending";
 
   return (
     <ModelPageShell
@@ -306,7 +363,7 @@ export function ModelRunPage() {
               <div><dt>데이터셋</dt><dd>{dataset?.version ?? `#${run.dataset_version_id}`}</dd></div>
               <div><dt>학습 요청</dt><dd>{formatDate(run.created_at)}</dd></div>
               <div><dt>MLflow Run</dt><dd title={run.mlflow_run_id ?? undefined}>{run.mlflow_run_id?.slice(0, 14) ?? "—"}</dd></div>
-              <div><dt>추천</dt><dd>{recommendation}</dd></div>
+              <div><dt>AI 판단</dt><dd className={modelReviewTone}>{modelReviewLabel}</dd></div>
             </dl>
           </header>
 
@@ -327,7 +384,13 @@ export function ModelRunPage() {
                   <h2>후보 성능 비교</h2>
                   <small>{isCurrentProduction ? "현재 운영 모델의 기준 성능입니다." : "현재 운영 모델과 같은 검증 지표로 비교합니다."}</small>
                 </div>
-                {details && <em className="recommendation">{recommendation}</em>}
+                {details && (
+                  <em className={`recommendation ${modelReviewTone}`}>
+                    {run.status === "CANDIDATE"
+                      ? `AI 판단 · ${modelReviewLabel}`
+                      : modelReviewLabel}
+                  </em>
+                )}
               </div>
               <div aria-label="선택 모델과 운영 모델 성능 비교" className="model-comparison" role="table">
                 <div className="model-comparison-row model-comparison-header" role="row">
@@ -364,10 +427,39 @@ export function ModelRunPage() {
               {run.error_message && <div className="run-error-message"><strong>실패 원인</strong><span>{run.error_message}</span></div>}
 
               {run.status === "CANDIDATE" && (
-                <div className="run-action-buttons">
-                  <button className="admin-button danger-button" disabled={isBusy} onClick={() => void decide("REJECT")} type="button">후보 거절</button>
-                  <button className="admin-button primary" disabled={isBusy} onClick={() => void decide("APPROVE")} type="button">검증 후보로 승인</button>
-                </div>
+                <>
+                  <section
+                    aria-live="polite"
+                    className={`model-ai-review ${modelReviewTone}`}
+                  >
+                    <header>
+                      <span>AI 판단 근거</span>
+                      <em>{modelReviewLabel}</em>
+                    </header>
+                    {isModelReviewLoading ? (
+                      <div className="model-ai-review-loading">
+                        <i aria-hidden="true" />
+                        <p>후보와 운영 모델의 성능 차이를 검토하고 있습니다.</p>
+                      </div>
+                    ) : modelReview ? (
+                      <p>{modelReview.summary}</p>
+                    ) : (
+                      <div className="model-ai-review-error">
+                        <p>AI 판단을 불러오지 못했습니다. 성능 지표를 직접 확인하거나 다시 요청해 주세요.</p>
+                        <button
+                          onClick={() => void requestModelReview(run.id)}
+                          type="button"
+                        >
+                          다시 판단
+                        </button>
+                      </div>
+                    )}
+                  </section>
+                  <div className="run-action-buttons">
+                    <button className="admin-button danger-button" disabled={isBusy} onClick={() => void decide("REJECT")} type="button">후보 거절</button>
+                    <button className="admin-button primary" disabled={isBusy} onClick={() => void decide("APPROVE")} type="button">검증 후보로 승인</button>
+                  </div>
+                </>
               )}
 
               {["STAGED", "DEPLOYMENT_FAILED"].includes(run.status) && (
