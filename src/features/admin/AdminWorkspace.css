@@ -419,6 +419,14 @@
   .model-command-grid,.training-workspace,.run-detail-workspace,.monitoring-chart-grid,.labeling-workspace{overflow:visible}
   .labeling-queue-list{max-height:470px}
   .dataset-ledger-list{max-height:none}.run-detail-header{align-items:flex-start;flex-direction:column}.run-detail-header dl{width:100%}.monitoring-summary-grid{grid-template-columns:repeat(3,1fr)}.monitoring-freshness{grid-template-columns:1fr auto}.monitoring-freshness>p{grid-column:1/-1;grid-row:2;justify-content:flex-start}
+  /* 카드 폭을 확보해 순서 번호와 건수가 설명에 겹치지 않게 한다. */
+  .model-summary-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .model-summary-grid>a:last-child{grid-column:1/-1}
+}
+
+@media(max-width:960px){
+  .model-summary-grid{grid-template-columns:1fr}
+  .model-summary-grid>a:last-child{grid-column:auto}
 }
 
 @media(max-width:820px){
