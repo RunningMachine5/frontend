@@ -92,7 +92,7 @@
 
   .rule-section-nav{margin-bottom:8px}
   .rule-workspace{min-height:0;flex:1;grid-template-columns:200px minmax(500px,1fr) clamp(320px,20vw,350px);gap:8px}
-  .rule-edit-workspace{grid-template-columns:200px minmax(0,1fr)}
+  .rule-edit-workspace{grid-template-columns:232px minmax(0,1fr)}
   .rule-verify-workspace{min-height:0;flex:1;grid-template-columns:minmax(370px,.72fr) minmax(720px,1.7fr);gap:8px}
   .verify-control-panel,.replay-report-panel{min-height:0}
   .verify-control-panel,.replay-report-content{overflow-y:auto;scrollbar-gutter:stable}
