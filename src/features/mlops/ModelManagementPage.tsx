@@ -1,6 +1,6 @@
 // 모델 관리의 시작점: 현재 운영 모델과 다음에 처리할 업무만 요약한다.
 
-import { useCallback, useEffect, useState, type CSSProperties } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 
 import { AdminAlert } from "../admin/AdminAlert";
@@ -37,6 +37,7 @@ import type { TransactionLabelQueueSummary } from "./transactionLabelingTypes";
 
 const OVERVIEW_REFRESH_MS = 15_000;
 const numberFormat = new Intl.NumberFormat("ko-KR");
+const rateFormat = new Intl.NumberFormat("ko-KR", { maximumFractionDigits: 1 });
 const ACTION_RUNS_PER_PAGE = 4;
 
 interface ModelOverviewSnapshot {
@@ -228,6 +229,9 @@ export function ModelManagementPage() {
     currentActionPage * ACTION_RUNS_PER_PAGE,
   );
   const trafficPercent = latestRevisionTraffic(serving);
+  const inferenceRatePerMinute = inference && inference.window_minutes > 0
+    ? inference.inference_count / inference.window_minutes
+    : null;
   const latestRevision = resourceName(serving?.latest_ready_revision);
   const hasDisconnectedRun = Boolean(serving && trafficPercent > 0 && !productionRun);
   const confirmedLabelCount = labelSummary
@@ -295,19 +299,46 @@ export function ModelManagementPage() {
                 <div><dt>최근 추론</dt><dd>{inference?.latest_inference_at ? formatClock(inference.latest_inference_at) : inference ? "최근 5분 없음" : "—"}</dd></div>
               </dl>
             </div>
-            <div className="production-live-state">
-              <strong className={serving?.reconciling ? "accent" : serving ? "positive" : ""}>
-                {serving?.reconciling ? "모델 전환 중" : serving ? "추론 서버 연결" : "상태 확인 불가"}
-              </strong>
-              <div
-                aria-label={`새 모델 적용률 ${serving ? `${trafficPercent}%` : "확인 불가"}`}
-                className={`traffic-ring compact ${serving?.reconciling ? "changing" : ""}`}
-                role="img"
-                style={{ "--traffic": `${trafficPercent * 3.6}deg` } as CSSProperties}
-              >
-                <strong>{serving ? `${trafficPercent}%` : "—"}</strong>
-                <span>새 모델 적용률</span>
-              </div>
+            <div className={`production-live-state ${serving?.reconciling ? "changing" : ""}`}>
+              <header className="production-live-heading">
+                <span>{serving?.reconciling ? "MODEL RELEASE" : "LIVE THROUGHPUT"}</span>
+                <strong className={serving?.reconciling ? "accent" : serving ? "positive" : "danger"}>
+                  <i aria-hidden="true" />
+                  {serving?.reconciling ? "모델 전환 중" : serving ? "정상 운영" : "상태 확인 필요"}
+                </strong>
+              </header>
+              {serving?.reconciling ? (
+                <div className="production-live-metric">
+                  <span>새 모델 적용률</span>
+                  <strong>{trafficPercent}<small>%</small></strong>
+                  <div
+                    aria-label={`새 모델 적용률 ${trafficPercent}%`}
+                    aria-valuemax={100}
+                    aria-valuemin={0}
+                    aria-valuenow={trafficPercent}
+                    className="production-live-progress"
+                    role="progressbar"
+                  >
+                    <i style={{ width: `${trafficPercent}%` }} />
+                  </div>
+                  <p>새 모델로 요청을 전환하고 있습니다.</p>
+                </div>
+              ) : (
+                <div className="production-live-metric">
+                  <span>{inference ? `최근 ${inference.window_minutes}분 평균` : "최근 처리 속도"}</span>
+                  <strong>
+                    {inferenceRatePerMinute === null ? "—" : rateFormat.format(inferenceRatePerMinute)}
+                    <small>건/분</small>
+                  </strong>
+                  <p>
+                    {inference
+                      ? inference.inference_count > 0
+                        ? `${numberFormat.format(inference.inference_count)}건 요청 기준`
+                        : `최근 ${inference.window_minutes}분 동안 요청 없음`
+                      : "처리량 집계를 확인하고 있습니다."}
+                  </p>
+                </div>
+              )}
             </div>
           </div>
         </article>
