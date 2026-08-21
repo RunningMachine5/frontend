@@ -7,6 +7,7 @@ import {
   createRuleDraft,
   deleteRuleDraft,
   fetchRuleFeatures,
+  fetchRulePatternStatistics,
   fetchRuleSet,
   fetchRuleSets,
   replayRuleSet,
@@ -18,6 +19,7 @@ import type {
   RuleComponentInput,
   RuleExpression,
   RuleFeature,
+  RulePatternStatistics,
   RuleReplay,
   RuleSet,
   RuleSetSummary,
@@ -35,6 +37,10 @@ const REPLAY_SAMPLE_OPTIONS = [100, 300, 500, 1000];
 function formatDate(value: string | null) {
   if (!value) return "—";
   return new Intl.DateTimeFormat("ko-KR", { dateStyle: "medium" }).format(new Date(value));
+}
+
+function formatPercent(value: number | null) {
+  return value === null ? "—" : `${(value * 100).toFixed(1)}%`;
 }
 
 const numberFormat = new Intl.NumberFormat("ko-KR");
@@ -105,6 +111,7 @@ export function RuleManagementPage() {
   const [selectedRuleId, setSelectedRuleId] = useState<number | null>(null);
   const [editingRule, setEditingRule] = useState<FraudRule | null>(null);
   const [features, setFeatures] = useState<RuleFeature[]>([]);
+  const [patternStatistics, setPatternStatistics] = useState<RulePatternStatistics | null>(null);
   const [validation, setValidation] = useState<RuleValidation | null>(null);
   const [replay, setReplay] = useState<RuleReplay | null>(null);
   const [workspaceTab, setWorkspaceTab] = useState<WorkspaceTab>("edit");
@@ -125,6 +132,7 @@ export function RuleManagementPage() {
     );
     setValidation(null);
     setReplay(null);
+    setPatternStatistics(null);
   }, []);
 
   const refresh = useCallback(async () => {
@@ -168,6 +176,7 @@ export function RuleManagementPage() {
   useEffect(() => {
     const rule = selectedSet?.rules.find((item) => item.id === selectedRuleId) ?? null;
     setEditingRule(rule ? structuredClone(rule) : null);
+    setPatternStatistics(null);
   }, [selectedRuleId, selectedSet]);
 
   const activeSet = summaries.find((set) => set.status === "ACTIVE");
@@ -179,6 +188,12 @@ export function RuleManagementPage() {
     [features],
   );
   const componentTotal = editingRule?.components.reduce((sum, item) => sum + item.weight, 0) ?? 0;
+  const patternStatisticsByKey = useMemo(
+    () => new Map(
+      patternStatistics?.patterns.map((item) => [item.component_key, item]) ?? [],
+    ),
+    [patternStatistics],
+  );
   const runAction = async (action: () => Promise<void>) => {
     setIsBusy(true);
     setError(null);
@@ -215,6 +230,7 @@ export function RuleManagementPage() {
         { ...component, id, created_at: now, updated_at: now },
       ],
     } : current);
+    setPatternStatistics(null);
     setDialog(null);
   };
 
@@ -225,6 +241,7 @@ export function RuleManagementPage() {
         .filter((component) => component.id !== componentId)
         .map((component, index) => ({ ...component, sort_order: index })),
     } : current);
+    setPatternStatistics(null);
   };
 
   const saveCurrentRule = () => runAction(async () => {
@@ -375,53 +392,89 @@ export function RuleManagementPage() {
             <section className="admin-panel rule-editor">
               <div className="panel-title split">
                 <div><p className="admin-eyebrow">{selectedSet?.status ?? "RULE SET"} v{selectedSet?.version ?? "—"}</p><h2>사기유형별 패턴 편집</h2><small>사기유형은 고정하며 패턴과 가중치만 변경합니다. 합계는 유형별 1.000이어야 합니다.</small></div>
-                <button
-                  className="admin-button compact"
-                  disabled={!canEdit || !editingRule || isBusy}
-                  onClick={() => setDialog("pattern")}
-                  type="button"
-                >
-                  + 패턴 추가
-                </button>
+                <div className="pattern-editor-actions">
+                  <button
+                    className="admin-button compact"
+                    disabled={!editingRule?.components.length || isBusy}
+                    onClick={() => void runAction(async () => {
+                      if (editingRule) {
+                        setPatternStatistics(
+                          await fetchRulePatternStatistics(editingRule.components),
+                        );
+                      }
+                    })}
+                    type="button"
+                  >
+                    {patternStatistics ? "통계 다시 계산" : "표본 통계 계산"}
+                  </button>
+                  <button
+                    className="admin-button compact"
+                    disabled={!canEdit || !editingRule || isBusy}
+                    onClick={() => setDialog("pattern")}
+                    type="button"
+                  >
+                    + 패턴 추가
+                  </button>
+                </div>
               </div>
               <div aria-label="사기유형 선택" className="rule-tabs" role="tablist">
                 {selectedSet?.rules.map((rule) => <button aria-selected={selectedRuleId === rule.id} className={selectedRuleId === rule.id ? "active" : ""} key={rule.id} onClick={() => setSelectedRuleId(rule.id)} role="tab" type="button">{rule.display_name}</button>)}
               </div>
               <div className="component-list">
-                {editingRule?.components.map((component) => (
-                  <article className="component-row" key={component.id}>
-                    <div>
-                      <strong>{component.name}</strong>
-                      <p className="condition-summary">{formatExpression(component.condition_expression, featureByField)}</p>
-                    </div>
-                    <div className="component-controls">
-                      {canEdit && (
-                        <button
-                          className="component-remove-button"
-                          disabled={editingRule.components.length === 1}
-                          onClick={() => removePattern(component.id)}
-                          title={editingRule.components.length === 1 ? "유형에는 패턴이 하나 이상 필요합니다." : "이 패턴을 목록에서 제거합니다."}
-                          type="button"
-                        >
-                          삭제
-                        </button>
-                      )}
-                      <label>
-                        <span>가중치</span>
-                        <input
-                          disabled={!canEdit}
-                          max="1"
-                          min="0.001"
-                          onChange={(event) => updateWeight(component.id, Number(event.target.value))}
-                          step="0.01"
-                          type="number"
-                          value={component.weight}
-                        />
-                      </label>
-                    </div>
-                    <div className="weight-track"><i style={{ width: `${Math.min(component.weight * 100, 100)}%` }} /></div>
-                  </article>
-                ))}
+                {editingRule?.components.map((component) => {
+                  const statistics = patternStatisticsByKey.get(component.component_key);
+                  return (
+                    <article className="component-row" key={component.id}>
+                      <div className="component-description">
+                        <strong>{component.name}</strong>
+                        <span className="component-logic-label">적용 조건</span>
+                        <p className="condition-summary">{formatExpression(component.condition_expression, featureByField)}</p>
+                        {statistics ? (
+                          <div className="component-statistics">
+                            <span>
+                              {patternStatistics?.has_more
+                                ? `최신 ML 양성 ${patternStatistics.sample_count.toLocaleString("ko-KR")}건 기준`
+                                : `ML 양성 ${patternStatistics?.sample_count.toLocaleString("ko-KR")}건 전체 기준`}
+                            </span>
+                            <strong>
+                              조건 충족 {statistics.matched_count.toLocaleString("ko-KR")}건
+                              <em>{formatPercent(statistics.matched_rate)}</em>
+                            </strong>
+                            <i><b style={{ width: `${(statistics.matched_rate ?? 0) * 100}%` }} /></i>
+                          </div>
+                        ) : (
+                          <p className="component-statistics-empty">표본 통계를 계산하면 적용 범위를 표시합니다.</p>
+                        )}
+                      </div>
+                      <div className="component-controls">
+                        {canEdit && (
+                          <button
+                            className="component-remove-button"
+                            disabled={editingRule.components.length === 1}
+                            onClick={() => removePattern(component.id)}
+                            title={editingRule.components.length === 1 ? "유형에는 패턴이 하나 이상 필요합니다." : "이 패턴을 목록에서 제거합니다."}
+                            type="button"
+                          >
+                            삭제
+                          </button>
+                        )}
+                        <label>
+                          <span>가중치</span>
+                          <input
+                            disabled={!canEdit}
+                            max="1"
+                            min="0.001"
+                            onChange={(event) => updateWeight(component.id, Number(event.target.value))}
+                            step="0.01"
+                            type="number"
+                            value={component.weight}
+                          />
+                        </label>
+                      </div>
+                      <div className="weight-track"><i style={{ width: `${Math.min(component.weight * 100, 100)}%` }} /></div>
+                    </article>
+                  );
+                })}
               </div>
               <footer className="rule-total"><span>{editingRule?.display_name ?? "선택된 유형 없음"} 구성요소 합계</span><strong className={Math.abs(componentTotal - 1) < 0.0001 ? "positive" : "danger"}>{componentTotal.toFixed(3)} · {Math.abs(componentTotal - 1) < 0.0001 ? "정상" : "확인 필요"}</strong></footer>
               <div className="editor-actions"><small>{canEdit ? "추가·삭제는 저장 버튼을 누르기 전까지 서버에 반영되지 않습니다." : `${selectedSet?.status ?? "선택한"} 버전은 조회만 가능합니다.`}</small><button className="admin-button primary" disabled={!canEdit || isBusy || !editingRule} onClick={saveCurrentRule} type="button">DRAFT 패턴 저장</button></div>
