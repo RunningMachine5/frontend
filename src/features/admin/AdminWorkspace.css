@@ -439,7 +439,7 @@
   .production-command{padding:18px 20px;gap:12px}
   .training-workspace{flex:1}
   .dataset-ledger-list{grid-template-rows:repeat(3,minmax(0,1fr));align-content:stretch}
-  .run-detail-header{flex:0 0 80px;box-sizing:border-box}
+  .run-detail-header{flex:0 0 96px;box-sizing:border-box}
   .run-workflow-rail{flex:0 0 100px;padding:0}
   .run-workflow-rail .workflow-step{min-height:98px;padding:14px 17px;grid-template-columns:32px minmax(0,1fr);gap:10px}
   .run-workflow-rail .workflow-step>div{padding:0;gap:5px}
@@ -671,29 +671,34 @@
   .labeling-detail-grid dd,
   .signal-section li strong{font-size:14px}
 
-  /* Run 상세는 성능 비교와 승인 판단에 쓰이므로 다른 모델 관리 화면과 같은 크기로 읽히게 한다. */
-  .run-detail-identity h2{font-size:25px}
-  .run-detail-header dt{font-size:15px}
-  .run-detail-header dd{font-size:17px}
-  .run-workflow-rail .workflow-step small{font-size:15px}
-  .run-workflow-rail .workflow-step strong{font-size:16px}
-  .run-workflow-rail .workflow-step span{font-size:14px}
+  /* Run 상세는 학습·배포 화면의 작은 글자보다 작아지지 않도록 15px을 기준으로 맞춘다. */
+  .run-detail-header .admin-eyebrow,
+  .run-comparison-panel .admin-eyebrow,
+  .run-action-panel .admin-eyebrow{font-size:15px}
+  .run-detail-identity h2{font-size:28px}
+  .run-detail-identity .status{font-size:16px}
+  .run-detail-header dt{font-size:16px}
+  .run-detail-header dd{font-size:18px}
+  .run-workflow-rail .workflow-step small{font-size:16px}
+  .run-workflow-rail .workflow-step strong{font-size:17px}
+  .run-workflow-rail .workflow-step span{font-size:15px}
   .run-comparison-panel .panel-title h2,
-  .run-action-panel h2{font-size:24px}
-  .run-comparison-panel .model-comparison-row>strong{font-size:16px}
-  .run-comparison-panel .model-comparison-row>strong small{font-size:13px}
+  .run-action-panel h2{font-size:26px}
+  .run-comparison-panel .recommendation{font-size:15px}
+  .run-comparison-panel .model-comparison-row>strong{font-size:18px}
+  .run-comparison-panel .model-comparison-row>strong small{font-size:15px}
   .run-comparison-panel .model-comparison-row>span,
-  .run-comparison-panel .model-comparison-row>em{font-size:17px}
-  .run-comparison-panel .model-comparison-header>span{font-size:15px}
-  .run-action-guide{font-size:16px}
-  .model-ai-review header span{font-size:15px}
-  .model-ai-review header em{font-size:14px}
+  .run-comparison-panel .model-comparison-row>em{font-size:18px}
+  .run-comparison-panel .model-comparison-header>span{font-size:16px}
+  .run-action-guide{font-size:17px}
+  .model-ai-review header span{font-size:16px}
+  .model-ai-review header em{font-size:15px}
   .model-ai-review>p,
   .model-ai-review-error>p,
-  .model-ai-review-loading>p{font-size:16px;line-height:1.68}
-  .model-ai-review-error button{font-size:14px}
+  .model-ai-review-loading>p{font-size:17px;line-height:1.65}
+  .model-ai-review-error button{font-size:15px}
   .run-error-message strong,
-  .run-error-message span{font-size:14px}
+  .run-error-message span{font-size:15px}
   .automatic-smoke-card span{font-size:14px}
   .automatic-smoke-card strong{font-size:18px}
   .automatic-smoke-card p,
