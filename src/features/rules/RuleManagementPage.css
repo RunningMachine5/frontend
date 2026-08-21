@@ -48,6 +48,67 @@
   gap: 5px;
 }
 
+.pattern-editor-actions {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.component-logic-label {
+  display: block;
+  margin-top: 10px;
+  color: var(--ops-text-subtle);
+  font-size: 9px;
+  font-weight: 700;
+}
+
+.component-statistics,
+.component-statistics-empty {
+  margin: 10px 0 0;
+}
+
+.component-statistics {
+  display: grid;
+  gap: 5px;
+}
+
+.component-statistics > span,
+.component-statistics-empty {
+  color: var(--ops-text-subtle);
+  font-size: 9px;
+  line-height: 1.4;
+}
+
+.component-statistics > strong {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  color: var(--ops-text-muted);
+  font-size: 10px;
+}
+
+.component-statistics > strong em {
+  color: var(--ops-focus);
+  font-size: 14px;
+  font-style: normal;
+}
+
+.component-statistics > i {
+  height: 4px;
+  border-radius: 99px;
+  display: block;
+  overflow: hidden;
+  background: var(--ops-surface-sunken);
+}
+
+.component-statistics > i b {
+  height: 100%;
+  border-radius: inherit;
+  display: block;
+  background: var(--ops-focus);
+}
+
 .component-remove-button {
   min-height: 23px;
   padding: 0 7px;
@@ -60,7 +121,8 @@
 }
 
 .rule-pattern-dialog {
-  width: min(620px, 100%);
+  width: min(760px, 100%);
+  max-height: min(900px, calc(100vh - 48px));
 }
 
 .pattern-form-grid {
@@ -98,6 +160,145 @@
   border-radius: 9px;
   background: var(--ops-surface-sunken);
   color: var(--ops-text);
+}
+
+.pattern-statistics-panel {
+  padding: 14px;
+  border: 1px solid var(--ops-line);
+  border-radius: 10px;
+  display: grid;
+  gap: 11px;
+  background: var(--ops-surface-sunken);
+}
+
+.pattern-statistics-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.pattern-statistics-title > div {
+  display: grid;
+  gap: 3px;
+}
+
+.pattern-statistics-title span,
+.pattern-match-summary > span {
+  color: var(--ops-text-subtle);
+  font-size: 9px;
+}
+
+.pattern-statistics-title strong {
+  font-size: 13px;
+}
+
+.pattern-statistics-title .admin-button {
+  width: auto;
+}
+
+.pattern-statistics-empty,
+.pattern-statistics-error {
+  margin: 0;
+  padding: 13px;
+  border: 1px dashed var(--ops-line-strong);
+  border-radius: 8px;
+  color: var(--ops-text-muted);
+  font-size: 10px;
+  line-height: 1.5;
+  text-align: center;
+}
+
+.pattern-statistics-error {
+  border-color: color-mix(in srgb, var(--ops-critical) 45%, transparent);
+  color: var(--ops-critical);
+}
+
+.pattern-statistics-result {
+  display: grid;
+  gap: 10px;
+}
+
+.pattern-match-summary {
+  padding: 11px 12px;
+  border-left: 3px solid var(--ops-focus);
+  display: grid;
+  gap: 6px;
+  background: var(--ops-surface);
+}
+
+.pattern-match-summary strong {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 11px;
+}
+
+.pattern-match-summary em {
+  color: var(--ops-focus);
+  font-size: 18px;
+  font-style: normal;
+}
+
+.pattern-numeric-statistics {
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 7px;
+}
+
+.pattern-numeric-statistics > div {
+  padding: 10px;
+  border: 1px solid var(--ops-line);
+  border-radius: 8px;
+  background: var(--ops-surface);
+}
+
+.pattern-numeric-statistics dt {
+  color: var(--ops-text-subtle);
+  font-size: 9px;
+}
+
+.pattern-numeric-statistics dd {
+  margin: 5px 0 0;
+  color: var(--ops-text);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.pattern-category-statistics {
+  display: grid;
+  gap: 7px;
+}
+
+.pattern-category-statistics > div {
+  display: grid;
+  grid-template-columns: 90px minmax(80px, 1fr) 120px;
+  align-items: center;
+  gap: 8px;
+  color: var(--ops-text-muted);
+  font-size: 9px;
+}
+
+.pattern-category-statistics i {
+  height: 5px;
+  border-radius: 99px;
+  overflow: hidden;
+  background: var(--ops-surface);
+}
+
+.pattern-category-statistics b {
+  height: 100%;
+  border-radius: inherit;
+  display: block;
+  background: var(--ops-focus);
+}
+
+.pattern-category-statistics strong {
+  color: var(--ops-text);
+  font-size: 9px;
+  text-align: right;
 }
 
 .range-value-inputs {
@@ -156,6 +357,21 @@
     font-size: 11px;
   }
 
+  .component-logic-label,
+  .component-statistics > span,
+  .component-statistics-empty,
+  .pattern-statistics-title span,
+  .pattern-match-summary > span,
+  .pattern-numeric-statistics dt,
+  .pattern-category-statistics > div,
+  .pattern-category-statistics strong {
+    font-size: 11px;
+  }
+
+  .component-statistics > strong {
+    font-size: 12px;
+  }
+
   .pattern-form-grid label small,
   .pattern-value-field small,
   .pattern-save-guide {
@@ -172,5 +388,13 @@
 
   .pattern-form-grid .wide-field {
     grid-column: auto;
+  }
+
+  .pattern-statistics-panel {
+    grid-column: auto;
+  }
+
+  .pattern-category-statistics > div {
+    grid-template-columns: 72px minmax(60px, 1fr) 100px;
   }
 }
