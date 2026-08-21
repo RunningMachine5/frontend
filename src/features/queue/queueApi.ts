@@ -22,6 +22,9 @@ export async function fetchQueueRows(
   if (filters.ipAddress.trim()) {
     params.set("ip_address", filters.ipAddress.trim());
   }
+  filters.riskGrades.forEach((riskGrade) => {
+    params.append("risk_grades", riskGrade);
+  });
   appendDateTime(params, "period_start", filters.periodStart);
   appendDateTime(params, "period_end", filters.periodEnd);
 

@@ -16,6 +16,11 @@ export type RealtimeRiskPoint = {
 
 export type TimeInterval = "second" | "minute";
 
+function getEventTime(row: CaseListItem) {
+  // 이전 API 응답에는 received_at이 없으므로 실제 거래 시각을 함께 사용한다.
+  return row.received_at || row.transaction_datetime;
+}
+
 function formatTime(value: string | number, interval: TimeInterval) {
   return new Date(value).toLocaleTimeString("ko-KR", {
     hour: "2-digit",
@@ -40,20 +45,20 @@ export function buildRealtimeRiskPoints(
   const timeRows = [...rows]
     .sort(
       (left, right) =>
-        new Date(left.received_at).getTime() - new Date(right.received_at).getTime(),
+        new Date(getEventTime(left)).getTime() - new Date(getEventTime(right)).getTime(),
     )
     // 한 화면에는 최신 30건만 표시해 실제 시간 순서와 점을 읽기 쉽게 유지한다.
     .slice(-RECENT_POINT_LIMIT);
 
   return timeRows.map((row, index) => {
     const isLatest = index === timeRows.length - 1;
-    // 원본 거래 시각이 아니라 서버 수신 시각을 X축과 호버에 함께 사용한다.
-    const time = formatTime(row.received_at, interval);
+    const eventTime = getEventTime(row);
+    const time = formatTime(eventTime, interval);
 
     return {
       transactionId: row.transaction_id,
       timeLabel: isLatest ? `${time} 최신` : time,
-      dateTimeLabel: `${formatDate(row.received_at, true)} ${formatTime(row.received_at, "second")}`,
+      dateTimeLabel: `${formatDate(eventTime, true)} ${formatTime(eventTime, "second")}`,
       amount: row.transaction_amount,
       score: row.risk_score ?? 0,
       isLatest,

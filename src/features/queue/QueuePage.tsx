@@ -12,12 +12,15 @@ import "./QueuePage.css";
 
 const SELECTED_TRANSACTION_ID_KEY = "fds.selectedTransactionId";
 const PAGE_SIZE = 16;
-const EMPTY_FILTERS = {
+const EMPTY_FILTERS: Omit<QueueSearchFilters, "page"> = {
   transactionId: "",
   ipAddress: "",
+  riskGrades: [],
   periodStart: "",
   periodEnd: "",
 };
+
+const RISK_GRADE_OPTIONS = ["VERY_HIGH", "HIGH", "MEDIUM", "LOW"];
 
 function selectTransaction(transactionId: number) {
   sessionStorage.setItem(SELECTED_TRANSACTION_ID_KEY, String(transactionId));
@@ -213,6 +216,15 @@ export function QueuePage() {
     setFilters({ ...EMPTY_FILTERS, page: 1 });
   }
 
+  function toggleRiskGrade(riskGrade: string) {
+    setDraftFilters((current) => ({
+      ...current,
+      riskGrades: current.riskGrades.includes(riskGrade)
+        ? current.riskGrades.filter((grade) => grade !== riskGrade)
+        : [...current.riskGrades, riskGrade],
+    }));
+  }
+
   function movePage(page: number) {
     setFilters((current) => ({ ...current, page }));
   }
@@ -221,6 +233,21 @@ export function QueuePage() {
     <form className="queue-filter" onSubmit={submitSearch}>
       <label>거래 ID<input min="1" onChange={(event) => setDraftFilters((current) => ({ ...current, transactionId: event.target.value }))} placeholder="예: 1453" type="number" value={draftFilters.transactionId} /></label>
       <label>IP 주소<input onChange={(event) => setDraftFilters((current) => ({ ...current, ipAddress: event.target.value }))} placeholder="예: 203.0.113.10" value={draftFilters.ipAddress} /></label>
+      <fieldset className="queue-risk-grade-filter">
+        <legend>위험 등급</legend>
+        <div>
+          {RISK_GRADE_OPTIONS.map((riskGrade) => (
+            <label key={riskGrade}>
+              <input
+                checked={draftFilters.riskGrades.includes(riskGrade)}
+                onChange={() => toggleRiskGrade(riskGrade)}
+                type="checkbox"
+              />
+              {riskGrade.replace("_", " ")}
+            </label>
+          ))}
+        </div>
+      </fieldset>
       <label>시작 시각<input onChange={(event) => setDraftFilters((current) => ({ ...current, periodStart: event.target.value }))} step="1" type="datetime-local" value={draftFilters.periodStart} /></label>
       <label>종료 시각<input onChange={(event) => setDraftFilters((current) => ({ ...current, periodEnd: event.target.value }))} step="1" type="datetime-local" value={draftFilters.periodEnd} /></label>
       <div className="queue-filter-actions"><button type="button" onClick={resetSearch}>초기화</button><button type="submit">검색</button></div>
