@@ -161,7 +161,7 @@
   /* 상하 2단 독립 모니터링 그리드 */
   .dashboard-monitoring-grid{flex:1;min-height:0;display:flex;flex-direction:column;gap:8px}
 
-  /* 상단 행: 실시간 위험 거래(가로 대폭 확장) + 최근 7일 추이(가로 슬림하게 축소) */
+  /* 상단 행: 실시간 위험 거래 + HIGH · VERY_HIGH 우선 검토 거래 */
   .monitoring-top-row{height:41%;min-height:0;display:grid;grid-template-columns:minmax(0,1.85fr) minmax(280px,.92fr);gap:8px}
   
   /* 하단 행: AI 에이전트(가로 대폭 확장) + 우측 위험등급/채널(가로 슬림하게 축소) */
@@ -181,17 +181,10 @@
   .trend-stat-badge{font-size:12px}
   .time-interval-toggle button{font-size:11.5px}
 
-  /* 상단 우측: 최근 7일 의심 거래 (가로폭 슬림 & 상하 꽉 찬 배치) */
-  .suspicious-panel{justify-content:space-between}
-  .suspicious-amount strong{font-size:22px}
-  .suspicious-amount span{font-size:13px}
-  .suspicious-count-tag{font-size:14px}
-  .grade-legend-mini{font-size:11px}
-  .mini-bars-7days{flex:1;min-height:0;height:auto;padding-top:2px;border-bottom:1px solid #3c3c48}
-  .bar-count-label{font-size:11.5px}
-  .bar-count-label span{font-size:10px}
-  .bar-amount-label{font-size:11px}
-  .bar-date-label{font-size:11.5px}
+  /* 상단 우측: 좌측 그래프와 같은 실시간 선 그래프 */
+  .realtime-all-panel{justify-content:space-between}
+  .realtime-all-panel .panel-head{margin-bottom:0}
+  .realtime-all-panel .trend-chart-wrap{width:100%;flex:1;min-height:0;height:auto}
 
   /* 하단 우측 상단: 위험등급별 의심거래 (4개 등급 컴팩트 & 쾌적 배치) */
   .risk-panel{justify-content:space-between}
@@ -533,3 +526,20 @@
 :root[data-theme="light"] .increase-count-tag{color:var(--ops-high)}
 :root[data-theme="light"] .trend-stat-badge .score-text{color:var(--ops-critical)}
 :root[data-theme="light"] .agent-summary-head span{background:var(--ops-surface-raised);color:var(--ops-text-muted)}
+
+/* 홈을 계속 열어두지 않아도 최근 거래를 바로 확인할 수 있는 알림 영역 */
+.dashboard-live-alerts{position:relative;display:flex;align-items:flex-start;gap:8px;padding-top:6px}.dashboard-clock{display:grid;gap:2px;min-width:88px;padding:7px 10px;border:1px solid var(--ops-line);border-radius:3px;background:var(--ops-surface)}.dashboard-clock span{color:var(--ops-text-muted);font-size:10px}.dashboard-clock strong{font-size:13px;font-variant-numeric:tabular-nums}.dashboard-live-buttons{display:flex;gap:7px}.dashboard-live-button{min-width:118px;padding:7px 10px;border:1px solid var(--ops-line);border-radius:3px;background:var(--ops-surface);color:var(--ops-text);text-align:left;cursor:pointer}.dashboard-live-button span{display:block;font-size:10px}.dashboard-live-button strong{display:block;margin-top:3px;font-size:13px}.dashboard-live-button.normal strong{color:var(--ops-low)}.dashboard-live-button.fraud strong{color:var(--ops-critical)}.dashboard-live-button:hover,.dashboard-live-button.selected{border-color:var(--ops-focus);background:var(--ops-focus-soft)}.dashboard-live-button:focus-visible,.dashboard-live-popover button:focus-visible{outline:2px solid var(--ops-focus);outline-offset:2px}.dashboard-live-popover{position:absolute;top:58px;right:0;z-index:20;width:310px;padding:12px;border:1px solid var(--ops-focus);border-radius:3px;background:var(--ops-surface);box-shadow:0 14px 32px rgb(0 0 0 / 35%)}.dashboard-live-popover header{display:flex;align-items:center;justify-content:space-between;padding-bottom:8px;border-bottom:1px solid var(--ops-line)}.dashboard-live-popover header button{border:0;background:transparent;color:var(--ops-text-muted);font-size:20px;line-height:1;cursor:pointer}.dashboard-live-popover ul{display:grid;gap:6px;margin:9px 0 0;padding:0;list-style:none}.dashboard-live-popover li{display:grid;grid-template-columns:1fr auto auto;gap:9px;align-items:center;color:var(--ops-text);font-size:12px}.dashboard-live-popover time{color:var(--ops-text-muted);font-variant-numeric:tabular-nums}.dashboard-live-popover a{color:#b9c9f4;font-weight:600}.dashboard-live-popover p{margin:10px 0 2px;color:var(--ops-text-muted);font-size:12px}
+@media (max-width:960px){.dashboard-header{align-items:flex-start;flex-direction:column;padding-bottom:16px}.dashboard-live-alerts{padding-top:0}.dashboard-live-popover{right:auto;left:0}}
+
+.metric-grid{grid-template-columns:repeat(4,minmax(0,1fr))}.dashboard-live-alerts{align-items:center}.dashboard-clock{display:block;min-width:0;padding:0;border:0;border-radius:0;background:transparent}.dashboard-clock span{display:block;font-size:11px}.dashboard-clock strong{display:block;margin-top:2px;font-size:36px;line-height:1;font-variant-numeric:tabular-nums}.dashboard-live-button{display:grid;min-width:270px;min-height:80px;place-items:center;padding:12px 20px;background:#28714f;border-color:#55aa7c;color:#fff;text-align:center}.dashboard-live-button span{font-size:32px;font-weight:800;line-height:1}.dashboard-live-button.fraud.unacknowledged{border-color:#e45b63;background:#a4323b;box-shadow:0 0 0 2px rgb(228 91 100 / 18%)}.dashboard-live-button:hover,.dashboard-live-button.selected{border-color:#c6dff1;background:#236345}.dashboard-live-button.fraud.unacknowledged:hover,.dashboard-live-button.fraud.unacknowledged.selected{border-color:#ffd1d4;background:#8a2730}
+@media(max-width:960px){.metric-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.dashboard-live-alerts{align-items:flex-start}}
+@media(max-width:560px){.metric-grid{grid-template-columns:1fr}.dashboard-clock strong{font-size:30px}}
+
+.metric-card-link{display:block;min-width:0}.metric-card-link .metric-card{height:100%}.metric-card-link[href]{cursor:pointer}.metric-card-link[href]:hover .metric-card{border-color:var(--ops-focus);background:var(--ops-focus-soft)}.metric-card-link[href]:focus-visible{outline:2px solid var(--ops-focus);outline-offset:3px}
+
+/* 좌측 그래프와 같은 선 그래프를 쓰되 HIGH · VERY_HIGH 범위만 보여 준다. */
+.realtime-all-panel{display:flex;min-height:0;flex-direction:column}.realtime-all-panel .panel-head{align-items:flex-start}.realtime-all-meta{display:flex;align-items:flex-end;gap:6px;flex-direction:column}
+@media(max-width:1080px){.realtime-all-panel .panel-head{flex-wrap:wrap}.realtime-all-meta{align-items:flex-start}}
+
+/* SSE 수신 후 실제 데이터를 다시 읽었을 때만 짧게 강조한다. */
+.live-green-dot{animation:none}

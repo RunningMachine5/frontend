@@ -16,14 +16,32 @@ const EMPTY_FILTERS: Omit<QueueSearchFilters, "page"> = {
   transactionId: "",
   ipAddress: "",
   riskGrades: [],
+  reviewStatuses: [],
   periodStart: "",
   periodEnd: "",
 };
 
 const RISK_GRADE_OPTIONS = ["VERY_HIGH", "HIGH", "MEDIUM", "LOW"];
+const REVIEW_STATUS_OPTIONS = [
+  ["COMPLETED", "처리 완료"],
+  ["NEEDS_ACTION", "처리 필요"],
+] as const;
+
+function getInitialFilters(): Omit<QueueSearchFilters, "page"> {
+  const query = new URLSearchParams(window.location.hash.split("?")[1]);
+  const riskGrades = (query.get("risk_grades") ?? "")
+    .split(",")
+    .filter((riskGrade) => RISK_GRADE_OPTIONS.includes(riskGrade));
+
+  return { ...EMPTY_FILTERS, riskGrades };
+}
 
 function selectTransaction(transactionId: number) {
   sessionStorage.setItem(SELECTED_TRANSACTION_ID_KEY, String(transactionId));
+}
+
+function caseLink(transactionId: number) {
+  return `#case?transaction_id=${transactionId}`;
 }
 
 function formatDateTime(value: string) {
@@ -51,6 +69,7 @@ function fraudTypeLabel(value: string | null, executionStatus: string) {
     ACCOUNT_TAKEOVER: "계정 탈취",
     FRAUD_USED_ACCOUNT: "사기 이용 계좌",
     MESSENGER_PHISHING: "메신저피싱",
+    UNCLASSIFIED: "유형 미분류",
   };
   return labels[value] ?? value.replaceAll("_", " ");
 }
@@ -143,7 +162,10 @@ function MobileCaseList({ rows, startIndex }: { rows: CaseListItem[]; startIndex
         <div><dt>예상 사기유형</dt><dd>{fraudTypeLabel(row.primary_fraud_type, row.execution_status)}</dd></div>
         <div><dt>상태</dt><dd>{reviewStatus(row.review_status)}</dd></div>
       </dl>
-      <a className="queue-mobile-detail" href="#case" onClick={() => selectTransaction(row.transaction_id)}>상세 분석</a>
+      <div className="queue-mobile-actions">
+        <a className="queue-mobile-detail" href={caseLink(row.transaction_id)} onClick={() => selectTransaction(row.transaction_id)}>상세 분석</a>
+        <a className="queue-mobile-detail secondary" href={caseLink(row.transaction_id)} rel="noreferrer" target="_blank">새 탭</a>
+      </div>
     </article>)}
   </div>;
 }
@@ -185,7 +207,12 @@ function CaseTableSection({
             <td>{row.risk_score ?? "데이터 없음"}</td>
             <td>{fraudTypeLabel(row.primary_fraud_type, row.execution_status)}</td>
             <td>{reviewStatus(row.review_status)}</td>
-            <td><a className="queue-detail" href="#case" onClick={() => selectTransaction(row.transaction_id)}>보기</a></td>
+            <td>
+              <div className="queue-detail-actions">
+                <a className="queue-detail" href={caseLink(row.transaction_id)} onClick={() => selectTransaction(row.transaction_id)}>보기</a>
+                <a className="queue-detail" href={caseLink(row.transaction_id)} rel="noreferrer" target="_blank">새 탭</a>
+              </div>
+            </td>
           </tr>
         ))}
       </tbody>
@@ -195,8 +222,8 @@ function CaseTableSection({
 }
 
 export function QueuePage() {
-  const [draftFilters, setDraftFilters] = useState(EMPTY_FILTERS);
-  const [filters, setFilters] = useState<QueueSearchFilters>({ ...EMPTY_FILTERS, page: 1 });
+  const [draftFilters, setDraftFilters] = useState(getInitialFilters);
+  const [filters, setFilters] = useState<QueueSearchFilters>(() => ({ ...getInitialFilters(), page: 1 }));
   const pageSize = PAGE_SIZE;
   const { rows, trendRows, totalCount, isLoading, errorMessage } = useQueue(filters, pageSize);
   const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
@@ -225,6 +252,15 @@ export function QueuePage() {
     }));
   }
 
+  function toggleReviewStatus(reviewStatus: string) {
+    setDraftFilters((current) => ({
+      ...current,
+      reviewStatuses: current.reviewStatuses.includes(reviewStatus)
+        ? current.reviewStatuses.filter((status) => status !== reviewStatus)
+        : [...current.reviewStatuses, reviewStatus],
+    }));
+  }
+
   function movePage(page: number) {
     setFilters((current) => ({ ...current, page }));
   }
@@ -244,6 +280,21 @@ export function QueuePage() {
                 type="checkbox"
               />
               {riskGrade.replace("_", " ")}
+            </label>
+          ))}
+        </div>
+      </fieldset>
+      <fieldset className="queue-risk-grade-filter queue-review-status-filter">
+        <legend>처리 상태</legend>
+        <div>
+          {REVIEW_STATUS_OPTIONS.map(([reviewStatus, label]) => (
+            <label key={reviewStatus}>
+              <input
+                checked={draftFilters.reviewStatuses.includes(reviewStatus)}
+                onChange={() => toggleReviewStatus(reviewStatus)}
+                type="checkbox"
+              />
+              {label}
             </label>
           ))}
         </div>

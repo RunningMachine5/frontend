@@ -1,13 +1,13 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { AppLayout } from "../../components/layout/AppLayout";
 import { PageHeading } from "../../components/layout/PageHeading";
 import { AgentInsightPanel } from "./components/AgentInsightPanel";
+import { AllTransactionTrendPanel } from "./components/AllTransactionTrendPanel";
 import { ChannelDistributionPanel } from "./components/ChannelDistributionPanel";
 import { DashboardSummaryCards } from "./components/DashboardSummaryCards";
 import { HighRiskTrendPanel } from "./components/HighRiskTrendPanel";
 import { RiskGradeDistributionPanel } from "./components/RiskGradeDistributionPanel";
-import { formatCompactMoney } from "./dashboardFormatters";
-import type { PriorityTrendPoint, SuspiciousTrendPoint } from "./dashboardOverviewTypes";
+import type { RecentTransaction } from "./dashboardOverviewTypes";
 import { useDashboardOverview } from "./useDashboardOverview";
 import "./DashboardPage.css";
 
@@ -25,108 +25,90 @@ function getCurrentDashboardPeriod() {
 }
 
 const CURRENT_PERIOD = getCurrentDashboardPeriod();
+const LAST_ACKNOWLEDGED_FRAUD_KEY = "fds.lastAcknowledgedFraudTransaction";
 
-function SuspiciousTrendPanel({
-  points,
-  priorityPoints = [],
-}: {
-  points: SuspiciousTrendPoint[];
-  priorityPoints?: PriorityTrendPoint[];
-}) {
-  const maxCount = Math.max(...points.map((point) => point.suspicious_count), 1);
-  const totalAmount = points.reduce((sum, point) => sum + point.suspicious_amount, 0);
-  const totalCount = points.reduce((sum, point) => sum + point.suspicious_count, 0);
+function formatLiveTime(value: string) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "시간 정보 없음";
 
-  // 날짜별 우선순위(위험등급) 맵
-  const priorityMap = new Map(priorityPoints.map((p) => [p.date, p]));
+  return date.toLocaleTimeString("ko-KR", {
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+  });
+}
+
+function getReceivedTime(transaction: RecentTransaction) {
+  return transaction.received_at || transaction.created_at;
+}
+
+function LiveTransactionAlerts({ transactions }: { transactions: RecentTransaction[] }) {
+  const [currentTime, setCurrentTime] = useState(() => new Date());
+  const [isFraudAlertOpen, setIsFraudAlertOpen] = useState(false);
+  const [hasUnacknowledgedFraud, setHasUnacknowledgedFraud] = useState(false);
+
+  useEffect(() => {
+    const timer = window.setInterval(() => setCurrentTime(new Date()), 1_000);
+    return () => window.clearInterval(timer);
+  }, []);
+
+  const fraudTransactions = transactions.filter((transaction) => transaction.predict_result === true);
+  const latestFraudTransaction = fraudTransactions[0];
+  const latestFraudKey = latestFraudTransaction
+    ? `${latestFraudTransaction.transaction_id}:${getReceivedTime(latestFraudTransaction)}`
+    : null;
+
+  useEffect(() => {
+    if (latestFraudKey && localStorage.getItem(LAST_ACKNOWLEDGED_FRAUD_KEY) !== latestFraudKey) {
+      setHasUnacknowledgedFraud(true);
+    }
+  }, [latestFraudKey]);
+
+  function openFraudAlert() {
+    setIsFraudAlertOpen((current) => !current);
+    if (latestFraudKey) {
+      localStorage.setItem(LAST_ACKNOWLEDGED_FRAUD_KEY, latestFraudKey);
+      setHasUnacknowledgedFraud(false);
+    }
+  }
 
   return (
-    <article className="panel suspicious-panel">
-      <div className="panel-head">
-        <div>
-          <h2>최근 7일 의심 거래 추이</h2>
-          <p className="panel-caption">각 날짜별 의심 건수와 의심 금액을 함께 확인합니다</p>
-        </div>
-        <div className="suspicious-panel-meta">
-          <div className="grade-legend-mini" title="위험 등급: 심각(레드), 경고(오렌지), 주의(퍼플)">
-            <span className="grade-legend-item"><i className="dot-critical" /> 심각</span>
-            <span className="grade-legend-item"><i className="dot-high" /> 경고</span>
-            <span className="grade-legend-item"><i className="dot-medium" /> 주의</span>
-          </div>
-          <div className="suspicious-amount">
-            <span>7일 합계</span>
-            <strong>{formatCompactMoney(totalAmount)}</strong>
-            <small className="suspicious-count-tag">({totalCount}건)</small>
-          </div>
-        </div>
+    <div className="dashboard-live-alerts">
+      <time className="dashboard-clock" dateTime={currentTime.toISOString()}>
+        <span>현재 시각</span>
+        <strong>{formatLiveTime(currentTime.toISOString())}</strong>
+      </time>
+      <div className="dashboard-live-buttons" aria-label="최근 거래 알림">
+        <button
+          aria-expanded={isFraudAlertOpen}
+          aria-label={hasUnacknowledgedFraud ? "이상 거래 발생: 최근 사기 의심 거래 목록 보기" : "정상: 최근 사기 의심 거래 목록 보기"}
+          className={`dashboard-live-button fraud ${hasUnacknowledgedFraud ? "unacknowledged" : ""} ${isFraudAlertOpen ? "selected" : ""}`}
+          onClick={openFraudAlert}
+          type="button"
+        >
+          <span>{hasUnacknowledgedFraud ? "이상 거래 발생" : "정상"}</span>
+        </button>
       </div>
-      <div className="mini-bars-7days">
-        {points.map((point) => {
-          const heightPercent = Math.max((point.suspicious_count / maxCount) * 100, 8);
-          const pri = priorityMap.get(point.date);
-
-          // 위험 등급별 건수 계산
-          const veryHigh = pri?.very_high_count ?? 0;
-          const high = pri?.high_count ?? 0;
-          const totalPriority = pri?.total_count ?? (veryHigh + high);
-          const medium = Math.max(0, point.suspicious_count - totalPriority);
-
-          const totalDayCount = point.suspicious_count > 0 ? point.suspicious_count : 1;
-          const veryHighPct = (veryHigh / totalDayCount) * 100;
-          const highPct = (high / totalDayCount) * 100;
-          const mediumPct = (medium / totalDayCount) * 100;
-
-          const tooltip = `${point.date} 의심 ${point.suspicious_count}건 (${formatCompactMoney(point.suspicious_amount)})\n- 심각: ${veryHigh}건\n- 경고: ${high}건\n- 주의: ${medium}건`;
-
-          return (
-            <div className="mini-bar-col-7days" key={point.date} title={tooltip}>
-              <div className="bar-count-label">
-                <strong>{point.suspicious_count}</strong>
-                <span>건</span>
-              </div>
-              <div className="mini-bar-track-7days">
-                <div
-                  className="mini-bar-fill-7days stacked-bar-7days"
-                  style={{ height: `${heightPercent}%` }}
-                >
-                  {veryHigh > 0 && (
-                    <span
-                      className="stack-segment segment-critical"
-                      style={{ height: `${veryHighPct}%` }}
-                      title={`심각: ${veryHigh}건`}
-                    />
-                  )}
-                  {high > 0 && (
-                    <span
-                      className="stack-segment segment-high"
-                      style={{ height: `${highPct}%` }}
-                      title={`경고: ${high}건`}
-                    />
-                  )}
-                  {medium > 0 && (
-                    <span
-                      className="stack-segment segment-medium"
-                      style={{ height: `${mediumPct}%` }}
-                      title={`주의: ${medium}건`}
-                    />
-                  )}
-                  {veryHigh === 0 && high === 0 && medium === 0 && (
-                    <span
-                      className="stack-segment segment-medium"
-                      style={{ height: "100%" }}
-                    />
-                  )}
-                </div>
-              </div>
-              <span className="bar-amount-label">
-                {formatCompactMoney(point.suspicious_amount)}
-              </span>
-              <span className="bar-date-label">{point.date}</span>
-            </div>
-          );
-        })}
-      </div>
-    </article>
+      {isFraudAlertOpen && (
+        <section className="dashboard-live-popover" aria-live="polite">
+          <header>
+            <strong>최근 사기 의심 거래</strong>
+            <button aria-label="최근 거래 알림 닫기" onClick={() => setIsFraudAlertOpen(false)} type="button">×</button>
+          </header>
+          {fraudTransactions.length > 0 ? (
+            <ul>
+              {fraudTransactions.slice(0, 5).map((transaction) => (
+                <li key={transaction.transaction_id}>
+                  <span>TX-{transaction.transaction_id}</span>
+                  <time>{formatLiveTime(getReceivedTime(transaction))}</time>
+                  <a href={`#case?transaction_id=${transaction.transaction_id}`}>상세 분석</a>
+                </li>
+              ))}
+            </ul>
+          ) : <p>최근 수신된 거래가 없습니다.</p>}
+        </section>
+      )}
+    </div>
   );
 }
 
@@ -135,6 +117,7 @@ export function DashboardPage() {
   const {
     data,
     realtimeRiskRows,
+    recentTransactions,
     isLoading,
     errorMessage,
     isRefreshingInsight,
@@ -170,20 +153,18 @@ export function DashboardPage() {
       <div className="dashboard-content" id="main">
         <header className="app-page-header dashboard-header">
           <PageHeading eyebrow="FRAUD MONITORING" title="이상거래 감시" />
+          <LiveTransactionAlerts transactions={recentTransactions} />
         </header>
         {errorMessage && <p className="refresh-error">최근 갱신 실패: {errorMessage}</p>}
 
         <DashboardSummaryCards summary={data.summary} />
         <section className="dashboard-monitoring-grid">
-          {/* 상단 행: 실시간 위험 거래(넓게) + 최근 7일 추이(좁게) */}
+          {/* 상단 행: 사기 의심 거래 + 정상 거래를 포함한 전체 거래 */}
           <div className="monitoring-top-row">
             <HighRiskTrendPanel
               rows={realtimeRiskRows}
             />
-            <SuspiciousTrendPanel
-              points={data.suspicious_trend}
-              priorityPoints={data.priority_trend}
-            />
+            <AllTransactionTrendPanel transactions={recentTransactions} />
           </div>
 
           {/* 하단 행: AI 에이전트(좁게) + 위험등급별 & 채널별(넓게) */}

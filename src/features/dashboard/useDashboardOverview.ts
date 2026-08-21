@@ -4,10 +4,11 @@ import { useEffect, useState } from "react";
 
 import {
     fetchDashboardOverview,
+    fetchRecentTransactions,
     generateDashboardInsight,
     type DashOverviewParams,
 } from "./DashboardOverviewApi";
-import type { DashboardOverviewResponse } from "./dashboardOverviewTypes";
+import type { DashboardOverviewResponse, RecentTransaction } from "./dashboardOverviewTypes";
 import { fetchQueueRows } from "../queue/queueApi";
 import type { CaseListItem } from "../queue/queueTypes";
 
@@ -17,6 +18,7 @@ const REALTIME_RISK_FILTERS = {
     transactionId: "",
     ipAddress: "",
     riskGrades: [],
+    reviewStatuses: [],
     periodStart: "",
     periodEnd: "",
     page: 1,
@@ -25,6 +27,7 @@ const REALTIME_RISK_FILTERS = {
 export function useDashboardOverview(params: DashOverviewParams){
     const [data, setData] = useState<DashboardOverviewResponse | null>(null);
     const [realtimeRiskRows, setRealtimeRiskRows] = useState<CaseListItem[]>([]);
+    const [recentTransactions, setRecentTransactions] = useState<RecentTransaction[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
@@ -36,13 +39,14 @@ export function useDashboardOverview(params: DashOverviewParams){
 
         async function loadOverview(generateIfMissing = false){
             try {
-                const [overview, riskRows] = await Promise.all([
+                const [overview, riskRows, recentTransactions] = await Promise.all([
                     fetchDashboardOverview(params),
                     fetchQueueRows(
                         REALTIME_RISK_FILTERS,
                         REALTIME_RISK_PAGE_SIZE,
                         "received_at",
                     ),
+                    fetchRecentTransactions(),
                 ]);
 
                 if (!isActive) {
@@ -51,6 +55,7 @@ export function useDashboardOverview(params: DashOverviewParams){
 
                 setData(overview);
                 setRealtimeRiskRows(riskRows.items);
+                setRecentTransactions(recentTransactions);
                 setErrorMessage(null);
 
                 // 첫 조회에 해당 기간 요약이 없을 때만 한 번 생성한다.
@@ -151,6 +156,7 @@ export function useDashboardOverview(params: DashOverviewParams){
     return {
         data,
         realtimeRiskRows,
+        recentTransactions,
         isLoading,
         errorMessage,
         isRefreshingInsight,
