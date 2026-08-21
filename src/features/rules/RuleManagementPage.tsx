@@ -301,7 +301,7 @@ export function RuleManagementPage() {
                 setNotice(`${sourceName}에서 DRAFT v${created.version}을 만들었습니다.`);
               })}
               type="button"
-            >새 DRAFT 만들기</button>
+            >새 초안 만들기</button>
           </div>
         </header>
 
