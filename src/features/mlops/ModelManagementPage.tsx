@@ -245,11 +245,11 @@ export function ModelManagementPage() {
   const productionTitle = productionDetails?.model_version
     ? `운영 모델 v${productionDetails.model_version}`
     : productionRun?.model_key ?? (hasDisconnectedRun ? "운영 Run 미연결" : "운영 모델 없음");
-  let productionDescription = "운영 모델과 Serving 연결 상태를 확인하세요.";
+  let productionDescription = "운영 모델과 추론 서버 연결 상태를 확인하세요.";
   if (productionRun) {
-    productionDescription = "현재 거래 트래픽을 받는 모델과 Serving 연결 상태입니다.";
+    productionDescription = "현재 거래를 처리하는 모델과 추론 서버 연결 상태입니다.";
   } else if (serving) {
-    productionDescription = "Serving은 연결됐지만 운영 트래픽을 받는 Run이 없습니다.";
+    productionDescription = "추론 서버는 연결됐지만 현재 운영 중인 Run이 없습니다.";
   }
   if (hasDisconnectedRun) {
     productionDescription = "Cloud Run은 트래픽을 처리 중이지만 Backend 운영 Run 연결 정보가 없습니다.";
@@ -284,7 +284,7 @@ export function ModelManagementPage() {
           <div className="production-overview">
             <div className="production-overview-copy">
               <div className="production-command-main">
-                <span>{productionRun ? `Backend Run #${productionRun.id}` : serving ? "Cloud Run Serving" : "배포 대기"}</span>
+                <span>{productionRun ? `Backend Run #${productionRun.id}` : serving ? "ML 추론 서버" : "배포 대기"}</span>
                 <h2>{productionTitle}</h2>
                 <p>{productionDescription}</p>
               </div>
@@ -297,16 +297,16 @@ export function ModelManagementPage() {
             </div>
             <div className="production-live-state">
               <strong className={serving?.reconciling ? "accent" : serving ? "positive" : ""}>
-                {serving?.reconciling ? "트래픽 전환 중" : serving ? "Serving 연결" : "상태 확인 불가"}
+                {serving?.reconciling ? "모델 전환 중" : serving ? "추론 서버 연결" : "상태 확인 불가"}
               </strong>
               <div
-                aria-label={`Ready 리비전 운영 트래픽 ${serving ? `${trafficPercent}%` : "확인 불가"}`}
+                aria-label={`새 모델 적용률 ${serving ? `${trafficPercent}%` : "확인 불가"}`}
                 className={`traffic-ring compact ${serving?.reconciling ? "changing" : ""}`}
                 role="img"
                 style={{ "--traffic": `${trafficPercent * 3.6}deg` } as CSSProperties}
               >
                 <strong>{serving ? `${trafficPercent}%` : "—"}</strong>
-                <span>Ready 트래픽</span>
+                <span>새 모델 적용률</span>
               </div>
             </div>
           </div>
@@ -395,7 +395,7 @@ export function ModelManagementPage() {
             </li>
             <li>
               <i>3</i>
-              <div><span>운영 전환</span><small>{productionRun ? `Ready 트래픽 ${trafficPercent}%` : "후보 검토 후 배포"}</small></div>
+              <div><span>운영 전환</span><small>{productionRun ? `새 모델 적용률 ${trafficPercent}%` : "후보 검토 후 배포"}</small></div>
               <strong>{productionRun ? `Run #${productionRun.id}` : latestDatasetLabelCount === null ? "—" : `${numberFormat.format(latestDatasetLabelCount)} 라벨`}</strong>
             </li>
           </ol>
@@ -421,7 +421,7 @@ export function ModelManagementPage() {
             </li>
             <li>
               <i className={serving?.reconciling ? "accent" : serving ? "positive" : "danger"} />
-              <div><span>Cloud Run Serving</span><small>Ready 트래픽 {serving ? `${trafficPercent}%` : "—"}</small></div>
+              <div><span>ML 추론 서버</span><small>새 모델 적용률 {serving ? `${trafficPercent}%` : "—"}</small></div>
               <strong className={serving?.reconciling ? "accent" : serving ? "positive" : "danger"}>{serving?.reconciling ? "전환 중" : serving ? "연결" : "확인 필요"}</strong>
             </li>
             <li>
