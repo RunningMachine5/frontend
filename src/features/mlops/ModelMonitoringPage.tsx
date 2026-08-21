@@ -179,9 +179,9 @@ export function ModelMonitoringPage() {
   const servingSummary = servingMonitoring?.summary;
   const trainingSummary = trainingMonitoring?.summary;
   const platformSummary = platformMonitoring?.summary;
-  const mlflowLatency = platformMonitoring?.dependencies.mlflow_latency_ms;
+  const mlflowLatency = platformMonitoring?.dependencies?.mlflow_latency_ms;
   const certificateDays = platformMonitoring?.dependencies
-    .https_certificate_days_remaining;
+    ?.https_certificate_days_remaining;
   const certificateTone = certificateDays === null || certificateDays === undefined
     ? "negative"
     : certificateDays < 14
@@ -421,7 +421,7 @@ export function ModelMonitoringPage() {
               value={platformSummary?.analysis_completed_count?.toLocaleString("ko-KR") ?? "—"}
             />
             <SummaryCard
-              description={`${formatDate(platformMonitoring?.dependencies.https_certificate_expires_at ?? null)} 만료`}
+              description={`${formatDate(platformMonitoring?.dependencies?.https_certificate_expires_at ?? null)} 만료`}
               label="HTTPS 인증서"
               tone={certificateTone}
               unit={certificateDays === null || certificateDays === undefined ? undefined : "일"}

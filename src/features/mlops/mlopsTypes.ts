@@ -198,7 +198,7 @@ export type PlatformMonitoring = {
     normal_analysis_count: MonitoringPoint[];
     fraud_analysis_count: MonitoringPoint[];
   };
-  dependencies: {
+  dependencies?: {
     mlflow_latency_ms: number | null;
     https_certificate_expires_at: string | null;
     https_certificate_days_remaining: number | null;
