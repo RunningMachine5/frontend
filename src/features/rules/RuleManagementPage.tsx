@@ -24,6 +24,7 @@ import type {
 } from "./ruleTypes";
 import { RuleReplayReport, RuleReplaySummary } from "./RuleReplayReport";
 import "../admin/AdminWorkspace.css";
+import "./RuleManagementPage.css";
 
 type WorkspaceTab = "edit" | "verify";
 
@@ -97,6 +98,7 @@ function formatExpression(
 
 export function RuleManagementPage() {
   const [summaries, setSummaries] = useState<RuleSetSummary[]>([]);
+  const [draftSourceId, setDraftSourceId] = useState<number | null>(null);
   const [selectedSet, setSelectedSet] = useState<RuleSet | null>(null);
   const [selectedRuleId, setSelectedRuleId] = useState<number | null>(null);
   const [editingRule, setEditingRule] = useState<FraudRule | null>(null);
@@ -131,6 +133,14 @@ export function RuleManagementPage() {
       ]);
       setSummaries(sets);
       setFeatures(ruleFeatures);
+      setDraftSourceId((current) => {
+        const availableSources = sets.filter((set) => set.status !== "DRAFT");
+        if (current && availableSources.some((set) => set.id === current)) return current;
+        return availableSources.find((set) => set.version === 1)?.id
+          ?? availableSources.find((set) => set.status === "ACTIVE")?.id
+          ?? availableSources[0]?.id
+          ?? null;
+      });
       const preferred = sets.find((set) => set.status === "DRAFT")
         ?? sets.find((set) => set.status === "ACTIVE")
         ?? sets[0];
@@ -159,6 +169,8 @@ export function RuleManagementPage() {
 
   const activeSet = summaries.find((set) => set.status === "ACTIVE");
   const draftSet = summaries.find((set) => set.status === "DRAFT");
+  const copySources = summaries.filter((set) => set.status !== "DRAFT");
+  const selectedSource = copySources.find((set) => set.id === draftSourceId);
   const featureByField = useMemo(
     () => new Map(features.map((feature) => [feature.field, feature])),
     [features],
@@ -227,15 +239,40 @@ export function RuleManagementPage() {
           <PageHeading eyebrow="RULE MANAGEMENT" title="룰 관리" />
           <div className="admin-actions">
             <button className="admin-button" onClick={() => setDialog("features")} type="button">Feature 목록</button>
+            <label className="draft-source-control">
+              <span>복사 기준</span>
+              <select
+                aria-label="새 DRAFT 복사 기준"
+                disabled={Boolean(draftSet) || isBusy || copySources.length === 0}
+                onChange={(event) => setDraftSourceId(Number(event.target.value))}
+                value={draftSourceId ?? ""}
+              >
+                {copySources.length === 0 && <option value="">서버 기본 설정</option>}
+                {copySources.map((set) => (
+                  <option key={set.id} value={set.id}>
+                    {set.version === 1
+                      ? "기본 설정 · v1"
+                      : set.status === "ACTIVE"
+                        ? `현재 운영 · v${set.version}`
+                        : `이전 버전 · v${set.version}`}
+                  </option>
+                ))}
+              </select>
+            </label>
             <button
               className="admin-button primary"
               disabled={Boolean(draftSet) || isBusy}
               onClick={() => void runAction(async () => {
-                const created = await createRuleDraft(activeSet?.id);
+                const created = await createRuleDraft(draftSourceId ?? undefined);
                 await refresh();
                 await loadRuleSet(created.id);
                 setWorkspaceTab("edit");
-                setNotice(`DRAFT v${created.version}을 만들었습니다.`);
+                const sourceName = selectedSource?.version === 1
+                  ? "기본 설정 v1"
+                  : selectedSource
+                    ? `v${selectedSource.version}`
+                    : "서버 기본 설정";
+                setNotice(`${sourceName}에서 DRAFT v${created.version}을 만들었습니다.`);
               })}
               type="button"
             >새 DRAFT 만들기</button>
@@ -301,8 +338,8 @@ export function RuleManagementPage() {
               <div className="version-list">
                 {summaries.map((set) => (
                   <button className={selectedSet?.id === set.id ? "selected" : ""} key={set.id} onClick={() => void loadRuleSet(set.id)} type="button">
-                    <span><strong>v{set.version}</strong><em className={`status ${set.status.toLowerCase()}`}>{set.status}</em></span>
-                    <small>{set.status === "ACTIVE" ? "현재 운영 중" : formatDate(set.updated_at)}</small>
+                    <span><strong>v{set.version}{set.version === 1 && <b className="default-version-badge">기본</b>}</strong><em className={`status ${set.status.toLowerCase()}`}>{set.status}</em></span>
+                    <small>{set.version === 1 ? `서버 시작 기본값${set.status === "ACTIVE" ? " · 현재 운영 중" : ""}` : set.status === "ACTIVE" ? "현재 운영 중" : formatDate(set.updated_at)}</small>
                   </button>
                 ))}
               </div>
