@@ -27,9 +27,11 @@
 
 .app-brand-copy small{color:#9ca6b8;font-size:9px;font-weight:700;line-height:1.2;letter-spacing:.02em;white-space:nowrap}
 
-.app-nav-title{margin:0 6px 12px;color:#9ca1b0;font-size:11px;font-weight:700}
+.app-nav-title{margin:0 6px;color:#9ca1b0;font-size:11px;font-weight:700}
 
-.app-sidebar nav{display:grid;gap:10px}
+.app-sidebar nav.app-sidebar-navigation{display:grid;gap:18px}
+
+.app-nav-group,.app-nav-items{display:grid;gap:6px}
 
 .app-sidebar nav a{height:48px;padding:0 16px;display:flex;align-items:center;border-radius:12px;color:#9ca1b0;font-size:15px;font-weight:500;text-decoration:none}
 
@@ -74,7 +76,7 @@
     .app-mobile-brand{height:52px;padding:8px 16px;position:sticky;z-index:45;top:0;display:flex;align-items:center;gap:9px;border-bottom:1px solid #2e3440;background:rgb(18 18 23 / 94%);color:#f1f1f7;text-decoration:none;backdrop-filter:blur(12px)}
     .app-mobile-brand .app-brand-mark{width:34px;height:34px;flex-basis:34px;border-radius:10px}
     .app-mobile-brand b{font-size:16px;line-height:1;letter-spacing:-.02em}
-    .app-mobile-nav{position:fixed;z-index:50;right:0;bottom:0;left:0;height:calc(64px + env(safe-area-inset-bottom));padding:7px 8px env(safe-area-inset-bottom);display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:3px;overflow:hidden;background:#1b1b22;border-top:1px solid #30303a}
+    .app-mobile-nav{position:fixed;z-index:50;right:0;bottom:0;left:0;height:calc(64px + env(safe-area-inset-bottom));padding:7px 8px env(safe-area-inset-bottom);display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:3px;overflow:hidden;background:#1b1b22;border-top:1px solid #30303a}
     .app-mobile-nav a{min-width:0;padding:0 3px;display:grid;place-items:center;border-radius:9px;color:#9ca1b0;font-size:10px;font-weight:600;line-height:1.25;text-align:center;word-break:keep-all}
     .app-mobile-nav a.active{background:#2d193c;color:#f1f1f7}
     .app-layout .app-page-header{min-height:auto;display:grid;align-items:start;gap:12px;padding-bottom:16px}
@@ -94,7 +96,8 @@
 .app-brand-copy{text-align:left}
 .app-brand-copy b{font-size:19px;font-weight:700}
 .app-brand-copy small,.app-nav-title{color:var(--ops-text-subtle);letter-spacing:.04em}
-.app-sidebar nav{gap:3px}
+.app-sidebar nav.app-sidebar-navigation{gap:18px}
+.app-sidebar .app-nav-items{gap:3px}
 .app-sidebar nav a{height:42px;border-left:2px solid transparent;border-radius:3px;color:var(--ops-text-muted);font-size:14px}
 .app-sidebar nav a:hover{background:var(--ops-surface-sunken);color:var(--ops-text)}
 .app-sidebar nav a.active{border-left-color:var(--ops-info);background:var(--ops-surface);color:var(--ops-text);font-weight:700}
