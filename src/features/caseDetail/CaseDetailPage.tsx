@@ -28,6 +28,13 @@ const RULE_LABELS: Record<string, string> = {
   high_amount: "고액 거래",
 };
 
+const CONFIRMED_FRAUD_TYPES = [
+  "VOICE_PHISHING",
+  "MESSENGER_PHISHING",
+  "ACCOUNT_TAKEOVER",
+  "FRAUD_USED_ACCOUNT",
+] as const;
+
 const DECISION_LABELS: Record<ReviewDecision, string> = {
   CONFIRMED_FRAUD: "사기 확정",
   FALSE_POSITIVE: "정상 거래",
@@ -338,6 +345,13 @@ export function CaseDetailPage() {
   const inferredFraudType = responsePlan?.applied_fraud_type
     ?? ruleResult?.primary_fraud_type
     ?? "UNCLASSIFIED";
+  const reviewerFraudType = detail.review.data?.decision === "CONFIRMED_FRAUD"
+    ? detail.review.data.confirmed_fraud_type ?? "확정 유형 미선택"
+    : detail.review.data?.decision === "FALSE_POSITIVE"
+      ? "정상 거래"
+      : detail.review.data?.decision === "ON_HOLD"
+        ? "판정 보류"
+        : "최종 판정 전";
   const chatFraudType = [...(chat?.type_scores ?? [])]
     .sort((left, right) => right.score - left.score)[0]?.display_name ?? "데이터 없음";
   const riskGrade = agent?.risk_grade ?? "데이터 없음";
@@ -419,6 +433,11 @@ export function CaseDetailPage() {
         <div className="j-header-meta">
           <span className="j-meta-label">채팅으로 추론된 사기유형</span>
           <strong className="j-meta-highlight">{chatFraudType}</strong>
+        </div>
+
+        <div className="j-header-meta">
+          <span className="j-meta-label">담당자 최종 판정 유형</span>
+          <strong className="j-meta-highlight">{translateRule(reviewerFraudType)}</strong>
         </div>
       </section>
 
@@ -780,12 +799,19 @@ export function CaseDetailPage() {
               {decision === "CONFIRMED_FRAUD" && (
                 <div className="j-form-field">
                   <label className="j-field-label">확정 사기유형</label>
-                  <input
-                    className="j-input"
-                    onChange={(event) => setConfirmedFraudType(event.target.value)}
-                    placeholder="예: ACCOUNT_TAKEOVER 또는 계정 탈취"
-                    value={confirmedFraudType}
-                  />
+                  <div aria-label="확정 사기유형 선택" className="j-fraud-type-options" role="group">
+                    {CONFIRMED_FRAUD_TYPES.map((fraudType) => (
+                      <button
+                        aria-pressed={confirmedFraudType === fraudType}
+                        className={confirmedFraudType === fraudType ? "selected" : ""}
+                        key={fraudType}
+                        onClick={() => { setConfirmedFraudType(fraudType); setSaveMessage(null); }}
+                        type="button"
+                      >
+                        {translateRule(fraudType)}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               )}
 

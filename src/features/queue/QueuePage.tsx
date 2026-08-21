@@ -164,7 +164,6 @@ function MobileCaseList({ rows, startIndex }: { rows: CaseListItem[]; startIndex
       </dl>
       <div className="queue-mobile-actions">
         <a className="queue-mobile-detail" href={caseLink(row.transaction_id)} onClick={() => selectTransaction(row.transaction_id)}>상세 분석</a>
-        <a className="queue-mobile-detail secondary" href={caseLink(row.transaction_id)} rel="noreferrer" target="_blank">새 탭</a>
       </div>
     </article>)}
   </div>;
@@ -210,7 +209,6 @@ function CaseTableSection({
             <td>
               <div className="queue-detail-actions">
                 <a className="queue-detail" href={caseLink(row.transaction_id)} onClick={() => selectTransaction(row.transaction_id)}>보기</a>
-                <a className="queue-detail" href={caseLink(row.transaction_id)} rel="noreferrer" target="_blank">새 탭</a>
               </div>
             </td>
           </tr>
