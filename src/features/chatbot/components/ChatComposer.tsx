@@ -20,20 +20,20 @@ const PLACEHOLDERS: Record<ChatViewStatus, string> = {
 
 type ChatComposerProps = {
     status: ChatViewStatus;
-    isTyping: boolean;
+    turnBusy: boolean;
     onSend: (text: string) => void;
     sizes: ChatSizes;
 };
 
 export function ChatComposer({
     status,
-    isTyping,
+    turnBusy,
     onSend,
     sizes,
 }: ChatComposerProps) {
     const [value, setValue] = useState("");
 
-    const disabled = status !== "IN_PROGRESS" || isTyping;
+    const disabled = status !== "IN_PROGRESS" || turnBusy;
     const opacity = disabled ? 0.55 : 1;
 
     function send() {

@@ -100,13 +100,154 @@ export function sendChatButtonAction(
     );
 }
 
-/** 고객 답변 한 건 전송 (PRD 2.4~2.6). status 가 IN_PROGRESS 일 때만 받는다. */
-export function sendChatMessage(
+export type ChatMessageSnapshot = {
+    message_index: number;
+    message_text: string;
+};
+
+type SendChatMessageOptions = {
+    onSnapshot: (snapshot: ChatMessageSnapshot) => void;
+    signal?: AbortSignal;
+};
+
+type SseEvent = {
+    event: string;
+    data: unknown;
+};
+
+/**
+ * 고객 답변 한 건을 POST하고 SSE 스트림을 소비한다(PRD 2.4~2.6).
+ * EventSource는 POST 본문을 보낼 수 없으므로 fetch의 ReadableStream을 직접 읽는다.
+ */
+export async function sendChatMessage(
     chatSessionId: string,
     messageText: string,
+    options: SendChatMessageOptions,
 ): Promise<ChatTurnResult> {
-    return requestChatApi<ChatTurnResult>(
-        `/${encodeURIComponent(chatSessionId)}/messages`,
-        jsonRequest({ message_text: messageText }),
-    );
+    let response: Response;
+
+    try {
+        response = await fetch(
+            `${CHAT_API_BASE}/${encodeURIComponent(chatSessionId)}/messages`,
+            {
+                ...jsonRequest({ message_text: messageText }),
+                signal: options.signal,
+            },
+        );
+    } catch {
+        throw new ChatApiError(0, "서버에 연결하지 못했습니다.");
+    }
+
+    if (!response.ok) {
+        let result: ApiResponse<never> | null = null;
+        try {
+            result = (await response.json()) as ApiResponse<never>;
+        } catch {
+            result = null;
+        }
+        throw new ChatApiError(
+            response.status,
+            result?.error?.message ?? "요청을 처리하지 못했습니다.",
+        );
+    }
+
+    if (!response.body) {
+        throw new ChatApiError(response.status, "응답 스트림을 읽을 수 없습니다.");
+    }
+
+    let completed: ChatTurnResult | null = null;
+    await consumeSseStream(response.body, (message) => {
+        if (message.event === "chat_message_snapshot") {
+            options.onSnapshot(message.data as ChatMessageSnapshot);
+            return;
+        }
+        if (message.event === "chat_turn_completed") {
+            completed = message.data as ChatTurnResult;
+            return;
+        }
+        if (message.event === "chat_turn_error") {
+            const error = message.data as { message?: string };
+            throw new ChatApiError(
+                response.status,
+                error.message ?? "챗봇 응답을 생성하지 못했습니다.",
+            );
+        }
+    });
+
+    if (!completed) {
+        throw new ChatApiError(
+            response.status,
+            "챗봇 응답이 완료되기 전에 연결이 종료되었습니다.",
+        );
+    }
+    return completed;
+}
+
+async function consumeSseStream(
+    body: ReadableStream<Uint8Array>,
+    onEvent: (event: SseEvent) => void,
+): Promise<void> {
+    const reader = body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = "";
+
+    while (true) {
+        const { value, done } = await reader.read();
+        buffer += decoder.decode(value, { stream: !done });
+
+        let boundary = findSseBoundary(buffer);
+        while (boundary) {
+            const block = buffer.slice(0, boundary.index);
+            buffer = buffer.slice(boundary.index + boundary.length);
+            dispatchSseBlock(block, onEvent);
+            boundary = findSseBoundary(buffer);
+        }
+
+        if (done) {
+            break;
+        }
+    }
+
+    // 정상 서버 응답은 빈 줄로 끝나지만, 연결 종료 직전 마지막 이벤트도 복구한다.
+    if (buffer.trim()) {
+        dispatchSseBlock(buffer, onEvent);
+    }
+}
+
+function findSseBoundary(buffer: string): { index: number; length: number } | null {
+    const match = /\r?\n\r?\n/.exec(buffer);
+    return match ? { index: match.index, length: match[0].length } : null;
+}
+
+function dispatchSseBlock(
+    rawBlock: string,
+    onEvent: (event: SseEvent) => void,
+): void {
+    const lines = rawBlock.replaceAll("\r\n", "\n").split("\n");
+    let event = "message";
+    const dataLines: string[] = [];
+
+    for (const line of lines) {
+        if (!line || line.startsWith(":")) {
+            continue;
+        }
+        if (line.startsWith("event:")) {
+            event = line.slice("event:".length).trimStart();
+        } else if (line.startsWith("data:")) {
+            dataLines.push(line.slice("data:".length).trimStart());
+        }
+    }
+
+    if (dataLines.length === 0) {
+        return;
+    }
+
+    try {
+        onEvent({ event, data: JSON.parse(dataLines.join("\n")) as unknown });
+    } catch (error) {
+        if (error instanceof ChatApiError) {
+            throw error;
+        }
+        throw new ChatApiError(200, "챗봇 응답 형식을 해석하지 못했습니다.");
+    }
 }

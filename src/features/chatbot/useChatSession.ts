@@ -54,31 +54,50 @@ export function useChatSession(chatSessionId: string) {
     const [verifyBusy, setVerifyBusy] = useState(false);
     const [verifyError, setVerifyError] = useState<string | null>(null);
 
+    // 타이핑 점은 첫 스냅샷까지만, 턴 잠금은 완료 이벤트까지 유지한다.
     const [isTyping, setIsTyping] = useState(false);
+    const [turnBusy, setTurnBusy] = useState(false);
     const [turnError, setTurnError] = useState<string | null>(null);
 
     // 낙관적으로 붙인 말풍선의 key 를 서버 이력과 겹치지 않게 만든다.
     const localBubbleSeq = useRef(0);
+    const provisionalBotBubbleKey = useRef<string | null>(null);
 
-    const applyDetail = useCallback((detail: ChatSessionDetail) => {
+    const applyDetail = useCallback((
+        detail: ChatSessionDetail,
+        preservedHumanBubble?: ChatBubble,
+    ) => {
         setStatus(detail.status);
         setIsOlder(detail.is_older);
         setTransactionId(detail.transaction_id);
         setSessionFraudType(detail.fraud_type ?? null);
-        setBubbles(toBubbles(detail.messages));
+        const serverBubbles = toBubbles(detail.messages);
+        const latestHumanMessage = [...detail.messages]
+            .reverse()
+            .find((message) => message.sender_type === "HUMAN");
+        if (
+            preservedHumanBubble &&
+            latestHumanMessage?.message_text !== preservedHumanBubble.text
+        ) {
+            serverBubbles.push(preservedHumanBubble);
+        }
+        setBubbles(serverBubbles);
     }, []);
 
     /** 409 로 상태가 어긋났을 때 서버 값으로 화면을 다시 맞춘다. */
-    const resyncSession = useCallback(async () => {
+    const resyncSession = useCallback(async (preservedHumanBubble?: ChatBubble) => {
         try {
-            applyDetail(await fetchChatSession(chatSessionId));
+            applyDetail(
+                await fetchChatSession(chatSessionId),
+                preservedHumanBubble,
+            );
         } catch {
             // 복구 조회까지 실패하면 이미 떠 있는 오류 안내를 그대로 둔다.
         }
     }, [applyDetail, chatSessionId]);
 
     const handleTurnError = useCallback(
-        async (error: unknown) => {
+        async (error: unknown, preservedHumanBubble?: ChatBubble) => {
             const message =
                 error instanceof ChatApiError
                     ? error.message
@@ -86,7 +105,7 @@ export function useChatSession(chatSessionId: string) {
             setTurnError(message);
 
             if (error instanceof ChatApiError && error.status === 409) {
-                await resyncSession();
+                await resyncSession(preservedHumanBubble);
             }
         },
         [resyncSession],
@@ -133,6 +152,7 @@ export function useChatSession(chatSessionId: string) {
             // 버튼을 즉시 감춰 두 번 눌러 409 가 나는 것을 막는다.
             setStatus("SUBMITTING");
             setTurnError(null);
+            setTurnBusy(true);
             setIsTyping(true);
 
             try {
@@ -157,6 +177,7 @@ export function useChatSession(chatSessionId: string) {
                 );
             } finally {
                 setIsTyping(false);
+                setTurnBusy(false);
             }
         },
         [chatSessionId, handleTurnError, status],
@@ -169,31 +190,79 @@ export function useChatSession(chatSessionId: string) {
     const sendAnswer = useCallback(
         async (messageText: string) => {
             const text = messageText.trim();
-            if (!text || status !== "IN_PROGRESS" || isTyping) {
+            if (!text || status !== "IN_PROGRESS" || turnBusy) {
                 return;
             }
 
             setTurnError(null);
-            setBubbles((current) => [
-                ...current,
-                {
-                    key: `local-${(localBubbleSeq.current += 1)}`,
-                    fromBot: false,
-                    text,
-                },
-            ]);
+            const humanBubble: ChatBubble = {
+                key: `local-${(localBubbleSeq.current += 1)}`,
+                fromBot: false,
+                text,
+            };
+            setBubbles((current) => [...current, humanBubble]);
+            provisionalBotBubbleKey.current = null;
+            setTurnBusy(true);
             setIsTyping(true);
 
             try {
-                const result = await sendChatMessage(chatSessionId, text);
-                setBubbles((current) => [
-                    ...current,
-                    ...result.messages.map((botText, index) => ({
-                        key: `local-${(localBubbleSeq.current += 1)}-${index}`,
-                        fromBot: true,
-                        text: botText,
-                    })),
-                ]);
+                const result = await sendChatMessage(chatSessionId, text, {
+                    onSnapshot: ({ message_index: messageIndex, message_text: botText }) => {
+                        if (messageIndex !== 0) {
+                            return;
+                        }
+                        setIsTyping(false);
+                        let key = provisionalBotBubbleKey.current;
+                        if (!key) {
+                            key = `stream-${(localBubbleSeq.current += 1)}`;
+                            provisionalBotBubbleKey.current = key;
+                        }
+                        setBubbles((current) => {
+                            const existingIndex = current.findIndex(
+                                (bubble) => bubble.key === key,
+                            );
+                            if (existingIndex < 0) {
+                                return [
+                                    ...current,
+                                    { key, fromBot: true, text: botText },
+                                ];
+                            }
+                            return current.map((bubble, index) =>
+                                index === existingIndex
+                                    ? { ...bubble, text: botText }
+                                    : bubble,
+                            );
+                        });
+                    },
+                });
+
+                const provisionalKey = provisionalBotBubbleKey.current;
+                setBubbles((current) => {
+                    let next = current;
+                    if (provisionalKey) {
+                        next = result.messages.length
+                            ? current.map((bubble) =>
+                                  bubble.key === provisionalKey
+                                      ? { ...bubble, text: result.messages[0] }
+                                      : bubble,
+                              )
+                            : current.filter(
+                                  (bubble) => bubble.key !== provisionalKey,
+                              );
+                    }
+                    const remaining = provisionalKey
+                        ? result.messages.slice(1)
+                        : result.messages;
+                    return [
+                        ...next,
+                        ...remaining.map((botText, index) => ({
+                            key: `local-${(localBubbleSeq.current += 1)}-${index}`,
+                            fromBot: true,
+                            text: botText,
+                        })),
+                    ];
+                });
+                provisionalBotBubbleKey.current = null;
                 setStatus(result.status);
                 if (result.fraud_type) {
                     setSessionFraudType(result.fraud_type);
@@ -201,12 +270,23 @@ export function useChatSession(chatSessionId: string) {
             } catch (error) {
                 // 보낸 말풍선은 지우지 않는다. 백엔드가 이미 저장했을 수 있고,
                 // 지우면 고객이 같은 말을 두 번 하게 된다.
-                await handleTurnError(error);
+                const provisionalKey = provisionalBotBubbleKey.current;
+                if (provisionalKey) {
+                    setBubbles((current) =>
+                        current.filter((bubble) => bubble.key !== provisionalKey),
+                    );
+                    provisionalBotBubbleKey.current = null;
+                }
+                await handleTurnError(error, humanBubble);
+                if (!(error instanceof ChatApiError && error.status === 409)) {
+                    await resyncSession(humanBubble);
+                }
             } finally {
                 setIsTyping(false);
+                setTurnBusy(false);
             }
         },
-        [chatSessionId, handleTurnError, isTyping, status],
+        [chatSessionId, handleTurnError, resyncSession, status, turnBusy],
     );
 
     return {
@@ -218,6 +298,7 @@ export function useChatSession(chatSessionId: string) {
         verifyBusy,
         verifyError,
         isTyping,
+        turnBusy,
         turnError,
         verify,
         selectAction,

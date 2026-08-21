@@ -33,6 +33,7 @@ function ChatbotSession({ chatSessionId }: { chatSessionId: string }) {
         verifyBusy,
         verifyError,
         isTyping,
+        turnBusy,
         turnError,
         verify,
         selectAction,
@@ -110,7 +111,7 @@ function ChatbotSession({ chatSessionId }: { chatSessionId: string }) {
 
             <ChatComposer
                 status={status}
-                isTyping={isTyping}
+                turnBusy={turnBusy}
                 onSend={sendAnswer}
                 sizes={sizes}
             />
