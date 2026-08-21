@@ -1,9 +1,13 @@
 // 선택한 학습 Run의 지표 비교와 승인·배포 작업을 한 흐름으로 보여준다.
 
-import { useCallback, useEffect, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 
 import { AdminAlert } from "../admin/AdminAlert";
+import {
+  ModelLoadingStatus,
+  type ModelLoadingStatusProps,
+} from "./components/ModelLoadingStatus";
 import { ModelPageShell } from "./components/ModelPageShell";
 import {
   actionGuide,
@@ -24,6 +28,7 @@ import {
 import {
   completeDeployment,
   decideModel,
+  executeTrainingRun,
   fetchDatasets,
   fetchModelDetails,
   fetchServingStatus,
@@ -42,8 +47,14 @@ import type {
 const RUN_REFRESH_MS = 5_000;
 
 export function ModelRunPage() {
+  const location = useLocation();
+  const navigate = useNavigate();
   const { runId: runIdParam } = useParams();
   const runId = Number(runIdParam);
+  const executeOnOpen = Boolean(
+    (location.state as { executeTraining?: boolean } | null)?.executeTraining,
+  );
+  const executionRequestStarted = useRef(false);
   const [run, setRun] = useState<TrainingRun | null>(null);
   const [dataset, setDataset] = useState<DatasetVersion | null>(null);
   const [productionRun, setProductionRun] = useState<TrainingRun | null>(null);
@@ -53,6 +64,7 @@ export function ModelRunPage() {
   const [operationId, setOperationId] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [isBusy, setIsBusy] = useState(false);
+  const [busyActivity, setBusyActivity] = useState<ModelLoadingStatusProps | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const candidateReady = isModelRevisionReady(serving, details?.model_version);
@@ -91,9 +103,45 @@ export function ModelRunPage() {
     }
   }, [runId]);
 
+  const requestExecution = useCallback(async (selectedRunId: number) => {
+    setIsBusy(true);
+    setBusyActivity({
+      description: "요청이 접수되면 Run 상태가 자동으로 갱신됩니다.",
+      label: "CLOUD RUN JOB",
+      title: `Run #${selectedRunId} 학습 요청을 전달하고 있습니다`,
+    });
+    setError(null);
+    setNotice(null);
+    try {
+      const result = await executeTrainingRun(selectedRunId);
+      setOperationId(result.operation_id ?? "");
+      await load();
+      setNotice("Cloud Run 학습 실행을 요청했습니다.");
+    } catch (cause) {
+      await load();
+      setError(cause instanceof Error ? cause.message : "학습 실행을 요청하지 못했습니다.");
+    } finally {
+      setIsBusy(false);
+      setBusyActivity(null);
+    }
+  }, [load]);
+
   useEffect(() => {
     void load(true);
   }, [load]);
+
+  useEffect(() => {
+    if (
+      !executeOnOpen
+      || !run
+      || run.status !== "REQUESTED"
+      || executionRequestStarted.current
+    ) return;
+
+    executionRequestStarted.current = true;
+    navigate(location.pathname, { replace: true, state: null });
+    void requestExecution(run.id);
+  }, [executeOnOpen, location.pathname, navigate, requestExecution, run]);
 
   useEffect(() => {
     const shouldRefresh = run && (
@@ -107,8 +155,12 @@ export function ModelRunPage() {
     return () => window.clearInterval(timer);
   }, [isCandidatePreparing, load, run]);
 
-  const runAction = async (action: () => Promise<string>) => {
+  const runAction = async (
+    activity: ModelLoadingStatusProps,
+    action: () => Promise<string>,
+  ) => {
     setIsBusy(true);
+    setBusyActivity(activity);
     setError(null);
     setNotice(null);
     try {
@@ -118,10 +170,15 @@ export function ModelRunPage() {
       setError(cause instanceof Error ? cause.message : "요청을 처리하지 못했습니다.");
     } finally {
       setIsBusy(false);
+      setBusyActivity(null);
     }
   };
 
-  const decide = (decision: "APPROVE" | "REJECT") => runAction(async () => {
+  const decide = (decision: "APPROVE" | "REJECT") => runAction({
+    description: "검토 결과와 변경 사유를 저장하고 다음 운영 단계를 준비합니다.",
+    label: "MODEL REVIEW",
+    title: decision === "APPROVE" ? "후보 모델을 승인하고 있습니다" : "후보 모델을 거절하고 있습니다",
+  }, async () => {
     if (!run) return "";
     if (decision === "REJECT" && !window.confirm(`Run #${run.id} 후보를 거절할까요?`)) {
       return "후보 검토를 계속할 수 있습니다.";
@@ -131,24 +188,36 @@ export function ModelRunPage() {
       : "관리자 검토에서 후보를 거절함";
     await decideModel(run.id, decision, reason);
     return decision === "APPROVE"
-      ? "후보 모델을 승인하고 Cloud Run에 0% 리비전 준비를 요청했습니다."
+      ? "후보 모델을 승인하고 운영 전 검증 준비를 요청했습니다."
       : "후보 모델을 거절했습니다.";
   });
 
-  const promote = () => runAction(async () => {
+  const promote = () => runAction({
+    description: "최근 거래로 후보 모델을 검증한 뒤 운영 트래픽 전환을 요청합니다.",
+    label: "MODEL PROMOTION",
+    title: "후보 모델을 검증하고 있습니다",
+  }, async () => {
     if (!run) return "";
     const result = await promoteModel(run.id);
     setOperationId(result.operation_id ?? "");
     return "후보 예측을 검증하고 운영 트래픽 전환을 요청했습니다.";
   });
 
-  const complete = () => runAction(async () => {
+  const complete = () => runAction({
+    description: "Cloud Run 트래픽과 MLflow 운영 alias를 최종 확정합니다.",
+    label: "PRODUCTION SYNC",
+    title: "운영 전환을 확정하고 있습니다",
+  }, async () => {
     if (!run) return "";
     await completeDeployment(run.id, operationId);
     return "운영 전환과 MLflow 운영 alias 지정을 완료했습니다.";
   });
 
-  const reconcile = () => runAction(async () => {
+  const reconcile = () => runAction({
+    description: "Cloud Run 실행 결과와 저장된 Run 상태를 맞춥니다.",
+    label: "CLOUD RUN",
+    title: `Run #${run?.id ?? ""} 실행 상태를 확인하고 있습니다`,
+  }, async () => {
     if (!run) return "";
     const result = await reconcileTrainingRun(run.id);
     return `Cloud Run 실행 상태: ${result.execution_outcome}`;
@@ -171,11 +240,19 @@ export function ModelRunPage() {
     >
       {error && <AdminAlert message={error} onDismiss={() => setError(null)} tone="error" />}
       {notice && <AdminAlert message={notice} onDismiss={() => setNotice(null)} tone="success" />}
+      {busyActivity && <ModelLoadingStatus {...busyActivity} />}
 
       {!run && isLoading ? (
-        <div aria-label="Run 상세 정보 로딩" className="run-detail-skeleton">
-          <i /><i /><i />
-        </div>
+        <>
+          <ModelLoadingStatus
+            description="Run 상태, 데이터셋, 운영 모델과 Serving 정보를 함께 확인합니다."
+            label="RUN DETAIL"
+            title="학습 Run 상세 정보를 불러오고 있습니다"
+          />
+          <div aria-label="Run 상세 정보 로딩" className="run-detail-skeleton">
+            <i /><i /><i />
+          </div>
+        </>
       ) : run ? (
         <>
           <header className="run-detail-header">
@@ -241,7 +318,7 @@ export function ModelRunPage() {
             <aside className="admin-panel run-action-panel">
               <div>
                 <p className="admin-eyebrow">CURRENT ACTION</p>
-                <h2>{isCandidatePreparing ? "0% 후보 준비 중" : displayStatus && STATUS_LABELS[displayStatus]}</h2>
+                <h2>{isCandidatePreparing ? "검증 후보 준비 중" : displayStatus && STATUS_LABELS[displayStatus]}</h2>
                 <p className="run-action-guide">{actionGuide(run, isCurrentProduction, candidateReady)}</p>
               </div>
 
@@ -250,19 +327,19 @@ export function ModelRunPage() {
               {run.status === "CANDIDATE" && (
                 <div className="run-action-buttons">
                   <button className="admin-button danger-button" disabled={isBusy} onClick={() => void decide("REJECT")} type="button">후보 거절</button>
-                  <button className="admin-button primary" disabled={isBusy} onClick={() => void decide("APPROVE")} type="button">승인 후 0% 후보 준비</button>
+                  <button className="admin-button primary" disabled={isBusy} onClick={() => void decide("APPROVE")} type="button">검증 후보로 승인</button>
                 </div>
               )}
 
               {["STAGED", "DEPLOYMENT_FAILED"].includes(run.status) && (
                 <div className="automatic-smoke-card">
                   <div>
-                    <span>{isCandidatePreparing ? "후보 리비전 준비 중" : "자동 검증 준비 완료"}</span>
+                    <span>{isCandidatePreparing ? "검증 후보 준비 중" : "자동 검증 준비 완료"}</span>
                     <strong>{isCandidatePreparing ? "새 모델을 추론 서버에 준비하고 있습니다." : "저장된 최근 거래로 후보 모델을 검증합니다."}</strong>
                     <p>{isCandidatePreparing ? "준비 상태는 자동으로 확인합니다. 입력할 값은 없습니다." : "거래와 검증 데이터는 서버가 자동으로 선택합니다."}</p>
                   </div>
                   <button className="admin-button primary" disabled={isBusy || isCandidatePreparing} onClick={() => void promote()} type="button">
-                    {isCandidatePreparing ? "0% 후보 준비 중…" : "자동 검증 후 100% 전환"}
+                    {isCandidatePreparing ? "검증 후보 준비 중…" : "자동 검증 후 100% 전환"}
                   </button>
                 </div>
               )}
@@ -276,7 +353,18 @@ export function ModelRunPage() {
                 </div>
               )}
 
-              {["REQUESTED", "RUNNING"].includes(run.status) && (
+              {run.status === "REQUESTED" && (
+                <button
+                  className="admin-button primary"
+                  disabled={isBusy}
+                  onClick={() => void requestExecution(run.id)}
+                  type="button"
+                >
+                  {isBusy ? "학습 요청 중…" : "Cloud Run 학습 시작"}
+                </button>
+              )}
+
+              {run.status === "RUNNING" && (
                 <button
                   className="admin-button"
                   disabled={isBusy || !run.cloud_run_execution_name}

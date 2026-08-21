@@ -4,6 +4,10 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { AdminAlert } from "../admin/AdminAlert";
+import {
+  ModelLoadingStatus,
+  type ModelLoadingStatusProps,
+} from "./components/ModelLoadingStatus";
 import { ModelPageShell } from "./components/ModelPageShell";
 import {
   ACTIVE_RUN_STATUSES,
@@ -18,8 +22,8 @@ import {
   fetchDatasetPreview,
   fetchDatasets,
   fetchTrainingRuns,
+  prepareTrainingRun,
   reconcileTrainingRun,
-  startTraining,
 } from "./mlopsApi";
 import type {
   DatasetPeriodSummary,
@@ -28,7 +32,7 @@ import type {
 } from "./mlopsTypes";
 
 const TRAINING_REFRESH_MS = 5_000;
-const MIN_DATASET_PERIOD_START = "2026-08-01";
+const DEFAULT_DATASET_PERIOD_START = "2026-08-01";
 const DATASETS_PER_PAGE = 3;
 
 const todayInputValue = () => {
@@ -42,6 +46,25 @@ const todayInputValue = () => {
 const formatPeriodDate = (value: string | null) =>
   value ? value.replaceAll("-", ".") : "기간 정보 없음";
 
+function TrainingWorkspaceSkeleton() {
+  return (
+    <section aria-hidden="true" className="training-workspace training-workspace-skeleton">
+      <aside className="admin-panel">
+        <div className="training-skeleton-heading"><i /><i /></div>
+        <div className="training-skeleton-cards">
+          {Array.from({ length: 3 }, (_, index) => <i key={index} />)}
+        </div>
+      </aside>
+      <article className="admin-panel">
+        <div className="training-skeleton-heading"><i /><i /></div>
+        <div className="training-skeleton-rows">
+          {Array.from({ length: 6 }, (_, index) => <i key={index} />)}
+        </div>
+      </article>
+    </section>
+  );
+}
+
 export function ModelTrainingPage() {
   const navigate = useNavigate();
   const [datasets, setDatasets] = useState<DatasetVersion[]>([]);
@@ -49,7 +72,7 @@ export function ModelTrainingPage() {
   const [runs, setRuns] = useState<TrainingRun[]>([]);
   const [dialog, setDialog] = useState<"dataset" | "training" | null>(null);
   const [trainingDatasetId, setTrainingDatasetId] = useState<number | null>(null);
-  const [periodStart, setPeriodStart] = useState(MIN_DATASET_PERIOD_START);
+  const [periodStart, setPeriodStart] = useState(DEFAULT_DATASET_PERIOD_START);
   const [periodEnd, setPeriodEnd] = useState(todayInputValue);
   const [periodPreview, setPeriodPreview] = useState<DatasetPeriodSummary | null>(null);
   const [previewError, setPreviewError] = useState<string | null>(null);
@@ -57,6 +80,7 @@ export function ModelTrainingPage() {
   const [deleteTarget, setDeleteTarget] = useState<DatasetVersion | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isBusy, setIsBusy] = useState(false);
+  const [busyActivity, setBusyActivity] = useState<ModelLoadingStatusProps | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const loadRequestId = useRef(0);
@@ -149,8 +173,12 @@ export function ModelTrainingPage() {
     };
   }, [dialog, periodEnd, periodStart]);
 
-  const runAction = async (action: () => Promise<void>) => {
+  const runAction = async (
+    activity: ModelLoadingStatusProps,
+    action: () => Promise<void>,
+  ) => {
     setIsBusy(true);
+    setBusyActivity(activity);
     setError(null);
     setNotice(null);
     try {
@@ -159,10 +187,15 @@ export function ModelTrainingPage() {
       setError(cause instanceof Error ? cause.message : "요청을 처리하지 못했습니다.");
     } finally {
       setIsBusy(false);
+      setBusyActivity(null);
     }
   };
 
-  const createDataset = () => runAction(async () => {
+  const createDataset = () => runAction({
+    description: "확정 라벨을 모아 GCS 파일과 새 버전 정보를 생성합니다.",
+    label: "DATASET BUILD",
+    title: "학습 데이터셋을 만들고 있습니다",
+  }, async () => {
     const created = await buildDataset(periodStart, periodEnd);
     setDialog(null);
     setDatasetPage(1);
@@ -170,7 +203,11 @@ export function ModelTrainingPage() {
     await load();
   });
 
-  const removeDataset = () => runAction(async () => {
+  const removeDataset = () => runAction({
+    description: "GCS 객체와 연결된 데이터셋 기록을 정리합니다.",
+    label: "DATASET CLEANUP",
+    title: "학습 데이터셋을 삭제하고 있습니다",
+  }, async () => {
     if (!deleteTarget) return;
     const deletedId = deleteTarget.id;
     const deletedVersion = deleteTarget.version;
@@ -187,14 +224,22 @@ export function ModelTrainingPage() {
     await load();
   });
 
-  const launchTraining = () => runAction(async () => {
+  const launchTraining = () => runAction({
+    description: "Run 기록을 만든 뒤 진행 상태를 확인할 상세 화면으로 이동합니다.",
+    label: "TRAINING RUN",
+    title: "학습 Run을 준비하고 있습니다",
+  }, async () => {
     if (!trainingDatasetId) return;
-    const result = await startTraining(trainingDatasetId);
+    const run = await prepareTrainingRun(trainingDatasetId);
     setDialog(null);
-    navigate(`/models/runs/${result.training_run.id}`);
+    navigate(`/models/runs/${run.id}`, { state: { executeTraining: true } });
   });
 
-  const reconcile = (run: TrainingRun) => runAction(async () => {
+  const reconcile = (run: TrainingRun) => runAction({
+    description: "Cloud Run 실행 결과와 저장된 Run 상태를 맞춥니다.",
+    label: "CLOUD RUN",
+    title: `Run #${run.id} 실행 상태를 확인하고 있습니다`,
+  }, async () => {
     const result = await reconcileTrainingRun(run.id);
     setNotice(`Run #${run.id} 상태 확인: ${result.execution_outcome}`);
     await load();
@@ -238,6 +283,19 @@ export function ModelTrainingPage() {
       {error && <AdminAlert message={error} onDismiss={() => setError(null)} tone="error" />}
       {notice && <AdminAlert message={notice} onDismiss={() => setNotice(null)} tone="success" />}
 
+      {busyActivity ? (
+        <ModelLoadingStatus {...busyActivity} />
+      ) : isLoading ? (
+        <ModelLoadingStatus
+          description="학습 데이터셋과 Run 이력을 동시에 조회합니다."
+          label="TRAINING WORKSPACE"
+          title="학습·배포 화면을 준비하고 있습니다"
+        />
+      ) : null}
+
+      {isLoading && datasets.length === 0 && runs.length === 0 ? (
+        <TrainingWorkspaceSkeleton />
+      ) : (
       <section className="training-workspace">
         <aside className="admin-panel dataset-ledger">
           <div className="panel-title split">
@@ -392,6 +450,7 @@ export function ModelTrainingPage() {
           </div>
         </article>
       </section>
+      )}
 
       {dialog === "dataset" && (
         <div
@@ -430,7 +489,6 @@ export function ModelTrainingPage() {
                 <label>
                   <span>시작일</span>
                   <input
-                    min={MIN_DATASET_PERIOD_START}
                     onChange={(event) => setPeriodStart(event.target.value)}
                     type="date"
                     value={periodStart}
@@ -439,7 +497,7 @@ export function ModelTrainingPage() {
                 <label>
                   <span>종료일</span>
                   <input
-                    min={periodStart || MIN_DATASET_PERIOD_START}
+                    min={periodStart}
                     onChange={(event) => setPeriodEnd(event.target.value)}
                     type="date"
                     value={periodEnd}

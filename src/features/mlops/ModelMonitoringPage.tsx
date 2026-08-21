@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState, type ReactNode } from "react";
 
 import { AdminAlert } from "../admin/AdminAlert";
+import { ModelLoadingStatus } from "./components/ModelLoadingStatus";
 import { MetricChart } from "./components/MetricChart";
 import { ModelPageShell } from "./components/ModelPageShell";
 import { formatClock, latestRevisionTraffic, resourceName, STATUS_LABELS } from "./modelOperations";
@@ -84,9 +85,11 @@ function MonitoringSkeleton({ target }: { target: MonitoringTarget }) {
 
   return (
     <>
-      <span className="monitoring-loading-label" role="status">
-        {label} 지표를 불러오는 중입니다.
-      </span>
+      <ModelLoadingStatus
+        description="Cloud Monitoring에서 선택한 구간의 최신 시계열을 조회합니다."
+        label="CLOUD METRICS"
+        title={`${label} 지표를 불러오고 있습니다`}
+      />
       <section aria-hidden="true" className="monitoring-summary-grid monitoring-summary-skeleton">
         {Array.from({ length: 6 }, (_, index) => (
           <article key={index}><i /><i /><i /></article>

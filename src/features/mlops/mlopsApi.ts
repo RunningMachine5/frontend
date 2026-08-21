@@ -49,10 +49,16 @@ export const fetchTrainingRun = (runId: number) =>
 export const fetchTrainingExecution = (runId: number) =>
   adminRequest<TrainingExecution>(`/mlops/training/runs/${runId}/execution`);
 
-export const startTraining = (datasetId: number) =>
-  adminRequest<TrainingActionResult>("/mlops/training/runs", {
+export const prepareTrainingRun = (datasetId: number) =>
+  adminRequest<TrainingRun>("/mlops/training/runs/prepare", {
     method: "POST",
-    body: JSON.stringify({ dataset_version_id: datasetId, min_pr_auc: 0, min_recall: 0 }),
+    body: JSON.stringify({ dataset_version_id: datasetId }),
+  });
+
+export const executeTrainingRun = (runId: number) =>
+  adminRequest<TrainingActionResult>(`/mlops/training/runs/${runId}/execute`, {
+    method: "POST",
+    body: JSON.stringify({ min_pr_auc: 0, min_recall: 0 }),
   });
 
 export const fetchModelDetails = (runId: number) =>
