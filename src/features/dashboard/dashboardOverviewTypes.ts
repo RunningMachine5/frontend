@@ -63,14 +63,3 @@ export type DashboardOverviewResponse = {
   channel_distribution: DistributionItem[];
   agent_insight: DashboardAgentInsight | null;
 }
-
-// SSE로 바뀐 영역만 받을 때 사용하는 응답이다.
-export type DashboardPatch = {
-  version: number;
-  summary?: DashboardOverviewSummary;
-  priority_trend?: PriorityTrendPoint[];
-  suspicious_trend?: SuspiciousTrendPoint[];
-  risk_grade_distribution?: DistributionItem[];
-  channel_distribution?: DistributionItem[];
-  agent_insight?: DashboardAgentInsight | null;
-};

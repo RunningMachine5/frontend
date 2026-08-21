@@ -8,55 +8,48 @@ import {
     type DashOverviewParams,
 } from "./DashboardOverviewApi";
 import type { DashboardOverviewResponse } from "./dashboardOverviewTypes";
-import type { DashboardPatch } from "./dashboardOverviewTypes";
+import { fetchQueueRows } from "../queue/queueApi";
+import type { CaseListItem } from "../queue/queueTypes";
 
-function mergePoints<T extends { date: string }>(
-    current: T[],
-    changed?: T[],
-): T[] {
-    if (!changed) return current;
-
-    const changedByDate = new Map(changed.map((point) => [point.date, point]));
-    const merged = current.map((point) => changedByDate.get(point.date) ?? point);
-    const missing = changed.filter((point) => !current.some((item) => item.date === point.date));
-    return [...merged, ...missing];
-}
-
-function applyPatch(
-    current: DashboardOverviewResponse,
-    patch: DashboardPatch,
-): DashboardOverviewResponse {
-    return {
-        ...current,
-        summary: patch.summary ?? current.summary,
-        priority_trend: mergePoints(current.priority_trend, patch.priority_trend),
-        suspicious_trend: mergePoints(current.suspicious_trend, patch.suspicious_trend),
-        risk_grade_distribution: patch.risk_grade_distribution ?? current.risk_grade_distribution,
-        channel_distribution: patch.channel_distribution ?? current.channel_distribution,
-        agent_insight: "agent_insight" in patch
-            ? patch.agent_insight ?? null
-            : current.agent_insight,
-    };
-}
+const REFRESH_INTERVAL_MS = 300;
+const REALTIME_RISK_PAGE_SIZE = 100;
+const REALTIME_RISK_FILTERS = {
+    transactionId: "",
+    ipAddress: "",
+    periodStart: "",
+    periodEnd: "",
+    page: 1,
+};
 
 export function useDashboardOverview(params: DashOverviewParams){
     const [data, setData] = useState<DashboardOverviewResponse | null>(null);
+    const [realtimeRiskRows, setRealtimeRiskRows] = useState<CaseListItem[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
     useEffect(() => {
         let isActive = true;
-        let latestVersion = 0;
+        let refreshTimer: number | null = null;
+        let isRefreshRunning = false;
+        let refreshPending = false;
 
         async function loadOverview(generateIfMissing = false){
             try {
-                const overview = await fetchDashboardOverview(params);
+                const [overview, riskRows] = await Promise.all([
+                    fetchDashboardOverview(params),
+                    fetchQueueRows(
+                        REALTIME_RISK_FILTERS,
+                        REALTIME_RISK_PAGE_SIZE,
+                        "received_at",
+                    ),
+                ]);
 
                 if (!isActive) {
                     return;
                 }
 
                 setData(overview);
+                setRealtimeRiskRows(riskRows.items);
                 setErrorMessage(null);
 
                 // 첫 조회에 해당 기간 요약이 없을 때만 한 번 생성한다.
@@ -85,25 +78,47 @@ export function useDashboardOverview(params: DashOverviewParams){
             }
         }
 
+        async function runRefresh(generateIfMissing = false) {
+            refreshTimer = null;
+            refreshPending = false;
+            isRefreshRunning = true;
+
+            await loadOverview(generateIfMissing);
+
+            isRefreshRunning = false;
+
+            // 조회 중 이벤트가 왔다면 최신 상태를 한 번 더 조회한다.
+            if (isActive && refreshPending) {
+                scheduleRefresh();
+            }
+        }
+
+        function scheduleRefresh() {
+            refreshPending = true;
+
+            // 예약된 조회나 실행 중인 조회가 있으면 이벤트만 모아 둔다.
+            if (refreshTimer !== null || isRefreshRunning) {
+                return;
+            }
+
+            refreshTimer = window.setTimeout(
+                () => void runRefresh(),
+                REFRESH_INTERVAL_MS,
+            );
+        }
+
         // 화면 첫 진입 시 overview 조회
-        void loadOverview(true);
+        void runRefresh(true);
 
-        const eventQuery = new URLSearchParams({
-            period_start: params.periodStart,
-            period_end: params.periodEnd,
-        });
-        const eventSource = new EventSource(`/api/dashboard/events?${eventQuery}`);
-
-        eventSource.addEventListener("dashboard_patch", (event) => {
-            const patch = JSON.parse(event.data) as DashboardPatch;
-            if (patch.version <= latestVersion) return;
-
-            latestVersion = patch.version;
-            setData((current) => current ? applyPatch(current, patch) : current);
-        });
+        const eventSource = new EventSource("/api/dashboard/events");
+        eventSource.addEventListener("dashboard_updated", scheduleRefresh);
 
         return () => {
             isActive = false;
+
+            if (refreshTimer !== null) {
+                window.clearTimeout(refreshTimer);
+            }
 
             eventSource.close();
         };
@@ -134,6 +149,7 @@ export function useDashboardOverview(params: DashOverviewParams){
 
     return {
         data,
+        realtimeRiskRows,
         isLoading,
         errorMessage,
         isRefreshingInsight,

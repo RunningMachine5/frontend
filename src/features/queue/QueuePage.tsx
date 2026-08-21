@@ -2,7 +2,10 @@ import { type FormEvent, useMemo, useState } from "react";
 
 import { CaseAnalysisPageShell } from "../caseAnalysis/CaseAnalysisPageShell";
 import { formatCompactMoney } from "../dashboard/dashboardFormatters";
-import { RealtimeRiskTrendChart, type RealtimeRiskPoint } from "../dashboard/components/HighRiskTrendPanel";
+import {
+  buildRealtimeRiskPoints,
+  RealtimeRiskTrendChart,
+} from "../dashboard/components/HighRiskTrendPanel";
 import type { CaseListItem, QueueSearchFilters } from "./queueTypes";
 import { useQueue } from "./useQueue";
 import "./QueuePage.css";
@@ -30,23 +33,6 @@ function formatDateTime(value: string) {
   });
 }
 
-function formatAxisTime(value: string | number) {
-  return new Date(value).toLocaleTimeString("ko-KR", {
-    hour: "2-digit",
-    minute: "2-digit",
-    second: "2-digit",
-    hour12: false,
-  });
-}
-
-function formatAxisMinutes(value: string | number) {
-  return new Date(value).toLocaleTimeString("ko-KR", {
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: false,
-  });
-}
-
 function reviewStatus(value: string) {
   if (value === "COMPLETED") return "처리 완료";
   if (value === "PROCESSING") return "분석 중";
@@ -69,33 +55,10 @@ function fraudTypeLabel(value: string | null, executionStatus: string) {
 function QueueRealtimeTrendSection({ rows }: { rows: CaseListItem[] }) {
   const [timeInterval, setTimeInterval] = useState<"second" | "minute">("second");
 
-  const timeRows = useMemo(
-    () =>
-      [...rows].sort(
-        (left, right) =>
-          new Date(left.transaction_datetime).getTime() - new Date(right.transaction_datetime).getTime(),
-      ),
-    [rows],
+  const items = useMemo(
+    () => buildRealtimeRiskPoints(rows, timeInterval),
+    [rows, timeInterval],
   );
-
-  const items: RealtimeRiskPoint[] = useMemo(() => {
-    if (timeRows.length === 0) return [];
-    return timeRows.map((row, idx) => {
-      const rawTime =
-        timeInterval === "second"
-          ? formatAxisTime(row.transaction_datetime)
-          : formatAxisMinutes(row.transaction_datetime);
-      const isLive = idx === timeRows.length - 1;
-
-      return {
-        transactionId: row.transaction_id,
-        timeLabel: isLive ? `${rawTime} LIVE` : rawTime,
-        amount: row.transaction_amount,
-        score: row.risk_score ?? 0,
-        isLive,
-      };
-    });
-  }, [timeRows, timeInterval]);
 
   const peakAmount = useMemo(() => Math.max(...items.map((i) => i.amount), 0), [items]);
   const avgScore = useMemo(
@@ -113,7 +76,7 @@ function QueueRealtimeTrendSection({ rows }: { rows: CaseListItem[] }) {
         <div>
           <p>REALTIME RISK MONITORING</p>
           <h2>실시간 위험 거래 반영 현황</h2>
-          <span className="queue-panel-sub-desc">현재 페이지 의심 거래의 금액(원) 및 위험 점수(Score) 추이 · 점 클릭 시 상세 분석 이동</span>
+          <span className="queue-panel-sub-desc">서버 수신 시각 기준 위험 거래의 금액(원) 및 위험 점수(Score) 추이 · 점 클릭 시 상세 분석 이동</span>
         </div>
         <div className="trend-panel-meta realtime-trend-meta">
           {/* 초 단위 / 분 단위 선택 토글 */}
