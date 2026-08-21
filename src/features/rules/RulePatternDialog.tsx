@@ -211,7 +211,7 @@ export function RulePatternDialog({
               min="0.001"
               onChange={(event) => setWeight(Number(event.target.value))}
               required
-              step="0.01"
+              step="0.001"
               type="number"
               value={weight}
             />
@@ -221,18 +221,19 @@ export function RulePatternDialog({
             <span>비교값</span>
             <div className={operator === "BETWEEN" ? "range-value-inputs" : ""}>
               {selectedFeature?.allowed_values && operator !== "IN" ? (
-                <select onChange={(event) => setValueText(event.target.value)} value={valueText}>
+                <select aria-label="비교값" onChange={(event) => setValueText(event.target.value)} value={valueText}>
                   {selectedFeature.allowed_values.map((value) => (
                     <option key={String(value)} value={String(value)}>{String(value)}</option>
                   ))}
                 </select>
               ) : selectedFeature?.value_type === "boolean" && operator !== "IN" ? (
-                <select onChange={(event) => setValueText(event.target.value)} value={valueText}>
+                <select aria-label="비교값" onChange={(event) => setValueText(event.target.value)} value={valueText}>
                   <option value="true">감지</option>
                   <option value="false">미감지</option>
                 </select>
               ) : (
                 <input
+                  aria-label={operator === "BETWEEN" ? "범위 최솟값" : "비교값"}
                   onChange={(event) => setValueText(event.target.value)}
                   placeholder={operator === "IN" ? "쉼표로 여러 값을 구분" : "비교할 값"}
                   required
