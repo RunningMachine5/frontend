@@ -146,12 +146,6 @@ export function metricDeltaText(value: number | null) {
   return `${value > 0 ? "+" : ""}${value.toFixed(4)}`;
 }
 
-export function recommendationLabel(value: string | undefined) {
-  if (value === "RECOMMENDED") return "승격 추천";
-  if (value === "NOT_RECOMMENDED") return "승격 비추천";
-  return "추천 정보 없음";
-}
-
 export function actionGuide(
   run: TrainingRun,
   isCurrentProduction: boolean,
