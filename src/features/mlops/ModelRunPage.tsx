@@ -280,7 +280,6 @@ export function ModelRunPage() {
   const workflow = run
     ? workflowForRun(run, trafficPercent, candidateReady, isCurrentProduction)
     : [];
-  const recommendation = recommendationLabel(details?.tags.promotion_recommendation);
   const trainingPhase = run?.status !== "RUNNING"
     ? null
     : execution?.outcome === "FAILED"
