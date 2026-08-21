@@ -1369,6 +1369,15 @@
   .j-profile-header,.j-card{border-color:var(--ops-line);background:var(--ops-surface)}
   .j-card-header{border-color:var(--ops-line);background:var(--ops-surface-raised)}
   .j-guide-card{border-left-color:var(--ops-info)}
+  .j-guide-card{height:auto}
+  .j-guide-card .j-guide-table-wrap{grid-column:1 / -1}
+}
+
+@media(min-width:1440px) and (min-height:800px){
+  /* 가이드를 펼쳐도 상세 화면 전체를 스크롤할 수 있게 한다. */
+  .case-content{height:100vh;overflow-y:auto}
+  /* 긴 가이드 표는 카드 안에서만 스크롤해 아래 카드 행을 과하게 밀지 않는다. */
+  .j-guide-table-wrap{max-height:150px;overflow-y:auto}
 }
 
 :root[data-theme="light"] .j-meta-highlight,

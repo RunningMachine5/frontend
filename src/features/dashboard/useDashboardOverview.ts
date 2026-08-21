@@ -16,6 +16,7 @@ const REALTIME_RISK_PAGE_SIZE = 100;
 const REALTIME_RISK_FILTERS = {
     transactionId: "",
     ipAddress: "",
+    riskGrades: [],
     periodStart: "",
     periodEnd: "",
     page: 1,
