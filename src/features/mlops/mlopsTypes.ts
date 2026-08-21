@@ -183,11 +183,25 @@ export type PlatformMonitoring = {
     cpu_utilization_percent: number | null;
     memory_utilization_percent: number | null;
     disk_utilization_percent: number | null;
+    network_received_kilobytes_per_second: number | null;
+    network_sent_kilobytes_per_second: number | null;
+    analysis_completed_count: number | null;
+    normal_analysis_count: number | null;
+    fraud_analysis_count: number | null;
   };
   series: {
     cpu_utilization_percent: MonitoringPoint[];
     memory_utilization_percent: MonitoringPoint[];
     disk_utilization_percent: MonitoringPoint[];
+    network_received_kilobytes_per_second: MonitoringPoint[];
+    network_sent_kilobytes_per_second: MonitoringPoint[];
+    normal_analysis_count: MonitoringPoint[];
+    fraud_analysis_count: MonitoringPoint[];
+  };
+  dependencies?: {
+    mlflow_latency_ms: number | null;
+    https_certificate_expires_at: string | null;
+    https_certificate_days_remaining: number | null;
   };
 };
 

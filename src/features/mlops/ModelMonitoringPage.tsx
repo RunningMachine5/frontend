@@ -8,7 +8,7 @@ import { AdminAlert } from "../admin/AdminAlert";
 import "../admin/AdminWorkspace.css";
 import { ModelLoadingStatus } from "./components/ModelLoadingStatus";
 import { MetricChart } from "./components/MetricChart";
-import { formatClock, latestRevisionTraffic, resourceName, STATUS_LABELS } from "./modelOperations";
+import { formatClock, formatDate, latestRevisionTraffic, resourceName, STATUS_LABELS } from "./modelOperations";
 import {
   fetchPlatformMonitoring,
   fetchPlatformStatus,
@@ -179,6 +179,16 @@ export function ModelMonitoringPage() {
   const servingSummary = servingMonitoring?.summary;
   const trainingSummary = trainingMonitoring?.summary;
   const platformSummary = platformMonitoring?.summary;
+  const mlflowLatency = platformMonitoring?.dependencies?.mlflow_latency_ms;
+  const certificateDays = platformMonitoring?.dependencies
+    ?.https_certificate_days_remaining;
+  const certificateTone = certificateDays === null || certificateDays === undefined
+    ? "negative"
+    : certificateDays < 14
+      ? "negative"
+      : certificateDays < 30
+        ? "accent"
+        : "positive";
   const currentMonitoring = target === "serving"
     ? servingMonitoring
     : target === "training"
@@ -383,29 +393,51 @@ export function ModelMonitoringPage() {
 
       {!isInitialLoading && target === "platform" && (
         <>
-          <section aria-label="운영 VM과 DB 핵심 지표" className="monitoring-summary-grid">
-            <SummaryCard description="관리 API 응답 가능" label="백엔드" tone={platformStatus ? "positive" : "negative"} value={platformStatus?.backend_status ?? "확인 불가"} />
-            <SummaryCard description="SELECT 1 연결 확인" label="PostgreSQL" tone={platformStatus?.database_status === "UP" ? "positive" : "negative"} value={platformStatus?.database_status ?? "확인 불가"} />
-            <SummaryCard description="백엔드에서 DB까지" label="DB 응답" unit="ms" value={numberText(platformStatus?.database_latency_ms, 1)} />
-            <SummaryCard description="Compute Engine 기본 지표" label="VM CPU" unit="%" value={numberText(platformSummary?.cpu_utilization_percent, 1)} />
-            <SummaryCard description="Ops Agent 수집 지표" label="VM 메모리" unit="%" value={numberText(platformSummary?.memory_utilization_percent, 1)} />
+          <section aria-label="운영 VM과 서비스 핵심 지표" className="monitoring-summary-grid">
+            <SummaryCard
+              description="CPU · 메모리 (%)"
+              label="VM 자원"
+              value={`${numberText(platformSummary?.cpu_utilization_percent, 1)} · ${numberText(platformSummary?.memory_utilization_percent, 1)}`}
+            />
             <SummaryCard description="Ops Agent 수집 지표" label="디스크" unit="%" value={numberText(platformSummary?.disk_utilization_percent, 1)} />
+            <SummaryCard
+              description="백엔드에서 PostgreSQL까지"
+              label="DB 응답"
+              tone={platformStatus?.database_latency_ms === null || platformStatus?.database_latency_ms === undefined ? "negative" : "positive"}
+              unit="ms"
+              value={numberText(platformStatus?.database_latency_ms, 1)}
+            />
+            <SummaryCard
+              description="인증된 Registry 조회"
+              label="MLflow 응답"
+              tone={mlflowLatency === null || mlflowLatency === undefined ? "negative" : "positive"}
+              unit="ms"
+              value={numberText(mlflowLatency, 1)}
+            />
+            <SummaryCard
+              description={`정상 ${platformSummary?.normal_analysis_count?.toLocaleString("ko-KR") ?? "—"} · 사기 ${platformSummary?.fraud_analysis_count?.toLocaleString("ko-KR") ?? "—"}`}
+              label="분석 완료"
+              unit="건"
+              value={platformSummary?.analysis_completed_count?.toLocaleString("ko-KR") ?? "—"}
+            />
+            <SummaryCard
+              description={`${formatDate(platformMonitoring?.dependencies?.https_certificate_expires_at ?? null)} 만료`}
+              label="HTTPS 인증서"
+              tone={certificateTone}
+              unit={certificateDays === null || certificateDays === undefined ? undefined : "일"}
+              value={certificateDays ?? "—"}
+            />
           </section>
           <section className="monitoring-chart-grid">
             <MetricChart
               decimals={1}
-              description="Compute Engine 인스턴스 CPU 사용률"
-              series={[{ label: "CPU", color: "#6ca9ff", points: platformMonitoring?.series.cpu_utilization_percent ?? [] }]}
+              description="거래 처리 VM의 CPU와 메모리를 함께 비교합니다."
+              series={[
+                { label: "CPU", color: "#6ca9ff", points: platformMonitoring?.series.cpu_utilization_percent ?? [] },
+                { label: "메모리", color: "#6f8fe6", points: platformMonitoring?.series.memory_utilization_percent ?? [] },
+              ]}
               showDate={showDate}
-              title="VM CPU"
-              unit="%"
-            />
-            <MetricChart
-              decimals={1}
-              description="Ops Agent가 수집한 메모리 사용률"
-              series={[{ label: "메모리", color: "#6f8fe6", points: platformMonitoring?.series.memory_utilization_percent ?? [] }]}
-              showDate={showDate}
-              title="VM 메모리"
+              title="VM 자원 사용률"
               unit="%"
             />
             <MetricChart
@@ -416,19 +448,27 @@ export function ModelMonitoringPage() {
               title="디스크 사용률"
               unit="%"
             />
-            <article className="monitoring-detail-panel platform-identity-panel">
-              <header><div><h2>플랫폼 연결</h2><p>거래 처리 백엔드와 저장소 상태</p></div><em className={`status ${platformStatus?.database_status === "UP" ? "production" : "failed"}`}>{platformStatus?.database_status === "UP" ? "정상" : "확인 필요"}</em></header>
-              <strong>{platformMonitoring?.instance_name ?? "운영 VM 확인 중"}</strong>
-              <dl>
-                <div><dt>배포 영역</dt><dd>{platformMonitoring?.zone ?? "—"}</dd></div>
-                <div><dt>백엔드</dt><dd>{platformStatus?.backend_status ?? "—"}</dd></div>
-                <div><dt>데이터베이스</dt><dd>{platformStatus?.database_status ?? "—"}</dd></div>
-                <div><dt>수집 도구</dt><dd>{platformMonitoring?.ops_agent_available ? "연결됨" : "확인 필요"}</dd></div>
-              </dl>
-              {!platformMonitoring?.ops_agent_available && (
-                <p>메모리·디스크가 비어 있으면 VM에 Ops Agent 설치 상태를 확인하세요.</p>
-              )}
-            </article>
+            <MetricChart
+              decimals={1}
+              description="운영 VM의 전체 수신·송신 트래픽을 비교합니다."
+              series={[
+                { label: "수신", color: "#45d49a", points: platformMonitoring?.series.network_received_kilobytes_per_second ?? [] },
+                { label: "송신", color: "#9b7cff", points: platformMonitoring?.series.network_sent_kilobytes_per_second ?? [] },
+              ]}
+              showDate={showDate}
+              title="네트워크 송수신"
+              unit="KB/s"
+            />
+            <MetricChart
+              description="분석을 마치고 DB에 저장된 정상·사기 판정 건수입니다."
+              series={[
+                { label: "정상", color: "#6f8fe6", points: platformMonitoring?.series.normal_analysis_count ?? [] },
+                { label: "사기", color: "#ff7d89", points: platformMonitoring?.series.fraud_analysis_count ?? [] },
+              ]}
+              showDate={showDate}
+              title="거래 분석 처리량"
+              unit="건"
+            />
           </section>
         </>
       )}
