@@ -49,6 +49,15 @@ import type {
 } from "./mlopsTypes";
 
 const RUN_REFRESH_MS = 5_000;
+const TRAINING_PHASE_TRANSITION_MS = 650;
+const ORDERED_TRAINING_PHASES = [
+  "connecting",
+  "starting",
+  "training",
+  "syncing",
+] as const;
+
+type TrainingPhase = (typeof ORDERED_TRAINING_PHASES)[number] | "failed";
 
 export function ModelRunPage() {
   const location = useLocation();
@@ -70,6 +79,8 @@ export function ModelRunPage() {
   const [isModelReviewLoading, setIsModelReviewLoading] = useState(false);
   const [serving, setServing] = useState<ServingStatus | null>(null);
   const [execution, setExecution] = useState<TrainingExecution | null>(null);
+  const [displayedTrainingPhase, setDisplayedTrainingPhase] =
+    useState<TrainingPhase>("connecting");
   const [lastRefreshedAt, setLastRefreshedAt] = useState<Date | null>(null);
   const [operationId, setOperationId] = useState("");
   const [isLoading, setIsLoading] = useState(true);
@@ -79,6 +90,17 @@ export function ModelRunPage() {
   const [error, setError] = useState<string | null>(null);
   const candidateReady = isModelRevisionReady(serving, details?.model_version);
   const isCandidatePreparing = run?.status === "STAGED" && !candidateReady;
+  const observedTrainingPhase: TrainingPhase | null = run?.status !== "RUNNING"
+    ? null
+    : execution?.outcome === "FAILED"
+      ? "failed"
+      : execution?.outcome === "SUCCEEDED"
+        ? "syncing"
+        : !run.cloud_run_execution_name
+          ? "connecting"
+          : !execution?.start_time
+            ? "starting"
+            : "training";
 
   const load = useCallback(async (showLoading = false) => {
     if (showLoading) setIsLoading(true);
@@ -204,6 +226,29 @@ export function ModelRunPage() {
     return () => window.clearInterval(timer);
   }, [isCandidatePreparing, load, run]);
 
+  useEffect(() => {
+    setDisplayedTrainingPhase("connecting");
+  }, [runId]);
+
+  useEffect(() => {
+    if (!observedTrainingPhase) return;
+    if (observedTrainingPhase === "failed") {
+      setDisplayedTrainingPhase("failed");
+      return;
+    }
+    if (displayedTrainingPhase === "failed") return;
+
+    const observedIndex = ORDERED_TRAINING_PHASES.indexOf(observedTrainingPhase);
+    const displayedIndex = ORDERED_TRAINING_PHASES.indexOf(displayedTrainingPhase);
+    if (observedIndex <= displayedIndex) return;
+
+    // 서버가 여러 완료 상태를 한 번에 응답해도 확인된 단계를 순서대로 보여준다.
+    const timer = window.setTimeout(() => {
+      setDisplayedTrainingPhase(ORDERED_TRAINING_PHASES[displayedIndex + 1]);
+    }, TRAINING_PHASE_TRANSITION_MS);
+    return () => window.clearTimeout(timer);
+  }, [displayedTrainingPhase, observedTrainingPhase]);
+
   const runAction = async (
     activity: ModelLoadingStatusProps,
     action: () => Promise<string>,
@@ -280,17 +325,9 @@ export function ModelRunPage() {
   const workflow = run
     ? workflowForRun(run, trafficPercent, candidateReady, isCurrentProduction)
     : [];
-  const trainingPhase = run?.status !== "RUNNING"
-    ? null
-    : execution?.outcome === "FAILED"
-      ? "failed"
-      : execution?.outcome === "SUCCEEDED"
-        ? "syncing"
-        : !run.cloud_run_execution_name
-          ? "connecting"
-          : !execution?.start_time
-            ? "starting"
-            : "training";
+  const trainingPhase = run?.status === "RUNNING"
+    ? displayedTrainingPhase
+    : null;
   const trainingActionTitle = trainingPhase === "failed"
     ? "학습 실행 확인 필요"
     : trainingPhase === "syncing"
@@ -513,19 +550,27 @@ export function ModelRunPage() {
                         <time>{formatClock(run.created_at)}</time><i aria-hidden="true" />
                         <span>학습 요청을 접수했습니다.</span>
                       </li>
-                      <li className={run.cloud_run_execution_name ? "complete" : "active"}>
+                      <li className={trainingPhase === "connecting" ? "active" : "complete"}>
                         <time>{execution?.create_time ? formatClock(execution.create_time) : run.cloud_run_execution_name ? "확인됨" : "현재"}</time><i aria-hidden="true" />
-                        <span>{run.cloud_run_execution_name ? "Cloud Run 실행 연결을 확인했습니다." : "Cloud Run 실행 연결을 기다리고 있습니다."}</span>
+                        <span>{trainingPhase === "connecting" ? "Cloud Run 실행 환경에 연결하고 있습니다." : "Cloud Run 실행 연결을 확인했습니다."}</span>
                       </li>
-                      <li className={trainingPhase === "failed" ? "error" : trainingPhase === "syncing" ? "complete" : trainingPhase === "training" ? "active" : "pending"}>
+                      <li className={trainingPhase === "failed" ? "error" : trainingPhase === "starting" || trainingPhase === "training" ? "active" : trainingPhase === "syncing" ? "complete" : "pending"}>
                         <time>{execution?.start_time ? formatClock(execution.start_time) : "대기"}</time><i aria-hidden="true" />
                         <span>{trainingPhase === "failed"
                           ? execution?.failure_reason ?? "Cloud Run 학습 실행이 실패했습니다."
-                          : trainingPhase === "syncing"
-                            ? "모델 학습을 마치고 결과를 연결하고 있습니다."
+                          : trainingPhase === "starting"
+                            ? "학습 컨테이너를 시작하고 있습니다."
                             : trainingPhase === "training"
-                              ? "모델 학습과 MLflow 등록을 진행하고 있습니다."
-                              : "실행이 준비되면 모델 학습을 시작합니다."}</span>
+                              ? "모델 학습을 진행하고 있습니다."
+                              : trainingPhase === "syncing"
+                                ? "모델 학습을 완료했습니다."
+                                : "실행 연결이 끝나면 모델 학습을 시작합니다."}</span>
+                      </li>
+                      <li className={trainingPhase === "syncing" ? "active" : "pending"}>
+                        <time>{execution?.completion_time ? formatClock(execution.completion_time) : "대기"}</time><i aria-hidden="true" />
+                        <span>{trainingPhase === "syncing"
+                          ? "학습 결과를 MLflow와 Run에 연결하고 있습니다."
+                          : "학습이 끝나면 결과를 MLflow에 등록합니다."}</span>
                       </li>
                     </ol>
                   </div>
