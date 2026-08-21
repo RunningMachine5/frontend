@@ -27,9 +27,11 @@ export function ModelPageShell({
   actions,
   children,
 }: ModelPageShellProps) {
+  const isOverview = activeSection === "overview";
+
   return (
-    <AppLayout activeNav="model">
-      <section className="admin-page model-section-page">
+    <AppLayout activeNav="model" className={isOverview ? "model-overview-layout" : undefined}>
+      <section className={`admin-page model-section-page${isOverview ? " model-overview-page" : ""}`}>
         <header className="app-page-header admin-header">
           <PageHeading eyebrow="MODEL MANAGEMENT" title="모델 관리" />
           {actions && <div className="admin-actions">{actions}</div>}
