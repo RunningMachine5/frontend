@@ -7,7 +7,7 @@ export const STATUS_LABELS: Record<string, string> = {
   RUNNING: "학습 중",
   CANDIDATE: "검토 대기",
   REJECTED: "거절",
-  STAGED: "0% 검증",
+  STAGED: "운영 전 검증",
   PROMOTING: "전환 중",
   PRODUCTION: "운영 중",
   RETIRED: "이전 운영",
@@ -46,7 +46,7 @@ export const ACTION_REQUIRED_STATUSES = new Set([
 
 const ACTION_LABELS: Record<string, string> = {
   CANDIDATE: "후보 지표 검토",
-  STAGED: "후보 예측 검증",
+  STAGED: "운영 전 예측 검증",
   PROMOTING: "배포 완료 확인",
   FAILED: "학습 실패 원인 확인",
   DEPLOYMENT_FAILED: "배포 실패 원인 확인",
@@ -158,10 +158,10 @@ export function actionGuide(
   candidateReady = true,
 ) {
   switch (run.status) {
-    case "CANDIDATE": return "운영 모델과 지표를 비교한 뒤 승인하거나 거절하세요.";
+    case "CANDIDATE": return "지표를 확인한 뒤 검증 후보로 승인하거나 거절하세요. 승인해도 현재 운영 모델은 변경되지 않습니다.";
     case "STAGED": return candidateReady
-      ? "0% 후보 리비전이 준비됐습니다. 실제 거래로 예측을 검증하세요."
-      : "Cloud Run이 승인 모델의 0% 후보를 준비 중입니다. 완료될 때까지 자동으로 확인합니다.";
+      ? "운영 전 검증 준비가 완료됐습니다. 저장된 최근 거래로 후보 모델을 검증하세요."
+      : "Cloud Run이 승인 모델을 운영 전 검증용으로 준비 중입니다. 완료될 때까지 자동으로 확인합니다.";
     case "DEPLOYMENT_FAILED": return "실패 원인을 확인한 뒤 예측 검증과 전환을 다시 요청하세요.";
     case "PROMOTING": return "Cloud Run 트래픽 전환이 끝나면 배포 완료를 확인하세요.";
     case "PRODUCTION": return isCurrentProduction
@@ -209,7 +209,7 @@ export function workflowForRun(
         : run.status === "REJECTED" ? "error" : reviewed ? "complete" : "pending",
     },
     {
-      label: "0% 후보 검증",
+      label: "운영 전 검증",
       status: run.status === "STAGED"
         ? (candidateReady ? "검증 필요" : "리비전 준비 중")
         : run.status === "DEPLOYMENT_FAILED" ? "재시도" : verified ? "통과" : "대기",

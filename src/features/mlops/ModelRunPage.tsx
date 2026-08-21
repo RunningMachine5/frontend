@@ -131,7 +131,7 @@ export function ModelRunPage() {
       : "관리자 검토에서 후보를 거절함";
     await decideModel(run.id, decision, reason);
     return decision === "APPROVE"
-      ? "후보 모델을 승인하고 Cloud Run에 0% 리비전 준비를 요청했습니다."
+      ? "후보 모델을 승인하고 운영 전 검증 준비를 요청했습니다."
       : "후보 모델을 거절했습니다.";
   });
 
@@ -241,7 +241,7 @@ export function ModelRunPage() {
             <aside className="admin-panel run-action-panel">
               <div>
                 <p className="admin-eyebrow">CURRENT ACTION</p>
-                <h2>{isCandidatePreparing ? "0% 후보 준비 중" : displayStatus && STATUS_LABELS[displayStatus]}</h2>
+                <h2>{isCandidatePreparing ? "검증 후보 준비 중" : displayStatus && STATUS_LABELS[displayStatus]}</h2>
                 <p className="run-action-guide">{actionGuide(run, isCurrentProduction, candidateReady)}</p>
               </div>
 
@@ -250,19 +250,19 @@ export function ModelRunPage() {
               {run.status === "CANDIDATE" && (
                 <div className="run-action-buttons">
                   <button className="admin-button danger-button" disabled={isBusy} onClick={() => void decide("REJECT")} type="button">후보 거절</button>
-                  <button className="admin-button primary" disabled={isBusy} onClick={() => void decide("APPROVE")} type="button">승인 후 0% 후보 준비</button>
+                  <button className="admin-button primary" disabled={isBusy} onClick={() => void decide("APPROVE")} type="button">검증 후보로 승인</button>
                 </div>
               )}
 
               {["STAGED", "DEPLOYMENT_FAILED"].includes(run.status) && (
                 <div className="automatic-smoke-card">
                   <div>
-                    <span>{isCandidatePreparing ? "후보 리비전 준비 중" : "자동 검증 준비 완료"}</span>
+                    <span>{isCandidatePreparing ? "검증 후보 준비 중" : "자동 검증 준비 완료"}</span>
                     <strong>{isCandidatePreparing ? "새 모델을 추론 서버에 준비하고 있습니다." : "저장된 최근 거래로 후보 모델을 검증합니다."}</strong>
                     <p>{isCandidatePreparing ? "준비 상태는 자동으로 확인합니다. 입력할 값은 없습니다." : "거래와 검증 데이터는 서버가 자동으로 선택합니다."}</p>
                   </div>
                   <button className="admin-button primary" disabled={isBusy || isCandidatePreparing} onClick={() => void promote()} type="button">
-                    {isCandidatePreparing ? "0% 후보 준비 중…" : "자동 검증 후 100% 전환"}
+                    {isCandidatePreparing ? "검증 후보 준비 중…" : "자동 검증 후 100% 전환"}
                   </button>
                 </div>
               )}
