@@ -470,8 +470,8 @@ export function RuleManagementPage() {
                             value={component.weight}
                           />
                         </label>
+                        <div className="weight-track"><i style={{ width: `${Math.min(component.weight * 100, 100)}%` }} /></div>
                       </div>
-                      <div className="weight-track"><i style={{ width: `${Math.min(component.weight * 100, 100)}%` }} /></div>
                     </article>
                   );
                 })}
