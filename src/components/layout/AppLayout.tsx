@@ -3,6 +3,7 @@ import { useEffect, useState, type ReactNode } from "react";
 import {
   fetchDemoTransactionInjectionStatus,
   startDemoTransactionInjection,
+  type DemoTransactionCount,
   type DemoTransactionInjectionStatus,
 } from "../../features/demo/demoApi";
 import "./AppLayout.css";
@@ -29,6 +30,7 @@ const pageTitles = {
 type Theme = "dark" | "light";
 
 const THEME_STORAGE_KEY = "fds.theme";
+const DEMO_TRANSACTION_COUNTS = [100, 500, 1000] as const;
 
 function BrandMark() {
   return <span aria-hidden="true" className="app-brand-mark"><img alt="" src="/fdshield-mark.png" /></span>;
@@ -52,6 +54,9 @@ export function AppLayout({ activeNav, children }: AppLayoutProps) {
     null,
   );
   const [demoError, setDemoError] = useState<string | null>(null);
+  const [demoTransactionCount, setDemoTransactionCount] =
+    useState<DemoTransactionCount>(100);
+  const [demoTransactionsPerSecond, setDemoTransactionsPerSecond] = useState(1);
 
   useEffect(() => {
     document.title = `${pageTitles[activeNav]} | FDShield`;
@@ -89,10 +94,19 @@ export function AppLayout({ activeNav, children }: AppLayoutProps) {
     return () => window.clearInterval(timer);
   }, [demoStatus?.state]);
 
+  useEffect(() => {
+    if (demoStatus?.state !== "RUNNING") return;
+    setDemoTransactionCount(demoStatus.total_count);
+    setDemoTransactionsPerSecond(demoStatus.transactions_per_second);
+  }, [demoStatus]);
+
   const startDemo = async () => {
     setDemoError(null);
     try {
-      setDemoStatus(await startDemoTransactionInjection());
+      setDemoStatus(await startDemoTransactionInjection({
+        transaction_count: demoTransactionCount,
+        transactions_per_second: demoTransactionsPerSecond,
+      }));
     } catch (cause) {
       setDemoError(
         cause instanceof Error
@@ -119,16 +133,60 @@ export function AppLayout({ activeNav, children }: AppLayoutProps) {
           ))}
         </nav>
         <div className="app-sidebar-controls">
-          <button
-            className="app-demo-test-button"
-            disabled={demoStatus?.state === "RUNNING"}
-            onClick={() => void startDemo()}
-            title={demoError ?? "테스트 거래 100건을 초당 1건씩 주입합니다."}
-            type="button"
-          >
-            <span><small>DEMO</small><b>100건 시연 테스트</b></span>
-            <em>{demoError ? "오류" : demoStatusText(demoStatus)}</em>
-          </button>
+          <section aria-label="시연 테스트 설정" className="app-demo-test-panel">
+            <div className="app-demo-test-heading">
+              <span><small>DEMO</small><b>시연 테스트 설정</b></span>
+              <em aria-live="polite">
+                {demoError ? "오류" : demoStatusText(demoStatus)}
+              </em>
+            </div>
+            <fieldset
+              className="app-demo-count-fieldset"
+              disabled={demoStatus?.state === "RUNNING"}
+            >
+              <legend>거래 건수</legend>
+              <div className="app-demo-count-options">
+                {DEMO_TRANSACTION_COUNTS.map((count) => (
+                  <button
+                    aria-pressed={demoTransactionCount === count}
+                    key={count}
+                    onClick={() => setDemoTransactionCount(count)}
+                    type="button"
+                  >
+                    {count.toLocaleString()}
+                  </button>
+                ))}
+              </div>
+            </fieldset>
+            <div className="app-demo-speed-control">
+              <label htmlFor="demo-transactions-per-second">
+                최대 처리 속도
+                <output>{demoTransactionsPerSecond}건/초</output>
+              </label>
+              <input
+                disabled={demoStatus?.state === "RUNNING"}
+                id="demo-transactions-per-second"
+                max="20"
+                min="1"
+                onInput={(event) => (
+                  setDemoTransactionsPerSecond(Number(event.currentTarget.value))
+                )}
+                step="1"
+                type="range"
+                value={demoTransactionsPerSecond}
+              />
+            </div>
+            <button
+              className="app-demo-test-button"
+              disabled={demoStatus?.state === "RUNNING"}
+              onClick={() => void startDemo()}
+              title={demoError ?? `테스트 거래 ${demoTransactionCount.toLocaleString()}건을 최대 초당 ${demoTransactionsPerSecond}건씩 주입합니다.`}
+              type="button"
+            >
+              <span><small>RUN</small><b>{demoTransactionCount.toLocaleString()}건 시연 테스트</b></span>
+              <em>{demoStatus?.state === "RUNNING" ? "진행 중" : "실행"}</em>
+            </button>
+          </section>
           <button
             aria-pressed={theme === "light"}
             className="app-theme-toggle"
