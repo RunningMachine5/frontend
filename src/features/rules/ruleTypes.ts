@@ -72,6 +72,14 @@ export type RulePatternFeatureStatistics = {
   value_counts: RulePatternValueCount[];
 };
 
+export type RuleFeatureStatistics = {
+  selection_basis: "LATEST_ML_POSITIVE";
+  requested_count: number;
+  sample_count: number;
+  has_more: boolean;
+  feature_statistics: RulePatternFeatureStatistics;
+};
+
 export type RulePatternStatisticsItem = {
   component_key: string;
   matched_count: number;

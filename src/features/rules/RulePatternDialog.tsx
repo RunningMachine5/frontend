@@ -1,11 +1,11 @@
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 
-import { fetchRulePatternStatistics } from "./ruleApi";
+import { fetchRuleFeatureStatistics } from "./ruleApi";
 import type {
   RuleComponentInput,
   RuleExpression,
   RuleFeature,
-  RulePatternStatistics,
+  RuleFeatureStatistics,
 } from "./ruleTypes";
 
 const OPERATOR_LABELS: Record<string, string> = {
@@ -128,15 +128,37 @@ export function RulePatternDialog({
   const [valueText, setValueText] = useState(defaultValueText(firstFeature));
   const [endValueText, setEndValueText] = useState("");
   const [weight, setWeight] = useState(0.1);
-  const [statistics, setStatistics] = useState<RulePatternStatistics | null>(null);
+  const [statistics, setStatistics] = useState<RuleFeatureStatistics | null>(null);
   const [isStatisticsLoading, setIsStatisticsLoading] = useState(false);
   const [statisticsError, setStatisticsError] = useState<string | null>(null);
   const selectedFeature = selectableFeatures.find((feature) => feature.field === field);
 
-  const clearStatistics = () => {
+  useEffect(() => {
+    if (!field) return;
+    let cancelled = false;
     setStatistics(null);
     setStatisticsError(null);
-  };
+    setIsStatisticsLoading(true);
+    void fetchRuleFeatureStatistics(field)
+      .then((result) => {
+        if (!cancelled) setStatistics(result);
+      })
+      .catch((cause: unknown) => {
+        if (!cancelled) {
+          setStatisticsError(
+            cause instanceof Error
+              ? cause.message
+              : "표본 통계를 불러오지 못했습니다.",
+          );
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setIsStatisticsLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [field]);
 
   const changeFeature = (nextField: string) => {
     const feature = selectableFeatures.find((item) => item.field === nextField);
@@ -146,7 +168,6 @@ export function RulePatternDialog({
     setOperator(feature.operators[0]);
     setValueText(defaultValueText(feature));
     setEndValueText("");
-    clearStatistics();
   };
 
   const buildPattern = (): RuleComponentInput | null => {
@@ -175,34 +196,15 @@ export function RulePatternDialog({
     && ["integer", "number"].includes(selectedFeature.value_type)
     ? "number"
     : "text";
-  const canPreview = Boolean(
+  const canSubmit = Boolean(
     selectedFeature
     && valueText.trim()
-    && (operator !== "BETWEEN" || endValueText.trim()),
-  );
-  const canSubmit = Boolean(
-    canPreview
+    && (operator !== "BETWEEN" || endValueText.trim())
     && name.trim()
     && weight > 0
     && weight <= 1,
   );
-  const previewStatistics = async () => {
-    const pattern = buildPattern();
-    if (!pattern || !canPreview) return;
-    setIsStatisticsLoading(true);
-    setStatisticsError(null);
-    try {
-      setStatistics(await fetchRulePatternStatistics([pattern]));
-    } catch (cause) {
-      setStatisticsError(
-        cause instanceof Error ? cause.message : "표본 통계를 계산하지 못했습니다.",
-      );
-    } finally {
-      setIsStatisticsLoading(false);
-    }
-  };
-  const patternStatistics = statistics?.patterns[0];
-  const featureStatistics = patternStatistics?.feature_statistics;
+  const featureStatistics = statistics?.feature_statistics;
 
   return (
     <div className="admin-dialog-backdrop" onMouseDown={onClose} role="presentation">
@@ -248,10 +250,7 @@ export function RulePatternDialog({
 
           <label>
             <span>비교 방식</span>
-            <select onChange={(event) => {
-              setOperator(event.target.value);
-              clearStatistics();
-            }} value={operator}>
+            <select onChange={(event) => setOperator(event.target.value)} value={operator}>
               {selectedFeature?.operators.map((item) => (
                 <option key={item} value={item}>{OPERATOR_LABELS[item] ?? item}</option>
               ))}
@@ -262,29 +261,28 @@ export function RulePatternDialog({
             <span>비교값</span>
             <div className={operator === "BETWEEN" ? "range-value-inputs" : ""}>
               {selectedFeature?.allowed_values && operator !== "IN" ? (
-                <select aria-label="비교값" onChange={(event) => {
-                  setValueText(event.target.value);
-                  clearStatistics();
-                }} value={valueText}>
+                <select
+                  aria-label="비교값"
+                  onChange={(event) => setValueText(event.target.value)}
+                  value={valueText}
+                >
                   {selectedFeature.allowed_values.map((value) => (
                     <option key={String(value)} value={String(value)}>{String(value)}</option>
                   ))}
                 </select>
               ) : selectedFeature?.value_type === "boolean" && operator !== "IN" ? (
-                <select aria-label="비교값" onChange={(event) => {
-                  setValueText(event.target.value);
-                  clearStatistics();
-                }} value={valueText}>
+                <select
+                  aria-label="비교값"
+                  onChange={(event) => setValueText(event.target.value)}
+                  value={valueText}
+                >
                   <option value="true">감지</option>
                   <option value="false">미감지</option>
                 </select>
               ) : (
                 <input
                   aria-label={operator === "BETWEEN" ? "범위 최솟값" : "비교값"}
-                  onChange={(event) => {
-                    setValueText(event.target.value);
-                    clearStatistics();
-                  }}
+                  onChange={(event) => setValueText(event.target.value)}
                   placeholder={operator === "IN" ? "쉼표로 여러 값을 구분" : "비교할 값"}
                   required
                   step={selectedFeature?.value_type === "integer" ? "1" : "any"}
@@ -295,10 +293,7 @@ export function RulePatternDialog({
               {operator === "BETWEEN" && (
                 <input
                   aria-label="범위 최댓값"
-                  onChange={(event) => {
-                    setEndValueText(event.target.value);
-                    clearStatistics();
-                  }}
+                  onChange={(event) => setEndValueText(event.target.value)}
                   placeholder="최댓값"
                   required
                   step={selectedFeature?.value_type === "integer" ? "1" : "any"}
@@ -312,29 +307,27 @@ export function RulePatternDialog({
             )}
           </div>
 
-          <section aria-live="polite" className="wide-field pattern-statistics-panel">
+          <section
+            aria-busy={isStatisticsLoading}
+            aria-live="polite"
+            className="wide-field pattern-statistics-panel"
+          >
             <div className="pattern-statistics-title">
               <div>
                 <span>최근 ML 양성 거래</span>
-                <strong>표본 통계</strong>
+                <strong>비교값 참고 통계</strong>
               </div>
-              <button
-                className="admin-button compact"
-                disabled={!canPreview || isStatisticsLoading}
-                onClick={() => void previewStatistics()}
-                type="button"
-              >
-                {isStatisticsLoading ? "계산 중..." : statistics ? "다시 계산" : "통계 확인"}
-              </button>
             </div>
 
             {!statistics && !statisticsError && (
               <p className="pattern-statistics-empty">
-                비교값을 입력하고 통계를 확인하면 최대 최신 1,000건의 분포와 적용 범위를 보여줍니다.
+                {isStatisticsLoading
+                  ? "최근 ML 양성 거래 통계를 불러오는 중입니다."
+                  : "Feature를 선택하면 최대 최신 1,000건의 기준값을 보여줍니다."}
               </p>
             )}
             {statisticsError && <p className="pattern-statistics-error">{statisticsError}</p>}
-            {statistics && patternStatistics && (
+            {statistics && featureStatistics && (
               <div className="pattern-statistics-result">
                 <div className="pattern-match-summary">
                   <span>
@@ -343,8 +336,8 @@ export function RulePatternDialog({
                       : `ML 양성 ${statistics.sample_count.toLocaleString("ko-KR")}건 전체 기준`}
                   </span>
                   <strong>
-                    조건 충족 {patternStatistics.matched_count.toLocaleString("ko-KR")}건
-                    <em>{formatRate(patternStatistics.matched_rate)}</em>
+                    비교값을 정할 때 참고하세요.
+                    <em>{featureStatistics.value_count.toLocaleString("ko-KR")}건</em>
                   </strong>
                 </div>
 

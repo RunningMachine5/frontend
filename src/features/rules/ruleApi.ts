@@ -3,6 +3,7 @@ import type {
   FraudRule,
   RuleComponentInput,
   RuleFeature,
+  RuleFeatureStatistics,
   RulePatternStatistics,
   RuleReplay,
   RuleSet,
@@ -18,6 +19,12 @@ export const fetchRuleSet = (id: number) =>
 
 export const fetchRuleFeatures = () =>
   adminRequest<RuleFeature[]>("/rule-features");
+
+export const fetchRuleFeatureStatistics = (field: string, sampleSize = 1000) =>
+  adminRequest<RuleFeatureStatistics>("/rule-feature-statistics", {
+    method: "POST",
+    body: JSON.stringify({ field, sample_size: sampleSize }),
+  });
 
 export const fetchRulePatternStatistics = (
   patterns: RuleComponentInput[],
