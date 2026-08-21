@@ -342,7 +342,7 @@ export function ModelManagementPage() {
           <header>
             <div className="model-summary-heading">
               <b aria-hidden="true">01</b>
-              <div><small>HUMAN LABELS</small><h3>거래 라벨링</h3></div>
+              <div><small>TRANSACTION LABELING</small><h3>거래 라벨링</h3></div>
             </div>
             <em>검토 열기 →</em>
           </header>
@@ -404,7 +404,7 @@ export function ModelManagementPage() {
           <header>
             <div className="model-summary-heading">
               <b aria-hidden="true">03</b>
-              <div><small>RUNTIME HEALTH</small><h3>운영 모니터링</h3></div>
+              <div><small>OPERATIONS MONITORING</small><h3>운영 모니터링</h3></div>
             </div>
             <em>모니터링 열기 →</em>
           </header>
