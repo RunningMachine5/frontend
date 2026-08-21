@@ -28,11 +28,12 @@ export function useQueue(filters: QueueSearchFilters, pageSize: number) {
         setRows(pageResult.items);
         setTotalCount(pageResult.total_count);
 
-        // 2. 그래프용 전체 이상거래 기록 조회 (page: 1, pageSize: 최대 500)
-        // 필터 조건(검색어, 기간 등)을 동일하게 적용하되 전체 목록을 가져옴
+        // 2. 그래프용 최근 이상거래 기록 조회 (백엔드 허용 최대 100건)
+        // 필터 조건(검색어, 기간 등)을 동일하게 적용한다.
         const allResult = await fetchQueueRows(
           { ...filters, page: 1 },
-          Math.max(pageResult.total_count, 100),
+          100,
+          "received_at",
         );
         if (!active) return;
         setTrendRows(allResult.items);

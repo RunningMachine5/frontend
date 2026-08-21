@@ -134,6 +134,7 @@ export function DashboardPage() {
   const [period, setPeriod] = useState(CURRENT_PERIOD);
   const {
     data,
+    realtimeRiskRows,
     isLoading,
     errorMessage,
     isRefreshingInsight,
@@ -177,8 +178,7 @@ export function DashboardPage() {
           {/* 상단 행: 실시간 위험 거래(넓게) + 최근 7일 추이(좁게) */}
           <div className="monitoring-top-row">
             <HighRiskTrendPanel
-              points={data.priority_trend}
-              suspiciousPoints={data.suspicious_trend}
+              rows={realtimeRiskRows}
             />
             <SuspiciousTrendPanel
               points={data.suspicious_trend}

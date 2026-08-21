@@ -8,11 +8,22 @@ import {
     type DashOverviewParams,
 } from "./DashboardOverviewApi";
 import type { DashboardOverviewResponse } from "./dashboardOverviewTypes";
+import { fetchQueueRows } from "../queue/queueApi";
+import type { CaseListItem } from "../queue/queueTypes";
 
 const REFRESH_INTERVAL_MS = 300;
+const REALTIME_RISK_PAGE_SIZE = 100;
+const REALTIME_RISK_FILTERS = {
+    transactionId: "",
+    ipAddress: "",
+    periodStart: "",
+    periodEnd: "",
+    page: 1,
+};
 
 export function useDashboardOverview(params: DashOverviewParams){
     const [data, setData] = useState<DashboardOverviewResponse | null>(null);
+    const [realtimeRiskRows, setRealtimeRiskRows] = useState<CaseListItem[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
@@ -24,13 +35,21 @@ export function useDashboardOverview(params: DashOverviewParams){
 
         async function loadOverview(generateIfMissing = false){
             try {
-                const overview = await fetchDashboardOverview(params);
+                const [overview, riskRows] = await Promise.all([
+                    fetchDashboardOverview(params),
+                    fetchQueueRows(
+                        REALTIME_RISK_FILTERS,
+                        REALTIME_RISK_PAGE_SIZE,
+                        "received_at",
+                    ),
+                ]);
 
                 if (!isActive) {
                     return;
                 }
 
                 setData(overview);
+                setRealtimeRiskRows(riskRows.items);
                 setErrorMessage(null);
 
                 // 첫 조회에 해당 기간 요약이 없을 때만 한 번 생성한다.
@@ -130,6 +149,7 @@ export function useDashboardOverview(params: DashOverviewParams){
 
     return {
         data,
+        realtimeRiskRows,
         isLoading,
         errorMessage,
         isRefreshingInsight,

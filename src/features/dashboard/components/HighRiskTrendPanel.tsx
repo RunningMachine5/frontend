@@ -1,16 +1,65 @@
-import { useEffect, useRef, useState } from "react";
-import type { PriorityTrendPoint, SuspiciousTrendPoint } from "../dashboardOverviewTypes";
+import { useEffect, useMemo, useRef, useState } from "react";
+import type { CaseListItem } from "../../queue/queueTypes";
 import { formatCompactMoney, formatNumber } from "../dashboardFormatters";
 
 const SELECTED_TRANSACTION_ID_KEY = "fds.selectedTransactionId";
+const RECENT_POINT_LIMIT = 30;
 
 export type RealtimeRiskPoint = {
   transactionId: number;
   timeLabel: string;
+  dateTimeLabel: string;
   amount: number;
   score: number;
-  isLive?: boolean;
+  isLatest?: boolean;
 };
+
+export type TimeInterval = "second" | "minute";
+
+function formatTime(value: string | number, interval: TimeInterval) {
+  return new Date(value).toLocaleTimeString("ko-KR", {
+    hour: "2-digit",
+    minute: "2-digit",
+    second: interval === "second" ? "2-digit" : undefined,
+    hour12: false,
+  });
+}
+
+function formatDate(value: string | number, includeYear = false) {
+  const date = new Date(value);
+  const year = String(date.getFullYear());
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return includeYear ? `${year}.${month}.${day}` : `${month}.${day}`;
+}
+
+export function buildRealtimeRiskPoints(
+  rows: CaseListItem[],
+  interval: TimeInterval,
+): RealtimeRiskPoint[] {
+  const timeRows = [...rows]
+    .sort(
+      (left, right) =>
+        new Date(left.received_at).getTime() - new Date(right.received_at).getTime(),
+    )
+    // 한 화면에는 최신 30건만 표시해 실제 시간 순서와 점을 읽기 쉽게 유지한다.
+    .slice(-RECENT_POINT_LIMIT);
+
+  return timeRows.map((row, index) => {
+    const isLatest = index === timeRows.length - 1;
+    // 원본 거래 시각이 아니라 서버 수신 시각을 X축과 호버에 함께 사용한다.
+    const time = formatTime(row.received_at, interval);
+
+    return {
+      transactionId: row.transaction_id,
+      timeLabel: isLatest ? `${time} 최신` : time,
+      dateTimeLabel: `${formatDate(row.received_at, true)} ${formatTime(row.received_at, "second")}`,
+      amount: row.transaction_amount,
+      score: row.risk_score ?? 0,
+      isLatest,
+    };
+  });
+}
 
 function selectTransactionAndNavigate(transactionId: number) {
   sessionStorage.setItem(SELECTED_TRANSACTION_ID_KEY, String(transactionId));
@@ -261,7 +310,7 @@ export function RealtimeRiskTrendChart({
         {/* 2. 위험 금액 포인트 (클릭 가능) */}
         {amountCoords.map(({ x, y, item }, index) => {
           const isHovered = hoveredIndex === index;
-          const isHighOrLive = item.isLive || item.score >= 80;
+          const isHighOrLatest = item.isLatest || item.score >= 80;
 
           return (
             <g
@@ -276,7 +325,7 @@ export function RealtimeRiskTrendChart({
                 cx={x}
                 cy={y}
                 fill="#1d1c20"
-                r={isHovered ? "6.5" : "4.5"}
+                r={isHovered ? "6.5" : isHighOrLatest ? "5.5" : "4.5"}
                 stroke="#6f8fe6"
                 strokeWidth={isHovered ? "3" : "2"}
               />
@@ -299,10 +348,10 @@ export function RealtimeRiskTrendChart({
 
         {/* 4. 위험 점수 포인트 & 뱃지 (위험 등급별 색상 적용) */}
         {scoreCoords.map(({ x, y, item }, index) => {
-          const isLive = item.isLive;
+          const isLatest = item.isLatest;
           const isHighRisk = item.score >= 80;
           const isHovered = hoveredIndex === index;
-          const showBadge = isLive || isHighRisk || isHovered;
+          const showBadge = isLatest || isHighRisk || isHovered;
           const gradeStyle = getRiskGradeStyle(item.score);
 
           // 데이터가 많을 때 X축 시간 라벨 겹침 방지 (스마트 샘플링)
@@ -323,17 +372,17 @@ export function RealtimeRiskTrendChart({
               onMouseEnter={() => setHoveredIndex(index)}
               style={{ cursor: "pointer" }}
             >
-              {/* LIVE 또는 80점 이상 특이점에 펄스 링 (등급 색상 반영) */}
-              {(isLive || isHighRisk) && (
+              {/* 최신 거래 또는 80점 이상 특이점에 펄스 링 표시 */}
+              {(isLatest || isHighRisk) && (
                 <circle
                   className="live-pulse-ring"
                   cx={x}
                   cy={y}
                   fill="none"
-                  r={isLive ? "9.5" : "8.5"}
+                  r={isLatest ? "9.5" : "8.5"}
                   stroke={gradeStyle.mainColor}
                   strokeOpacity="0.6"
-                  strokeWidth={isLive ? "2" : "1.5"}
+                  strokeWidth={isLatest ? "2" : "1.5"}
                 />
               )}
 
@@ -341,17 +390,17 @@ export function RealtimeRiskTrendChart({
               <circle
                 cx={x}
                 cy={y}
-                fill={isLive || isHighRisk ? gradeStyle.mainColor : isHovered ? gradeStyle.mainColor : "#1d1c20"}
+                fill={isLatest || isHighRisk ? gradeStyle.mainColor : isHovered ? gradeStyle.mainColor : "#1d1c20"}
                 r={isHovered ? "6.5" : showBadge ? "5.5" : "4.5"}
                 stroke={gradeStyle.mainColor}
                 strokeWidth={isHovered ? "3.5" : "2.5"}
               />
 
-              {/* 점수 뱃지 (LIVE 또는 호버 시에만 표시하여 겹침 방지) */}
-              {(isLive || isHovered) && (
+              {/* 점수 뱃지는 최신 거래 또는 호버 시에만 표시 */}
+              {(isLatest || isHovered) && (
                 <>
                   <rect
-                    className={isLive ? "live-score-badge" : isHighRisk ? "high-risk-badge" : ""}
+                    className={isLatest ? "live-score-badge" : isHighRisk ? "high-risk-badge" : ""}
                     fill={gradeStyle.badgeBg}
                     height="16"
                     rx="4"
@@ -378,8 +427,8 @@ export function RealtimeRiskTrendChart({
               {/* X축 시간 라벨 (겹침 없이 깔끔하게 샘플링 렌더링) */}
               {shouldShowTimeLabel && (
                 <text
-                  className={`chart-axis ${isLive ? "live-axis-label" : isHovered ? "hover-axis-label" : ""}`}
-                  fontWeight={isLive || isHovered ? "700" : "400"}
+                  className={`chart-axis ${isLatest ? "live-axis-label" : isHovered ? "hover-axis-label" : ""}`}
+                  fontWeight={isLatest || isHovered ? "700" : "400"}
                   textAnchor="middle"
                   x={x}
                   y={height - 8}
@@ -404,7 +453,7 @@ export function RealtimeRiskTrendChart({
         >
           <div className="tooltip-head">
             <span className="tooltip-tx">TX-{activeItem.transactionId}</span>
-            <span className="tooltip-time">{activeItem.timeLabel}</span>
+            <span className="tooltip-time">{activeItem.dateTimeLabel}</span>
           </div>
           <div className="tooltip-body">
             <div className="tooltip-row">
@@ -425,87 +474,21 @@ export function RealtimeRiskTrendChart({
   );
 }
 
-export type TimeInterval = "second" | "minute";
-
 export function HighRiskTrendPanel({
-  points,
-  suspiciousPoints = [],
+  rows,
 }: {
-  points: PriorityTrendPoint[];
-  suspiciousPoints?: SuspiciousTrendPoint[];
+  rows: CaseListItem[];
 }) {
   const [timeInterval, setTimeInterval] = useState<TimeInterval>("second");
-
-  // 실시간 거래 시간대 시계열 생성 (초 단위 / 분 단위)
-  const now = new Date();
-
-  // 1. 초 단위 모드: 최근 2~3분간의 초 단위 상세 실시간 트렌드
-  const secondTimePoints = [
-    { offsetSec: -120, scoreBase: 48, amountRatio: 0.18, txId: 1450 },
-    { offsetSec: -90, scoreBase: 52, amountRatio: 0.22, txId: 1451 },
-    { offsetSec: -65, scoreBase: 50, amountRatio: 0.28, txId: 1452 },
-    { offsetSec: -45, scoreBase: 58, amountRatio: 0.35, txId: 1453 },
-    { offsetSec: -25, scoreBase: 70, amountRatio: 0.55, txId: 1454 },
-    { offsetSec: -10, scoreBase: 85, amountRatio: 0.85, txId: 1455 },
-    { offsetSec: 0, scoreBase: 92, amountRatio: 1.0, isLive: true, txId: 1456 },
-  ];
-
-  // 2. 분 단위 모드: 최근 1시간 동안의 분 단위 실시간 트렌드
-  const minuteTimePoints = [
-    { offsetMin: -50, scoreBase: 45, amountRatio: 0.15, txId: 1450 },
-    { offsetMin: -40, scoreBase: 50, amountRatio: 0.2, txId: 1451 },
-    { offsetMin: -30, scoreBase: 48, amountRatio: 0.25, txId: 1452 },
-    { offsetMin: -20, scoreBase: 52, amountRatio: 0.3, txId: 1453 },
-    { offsetMin: -12, scoreBase: 68, amountRatio: 0.5, txId: 1454 },
-    { offsetMin: -5, scoreBase: 84, amountRatio: 0.85, txId: 1455 },
-    { offsetMin: 0, scoreBase: 92, amountRatio: 1.0, isLive: true, txId: 1456 },
-  ];
-
-  // 최근 실제 데이터에서 최고 금액 및 수치 반영
-  const realTotalAmount = suspiciousPoints.reduce((sum, p) => sum + p.suspicious_amount, 0);
-  const basePeakAmount = realTotalAmount > 0 ? realTotalAmount : 63_029_000;
-
-  // points의 최근 점수 반영
-  const lastPoint = points[points.length - 1];
-  const lastTotal = lastPoint ? lastPoint.total_count || lastPoint.very_high_count + lastPoint.high_count : 0;
-  const currentRiskScore = lastTotal > 0 ? Math.min(98, 78 + lastTotal * 4) : 92;
-
-  const items: RealtimeRiskPoint[] = (timeInterval === "second" ? secondTimePoints : minuteTimePoints).map((tp, idx, arr) => {
-    let t: Date;
-    let timeLabel = "";
-
-    if ("offsetSec" in tp) {
-      t = new Date(now.getTime() + tp.offsetSec * 1000);
-      const hours = String(t.getHours()).padStart(2, "0");
-      const minutes = String(t.getMinutes()).padStart(2, "0");
-      const seconds = String(t.getSeconds()).padStart(2, "0");
-      timeLabel = tp.isLive ? `${hours}:${minutes}:${seconds} LIVE` : `${hours}:${minutes}:${seconds}`;
-    } else {
-      t = new Date(now.getTime() + tp.offsetMin * 60 * 1000);
-      const hours = String(t.getHours()).padStart(2, "0");
-      const minutes = String(t.getMinutes()).padStart(2, "0");
-      timeLabel = tp.isLive ? `${hours}:${minutes} LIVE` : `${hours}:${minutes}`;
-    }
-
-    let amount = Math.round(basePeakAmount * tp.amountRatio);
-    let score = tp.isLive ? currentRiskScore : tp.scoreBase;
-
-    if (idx === arr.length - 1) {
-      amount = basePeakAmount;
-      score = currentRiskScore;
-    }
-
-    return {
-      transactionId: tp.txId,
-      timeLabel,
-      amount,
-      score,
-      isLive: tp.isLive,
-    };
-  });
-
-  const peakAmount = Math.max(...items.map((i) => i.amount), 0);
-  const avgScore = items.length > 0 ? Math.round(items.reduce((sum, i) => sum + i.score, 0) / items.length) : 0;
+  const items = useMemo(
+    () => buildRealtimeRiskPoints(rows, timeInterval),
+    [rows, timeInterval],
+  );
+  const peakAmount = useMemo(() => Math.max(...items.map((item) => item.amount), 0), [items]);
+  const avgScore = useMemo(
+    () => (items.length > 0 ? Math.round(items.reduce((sum, item) => sum + item.score, 0) / items.length) : 0),
+    [items],
+  );
 
   return (
     <article className="panel priority-panel realtime-risk-panel">
@@ -548,9 +531,13 @@ export function HighRiskTrendPanel({
             <span>평균 위험도 <strong className="score-text">{avgScore}점</strong></span>
           </div>
         </div>
-        <p className="panel-caption">위험 거래 금액(원)과 위험 점수 추이 · 점 클릭 시 상세 분석 이동</p>
+        <p className="panel-caption">서버 수신 시각 기준 위험 거래 금액(원)과 위험 점수 추이 · 점 클릭 시 상세 분석 이동</p>
       </div>
-      <RealtimeRiskTrendChart items={items} />
+      {items.length > 0 ? (
+        <RealtimeRiskTrendChart items={items} />
+      ) : (
+        <div className="agent-empty">표시할 이상거래가 없습니다.</div>
+      )}
     </article>
   );
 }
