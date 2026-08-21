@@ -15,6 +15,8 @@ export function useQueue(filters: QueueSearchFilters, pageSize: number) {
   useEffect(() => {
     let active = true;
     let refreshTimer: number | null = null;
+    let isRefreshRunning = false;
+    let refreshPending = false;
 
     async function loadQueue(showLoading: boolean) {
       if (showLoading) setIsLoading(true);
@@ -42,21 +44,35 @@ export function useQueue(filters: QueueSearchFilters, pageSize: number) {
       }
     }
 
+    async function runRefresh(showLoading: boolean) {
+      refreshTimer = null;
+      refreshPending = false;
+      isRefreshRunning = true;
+
+      await loadQueue(showLoading);
+
+      isRefreshRunning = false;
+
+      // 조회 중 이벤트가 왔다면 최신 상태를 한 번 더 조회한다.
+      if (active && refreshPending) scheduleRefresh();
+    }
+
     function scheduleRefresh() {
-      if (refreshTimer !== null) return;
+      refreshPending = true;
+
+      // 예약된 조회나 실행 중인 조회가 있으면 이벤트만 모아 둔다.
+      if (refreshTimer !== null || isRefreshRunning) return;
+
       refreshTimer = window.setTimeout(
-        () => {
-          refreshTimer = null;
-          void loadQueue(false);
-        },
+        () => void runRefresh(false),
         REFRESH_INTERVAL_MS,
       );
     }
 
-    void loadQueue(true);
+    void runRefresh(true);
 
     const eventSource = new EventSource("/api/dashboard/events");
-    eventSource.addEventListener("dashboard_patch", scheduleRefresh);
+    eventSource.addEventListener("dashboard_updated", scheduleRefresh);
 
     return () => {
       active = false;
