@@ -522,7 +522,7 @@ export function ModelRunPage() {
 
               {run.status === "PROMOTING" && (
                 <div className="traffic-progress-card">
-                  <div><span>Ready 리비전 트래픽</span><strong>{serving ? `${trafficPercent}%` : "확인 불가"}</strong></div>
+                  <div><span>새 모델 적용률</span><strong>{serving ? `${trafficPercent}%` : "확인 불가"}</strong></div>
                   <div className="traffic-progress-track"><i style={{ width: `${trafficPercent}%` }} /></div>
                   <p>Cloud Run 전환이 끝난 뒤 완료 확인을 누르면 운영 모델 상태와 MLflow alias를 확정합니다.</p>
                   <button className="admin-button primary" disabled={isBusy} onClick={() => void complete()} type="button">배포 완료 확인</button>
