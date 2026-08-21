@@ -17,8 +17,8 @@ type ModelPageShellProps = {
 
 const sections: { id: ModelSection; label: string; to: string }[] = [
   { id: "overview", label: "운영 현황", to: "/models" },
-  { id: "training", label: "학습 · 배포", to: "/models/training" },
   { id: "labeling", label: "거래 라벨링", to: "/models/labeling" },
+  { id: "training", label: "학습 · 배포", to: "/models/training" },
 ];
 
 export function ModelPageShell({
