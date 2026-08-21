@@ -416,7 +416,7 @@ export function ModelManagementPage() {
             </li>
             <li>
               <i>3</i>
-              <div><span>운영 전환</span><small>{productionRun ? `새 모델 적용률 ${trafficPercent}%` : "후보 검토 후 배포"}</small></div>
+              <div><span>운영 반영</span><small>{productionRun ? `새 모델 적용률 ${trafficPercent}%` : "후보 검토 후 운영 반영"}</small></div>
               <strong>{productionRun ? `Run #${productionRun.id}` : latestDatasetLabelCount === null ? "—" : `${numberFormat.format(latestDatasetLabelCount)} 라벨`}</strong>
             </li>
           </ol>

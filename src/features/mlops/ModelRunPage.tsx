@@ -153,7 +153,7 @@ export function ModelRunPage() {
       const result = await executeTrainingRun(selectedRunId);
       setOperationId(result.operation_id ?? "");
       await load();
-      setNotice("Cloud Run 학습 실행을 요청했습니다.");
+      setNotice("모델 학습 실행을 요청했습니다.");
     } catch (cause) {
       await load();
       setError(cause instanceof Error ? cause.message : "학습 실행을 요청하지 못했습니다.");
@@ -282,7 +282,7 @@ export function ModelRunPage() {
       : "관리자 검토에서 후보를 거절함";
     await decideModel(run.id, decision, reason);
     return decision === "APPROVE"
-      ? "후보 모델을 승인하고 운영 전 검증 준비를 요청했습니다."
+      ? "후보 모델을 승인하고 운영 반영 준비를 요청했습니다."
       : "후보 모델을 거절했습니다.";
   });
 
@@ -298,13 +298,13 @@ export function ModelRunPage() {
   });
 
   const complete = () => runAction({
-    description: "Cloud Run 트래픽과 MLflow 운영 alias를 최종 확정합니다.",
+    description: "새 모델의 트래픽 전환 결과를 확인하고 운영 모델 상태를 확정합니다.",
     label: "PRODUCTION SYNC",
-    title: "운영 전환을 확정하고 있습니다",
+    title: "운영 모델을 확정하고 있습니다",
   }, async () => {
     if (!run) return "";
     await completeDeployment(run.id, operationId);
-    return "운영 전환과 MLflow 운영 alias 지정을 완료했습니다.";
+    return "새 모델을 운영 모델로 확정했습니다.";
   });
 
   const reconcile = () => runAction({
@@ -412,7 +412,7 @@ export function ModelRunPage() {
             </dl>
           </header>
 
-          <ol aria-label={`Run ${run.id} 모델 운영 5단계`} className="workflow-rail run-workflow-rail">
+          <ol aria-label={`Run ${run.id} 모델 운영 3단계`} className="workflow-rail run-workflow-rail">
             {workflow.map((step, index) => (
               <li className={`workflow-step ${step.state}`} key={step.label}>
                 <small>0{index + 1}</small>
@@ -465,7 +465,7 @@ export function ModelRunPage() {
             <aside className="admin-panel run-action-panel">
               <div>
                 <p className="admin-eyebrow">CURRENT ACTION</p>
-                <h2>{run.status === "RUNNING" ? trainingActionTitle : isCandidatePreparing ? "검증 후보 준비 중" : displayStatus && STATUS_LABELS[displayStatus]}</h2>
+                <h2>{run.status === "RUNNING" ? trainingActionTitle : isCandidatePreparing ? "운영 반영 준비 중" : displayStatus && STATUS_LABELS[displayStatus]}</h2>
                 <p className="run-action-guide">{run.status === "RUNNING" ? trainingActionGuide : actionGuide(run, isCurrentProduction, candidateReady)}</p>
               </div>
 
@@ -502,7 +502,7 @@ export function ModelRunPage() {
                   </section>
                   <div className="run-action-buttons">
                     <button className="admin-button danger-button" disabled={isBusy} onClick={() => void decide("REJECT")} type="button">후보 거절</button>
-                    <button className="admin-button primary" disabled={isBusy} onClick={() => void decide("APPROVE")} type="button">검증 후보로 승인</button>
+                    <button className="admin-button primary" disabled={isBusy} onClick={() => void decide("APPROVE")} type="button">후보 승인</button>
                   </div>
                 </>
               )}
@@ -510,12 +510,12 @@ export function ModelRunPage() {
               {["STAGED", "DEPLOYMENT_FAILED"].includes(run.status) && (
                 <div className="automatic-smoke-card">
                   <div>
-                    <span>{isCandidatePreparing ? "검증 후보 준비 중" : "자동 검증 준비 완료"}</span>
-                    <strong>{isCandidatePreparing ? "새 모델을 추론 서버에 준비하고 있습니다." : "저장된 최근 거래로 후보 모델을 검증합니다."}</strong>
+                    <span>{isCandidatePreparing ? "운영 반영 준비 중" : "자동 검증 준비 완료"}</span>
+                    <strong>{isCandidatePreparing ? "새 모델을 운영에 영향이 없는 환경에서 준비하고 있습니다." : "저장된 최근 거래로 후보 모델을 검증합니다."}</strong>
                     <p>{isCandidatePreparing ? "준비 상태는 자동으로 확인합니다. 입력할 값은 없습니다." : "거래와 검증 데이터는 서버가 자동으로 선택합니다."}</p>
                   </div>
                   <button className="admin-button primary" disabled={isBusy || isCandidatePreparing} onClick={() => void promote()} type="button">
-                    {isCandidatePreparing ? "검증 후보 준비 중…" : "자동 검증 후 100% 전환"}
+                    {isCandidatePreparing ? "운영 반영 준비 중…" : "자동 검증 후 100% 전환"}
                   </button>
                 </div>
               )}
@@ -524,8 +524,8 @@ export function ModelRunPage() {
                 <div className="traffic-progress-card">
                   <div><span>새 모델 적용률</span><strong>{serving ? `${trafficPercent}%` : "확인 불가"}</strong></div>
                   <div className="traffic-progress-track"><i style={{ width: `${trafficPercent}%` }} /></div>
-                  <p>Cloud Run 전환이 끝난 뒤 완료 확인을 누르면 운영 모델 상태와 MLflow alias를 확정합니다.</p>
-                  <button className="admin-button primary" disabled={isBusy} onClick={() => void complete()} type="button">배포 완료 확인</button>
+                  <p>새 모델 적용률이 100%가 되면 운영 모델을 확정할 수 있습니다.</p>
+                  <button className="admin-button primary" disabled={isBusy} onClick={() => void complete()} type="button">운영 모델 확정</button>
                 </div>
               )}
 
@@ -536,7 +536,7 @@ export function ModelRunPage() {
                   onClick={() => void requestExecution(run.id)}
                   type="button"
                 >
-                  {isBusy ? "학습 요청 중…" : "Cloud Run 학습 시작"}
+                  {isBusy ? "학습 요청 중…" : "모델 학습 시작"}
                 </button>
               )}
 
