@@ -20,7 +20,6 @@ import {
   fetchDatasets,
   fetchInferencePerformance,
   fetchModelDetails,
-  fetchPlatformStatus,
   fetchServingStatus,
   fetchTrainingRuns,
 } from "./mlopsApi";
@@ -29,7 +28,6 @@ import type {
   DatasetVersion,
   InferencePerformance,
   ModelDetails,
-  PlatformStatus,
   ServingStatus,
   TrainingRun,
 } from "./mlopsTypes";
@@ -46,7 +44,6 @@ interface ModelOverviewSnapshot {
   serving: ServingStatus | null;
   labelSummary: TransactionLabelQueueSummary | null;
   inference: InferencePerformance | null;
-  platform: PlatformStatus | null;
   updatedAt: Date;
 }
 
@@ -79,15 +76,13 @@ async function fetchOverview(force = false) {
       pageSize: 1,
     }).then((response) => response.summary).catch(() => null),
     fetchInferencePerformance().catch(() => null),
-    fetchPlatformStatus().catch(() => null),
-  ]).then(([datasets, runs, serving, labelSummary, inference, platform]) => {
+  ]).then(([datasets, runs, serving, labelSummary, inference]) => {
     overviewCache = {
       datasets,
       runs,
       serving,
       labelSummary,
       inference,
-      platform,
       updatedAt: new Date(),
     };
     return overviewCache;
@@ -126,11 +121,11 @@ function ModelOverviewSkeleton() {
   return (
     <>
       <ModelLoadingStatus
-        description="운영 Run, Serving, 라벨과 인프라 상태를 함께 확인합니다."
+        description="운영 Run, Serving, 라벨과 학습 상태를 함께 확인합니다."
         label="MODEL STATUS"
         title="모델 운영 정보를 불러오고 있습니다"
       />
-      <section aria-hidden="true" className="model-command-grid">
+      <section aria-hidden="true" className="model-overview-dashboard">
         <article className="admin-panel production-command model-overview-skeleton-card model-overview-skeleton-production">
           <i /><i />
           <div className="model-overview-skeleton-facts">
@@ -141,13 +136,13 @@ function ModelOverviewSkeleton() {
           <i />
           {Array.from({ length: 5 }, (_, index) => <i key={index} />)}
         </aside>
-      </section>
-      <section aria-hidden="true" className="model-summary-grid">
-        {Array.from({ length: 3 }, (_, index) => (
-          <article className="model-overview-skeleton-card model-overview-skeleton-summary" key={index}>
-            <i /><i /><i /><i />
-          </article>
-        ))}
+        <section className="model-summary-grid">
+          {Array.from({ length: 2 }, (_, index) => (
+            <article className="model-overview-skeleton-card model-overview-skeleton-summary" key={index}>
+              <i /><i /><i /><i />
+            </article>
+          ))}
+        </section>
       </section>
     </>
   );
@@ -200,7 +195,6 @@ export function ModelManagementPage() {
   const serving = overview?.serving ?? null;
   const labelSummary = overview?.labelSummary ?? null;
   const inference = overview?.inference ?? null;
-  const platform = overview?.platform ?? null;
   const updatedAt = overview?.updatedAt ?? null;
   const productionRun = findCurrentProductionRun(runs);
 
@@ -243,9 +237,6 @@ export function ModelManagementPage() {
   const latestDatasetLabelCount = latestDataset
     ? latestDataset.period_normal_count + latestDataset.period_fraud_count
     : null;
-  const runtimeState = serving && platform?.database_status === "UP"
-    ? serving.reconciling ? "트래픽 전환 중" : "서비스 정상"
-    : "상태 확인 필요";
   const productionTitle = productionDetails?.model_version
     ? `운영 모델 v${productionDetails.model_version}`
     : productionRun?.model_key ?? (hasDisconnectedRun ? "운영 Run 미연결" : "운영 모델 없음");
@@ -268,7 +259,7 @@ export function ModelManagementPage() {
       {error && <AdminAlert message={error} onDismiss={() => setError(null)} tone="error" />}
 
       {!overview && isRefreshing ? <ModelOverviewSkeleton /> : <>
-        <section className="model-command-grid">
+        <section className="model-overview-dashboard">
         <article className="admin-panel production-command">
           <header>
             <div>
@@ -366,9 +357,8 @@ export function ModelManagementPage() {
             )}
           </footer>
         </aside>
-        </section>
 
-        <section aria-label="라벨링부터 운영까지 모델 업무 흐름" className="model-summary-grid">
+        <section aria-label="라벨링부터 학습과 배포까지 모델 업무 흐름" className="model-summary-grid">
         <Link to="/models/labeling">
           <header>
             <div className="model-summary-heading">
@@ -431,37 +421,7 @@ export function ModelManagementPage() {
             </li>
           </ol>
         </Link>
-        <Link to="/models/monitoring">
-          <header>
-            <div className="model-summary-heading">
-              <b aria-hidden="true">03</b>
-              <div><small>OPERATIONS MONITORING</small><h3>운영 모니터링</h3></div>
-            </div>
-            <em>모니터링 열기 →</em>
-          </header>
-          <div className="model-summary-primary">
-            <span>현재 서비스 상태</span>
-            <strong className={`text-value ${runtimeState === "서비스 정상" ? "positive" : serving?.reconciling ? "accent" : "danger"}`}>{runtimeState}</strong>
-            <p>{inference?.latest_inference_at ? `마지막 추론 ${formatClock(inference.latest_inference_at)}` : inference ? `최근 ${inference.window_minutes}분 추론 요청 없음` : "운영 지표를 확인하고 있습니다."}</p>
-          </div>
-          <ul className="model-summary-details">
-            <li>
-              <i className="accent" />
-              <div><span>추론 API</span><small>P95 {inference?.p95_latency_ms === null || inference?.p95_latency_ms === undefined ? "—" : `${numberFormat.format(inference.p95_latency_ms)}ms`}</small></div>
-              <strong>{inference ? numberFormat.format(inference.inference_count) : "—"}<small>건</small></strong>
-            </li>
-            <li>
-              <i className={serving?.reconciling ? "accent" : serving ? "positive" : "danger"} />
-              <div><span>ML 추론 서버</span><small>새 모델 적용률 {serving ? `${trafficPercent}%` : "—"}</small></div>
-              <strong className={serving?.reconciling ? "accent" : serving ? "positive" : "danger"}>{serving?.reconciling ? "전환 중" : serving ? "연결" : "확인 필요"}</strong>
-            </li>
-            <li>
-              <i className={platform?.database_status === "UP" ? "positive" : "danger"} />
-              <div><span>PostgreSQL</span><small>응답 {platform?.database_latency_ms === null || platform?.database_latency_ms === undefined ? "—" : `${numberFormat.format(platform.database_latency_ms)}ms`}</small></div>
-              <strong className={platform ? platform.database_status === "UP" ? "positive" : "danger" : undefined}>{platform?.database_status ?? "—"}</strong>
-            </li>
-          </ul>
-        </Link>
+        </section>
         </section>
       </>}
     </ModelPageShell>
