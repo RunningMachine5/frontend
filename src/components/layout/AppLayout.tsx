@@ -8,24 +8,51 @@ import {
 } from "../../features/demo/demoApi";
 import "./AppLayout.css";
 
+type NavigationId = "dashboard" | "analysis" | "rules" | "model" | "monitoring";
+
+type NavigationItem = {
+  id: NavigationId;
+  label: string;
+  href: string;
+};
+
 type AppLayoutProps = {
-  activeNav: "dashboard" | "analysis" | "rules" | "model";
+  activeNav: NavigationId;
   children: ReactNode;
   className?: string;
 };
 
-const navigation = [
-  { id: "dashboard", label: "이상거래 감시", href: "/#main" },
-  { id: "analysis", label: "이상거래 분석", href: "/#queue" },
-  { id: "rules", label: "룰 관리", href: "/#rules" },
-  { id: "model", label: "모델 관리", href: "/models" },
-] as const;
+const navigationGroups: { label: string; items: NavigationItem[] }[] = [
+  {
+    label: "MONITORING",
+    items: [
+      { id: "dashboard", label: "이상거래 감시", href: "/#main" },
+      { id: "analysis", label: "이상거래 분석", href: "/#queue" },
+    ],
+  },
+  {
+    label: "MANAGEMENT",
+    items: [
+      { id: "rules", label: "룰 관리", href: "/#rules" },
+      { id: "model", label: "모델 관리", href: "/models" },
+    ],
+  },
+  {
+    label: "SYSTEM OPERATIONS",
+    items: [
+      { id: "monitoring", label: "서버 모니터링", href: "/models/monitoring" },
+    ],
+  },
+];
+
+const navigation = navigationGroups.flatMap((group) => group.items);
 
 const pageTitles = {
   dashboard: "이상거래 감시",
   analysis: "이상거래 분석",
   rules: "룰 관리",
   model: "모델 관리",
+  monitoring: "서버 모니터링",
 } as const;
 
 type Theme = "dark" | "light";
@@ -125,12 +152,18 @@ export function AppLayout({ activeNav, children, className }: AppLayoutProps) {
           <BrandMark />
           <span className="app-brand-copy"><b>FDShield</b><small>FRAUD DETECTION SYSTEM</small></span>
         </a>
-        <p className="app-nav-title">OPERATIONS</p>
-        <nav>
-          {navigation.map((item) => (
-            <a className={item.id === activeNav ? "active" : undefined} href={item.href} key={item.id}>
-              {item.label}
-            </a>
+        <nav aria-label="주요 메뉴" className="app-sidebar-navigation">
+          {navigationGroups.map((group) => (
+            <section className="app-nav-group" key={group.label}>
+              <p className="app-nav-title">{group.label}</p>
+              <div className="app-nav-items">
+                {group.items.map((item) => (
+                  <a className={item.id === activeNav ? "active" : undefined} href={item.href} key={item.id}>
+                    {item.label}
+                  </a>
+                ))}
+              </div>
+            </section>
           ))}
         </nav>
         <div className="app-sidebar-controls">

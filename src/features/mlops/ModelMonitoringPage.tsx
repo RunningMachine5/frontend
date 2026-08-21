@@ -2,10 +2,12 @@
 
 import { useCallback, useEffect, useState, type ReactNode } from "react";
 
+import { AppLayout } from "../../components/layout/AppLayout";
+import { PageHeading } from "../../components/layout/PageHeading";
 import { AdminAlert } from "../admin/AdminAlert";
+import "../admin/AdminWorkspace.css";
 import { ModelLoadingStatus } from "./components/ModelLoadingStatus";
 import { MetricChart } from "./components/MetricChart";
-import { ModelPageShell } from "./components/ModelPageShell";
 import { formatClock, latestRevisionTraffic, resourceName, STATUS_LABELS } from "./modelOperations";
 import {
   fetchPlatformMonitoring,
@@ -206,24 +208,27 @@ export function ModelMonitoringPage() {
       : platformMonitoring?.instance_name ?? "운영 VM";
 
   return (
-    <ModelPageShell
-      activeSection="monitoring"
-      actions={(
-        <div aria-label="조회 구간" className="monitoring-range-control">
-          {WINDOWS.map((minutes) => (
-            <button
-              aria-pressed={windowMinutes === minutes}
-              className={windowMinutes === minutes ? "active" : undefined}
-              key={minutes}
-              onClick={() => setWindowMinutes(minutes)}
-              type="button"
-            >
-              {windowLabel(minutes)}
-            </button>
-          ))}
-        </div>
-      )}
-    >
+    <AppLayout activeNav="monitoring">
+      <section className="admin-page model-section-page server-monitoring-page">
+        <header className="app-page-header admin-header">
+          <PageHeading eyebrow="SYSTEM MONITORING" title="서버 모니터링" />
+          <div className="admin-actions">
+            <div aria-label="조회 구간" className="monitoring-range-control">
+              {WINDOWS.map((minutes) => (
+                <button
+                  aria-pressed={windowMinutes === minutes}
+                  className={windowMinutes === minutes ? "active" : undefined}
+                  key={minutes}
+                  onClick={() => setWindowMinutes(minutes)}
+                  type="button"
+                >
+                  {windowLabel(minutes)}
+                </button>
+              ))}
+            </div>
+          </div>
+        </header>
+        <div className="model-section-content">
       <section aria-label="모델 운영 서버 선택" className="monitoring-service-rail">
         <button className={target === "serving" ? "active" : undefined} onClick={() => setTarget("serving")} type="button">
           <small>01 · ML INFERENCE</small>
@@ -427,6 +432,8 @@ export function ModelMonitoringPage() {
           </section>
         </>
       )}
-    </ModelPageShell>
+        </div>
+      </section>
+    </AppLayout>
   );
 }
