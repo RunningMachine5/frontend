@@ -60,6 +60,12 @@ export type ModelDetails = {
   tags: Record<string, string>;
 };
 
+export type ModelReview = {
+  source: "AI";
+  decision: "RECOMMENDED" | "NOT_RECOMMENDED";
+  summary: string;
+};
+
 export type ServingStatus = {
   name: string | null;
   uri: string | null;

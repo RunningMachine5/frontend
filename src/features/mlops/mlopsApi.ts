@@ -6,6 +6,7 @@ import type {
   DatasetVersion,
   InferencePerformance,
   ModelDetails,
+  ModelReview,
   PlatformMonitoring,
   PlatformStatus,
   ServingStatus,
@@ -63,6 +64,11 @@ export const executeTrainingRun = (runId: number) =>
 
 export const fetchModelDetails = (runId: number) =>
   adminRequest<ModelDetails>(`/mlops/training/runs/${runId}/model-details`);
+
+export const fetchModelReview = (runId: number) =>
+  adminRequest<ModelReview>(`/mlops/training/runs/${runId}/ai-review`, {
+    method: "POST",
+  });
 
 export const decideModel = (
   runId: number,

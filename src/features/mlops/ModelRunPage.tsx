@@ -14,13 +14,13 @@ import {
   ACTIVE_RUN_STATUSES,
   COMPARISON_METRICS,
   findCurrentProductionRun,
+  formatClock,
   formatDate,
   isModelRevisionReady,
   latestRevisionTraffic,
   metric,
   metricDeltaText,
   metricText,
-  recommendationLabel,
   STATUS_LABELS,
   trainingDisplayStatus,
   workflowForRun,
@@ -31,7 +31,9 @@ import {
   executeTrainingRun,
   fetchDatasets,
   fetchModelDetails,
+  fetchModelReview,
   fetchServingStatus,
+  fetchTrainingExecution,
   fetchTrainingRun,
   fetchTrainingRuns,
   promoteModel,
@@ -40,7 +42,9 @@ import {
 import type {
   DatasetVersion,
   ModelDetails,
+  ModelReview,
   ServingStatus,
+  TrainingExecution,
   TrainingRun,
 } from "./mlopsTypes";
 
@@ -55,12 +59,18 @@ export function ModelRunPage() {
     (location.state as { executeTraining?: boolean } | null)?.executeTraining,
   );
   const executionRequestStarted = useRef(false);
+  const reviewRequestedRunId = useRef<number | null>(null);
   const [run, setRun] = useState<TrainingRun | null>(null);
   const [dataset, setDataset] = useState<DatasetVersion | null>(null);
   const [productionRun, setProductionRun] = useState<TrainingRun | null>(null);
   const [details, setDetails] = useState<ModelDetails | null>(null);
   const [productionDetails, setProductionDetails] = useState<ModelDetails | null>(null);
+  const [modelReview, setModelReview] = useState<ModelReview | null>(null);
+  const [modelReviewError, setModelReviewError] = useState<string | null>(null);
+  const [isModelReviewLoading, setIsModelReviewLoading] = useState(false);
   const [serving, setServing] = useState<ServingStatus | null>(null);
+  const [execution, setExecution] = useState<TrainingExecution | null>(null);
+  const [lastRefreshedAt, setLastRefreshedAt] = useState<Date | null>(null);
   const [operationId, setOperationId] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [isBusy, setIsBusy] = useState(false);
@@ -83,6 +93,9 @@ export function ModelRunPage() {
       const selectedDetails = runRow.mlflow_run_id
         ? await fetchModelDetails(runRow.id).catch(() => null)
         : null;
+      const selectedExecution = runRow.status === "RUNNING" && runRow.cloud_run_execution_name
+        ? await fetchTrainingExecution(runRow.id).catch(() => null)
+        : null;
       const currentProductionDetails = currentProduction?.mlflow_run_id
         ? currentProduction.id === runRow.id
           ? selectedDetails
@@ -95,6 +108,8 @@ export function ModelRunPage() {
       setDetails(selectedDetails);
       setProductionDetails(currentProductionDetails);
       setServing(servingStatus);
+      setExecution(selectedExecution);
+      setLastRefreshedAt(new Date());
       setError(null);
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "Run 상세 정보를 불러오지 못했습니다.");
@@ -126,9 +141,43 @@ export function ModelRunPage() {
     }
   }, [load]);
 
+  const requestModelReview = useCallback(async (selectedRunId: number) => {
+    setIsModelReviewLoading(true);
+    setModelReviewError(null);
+    try {
+      setModelReview(await fetchModelReview(selectedRunId));
+    } catch (cause) {
+      setModelReview(null);
+      setModelReviewError(
+        cause instanceof Error
+          ? cause.message
+          : "AI 판단을 불러오지 못했습니다.",
+      );
+    } finally {
+      setIsModelReviewLoading(false);
+    }
+  }, []);
+
   useEffect(() => {
     void load(true);
   }, [load]);
+
+  useEffect(() => {
+    setModelReview(null);
+    setModelReviewError(null);
+    setIsModelReviewLoading(false);
+  }, [runId]);
+
+  useEffect(() => {
+    if (
+      run?.status !== "CANDIDATE"
+      || !details
+      || reviewRequestedRunId.current === run.id
+    ) return;
+
+    reviewRequestedRunId.current = run.id;
+    void requestModelReview(run.id);
+  }, [details, requestModelReview, run]);
 
   useEffect(() => {
     if (
@@ -231,7 +280,53 @@ export function ModelRunPage() {
   const workflow = run
     ? workflowForRun(run, trafficPercent, candidateReady, isCurrentProduction)
     : [];
-  const recommendation = recommendationLabel(details?.tags.promotion_recommendation);
+  const trainingPhase = run?.status !== "RUNNING"
+    ? null
+    : execution?.outcome === "FAILED"
+      ? "failed"
+      : execution?.outcome === "SUCCEEDED"
+        ? "syncing"
+        : !run.cloud_run_execution_name
+          ? "connecting"
+          : !execution?.start_time
+            ? "starting"
+            : "training";
+  const trainingActionTitle = trainingPhase === "failed"
+    ? "학습 실행 확인 필요"
+    : trainingPhase === "syncing"
+      ? "학습 결과 연결 중"
+      : trainingPhase === "connecting"
+        ? "실행 환경 연결 중"
+        : trainingPhase === "starting"
+          ? "학습 컨테이너 시작 중"
+          : "모델 학습 중";
+  const trainingActionGuide = trainingPhase === "failed"
+    ? "Cloud Run에서 실패가 감지됐습니다. 상태를 확인해 Run에 반영하세요."
+    : trainingPhase === "syncing"
+      ? "학습은 끝났으며 MLflow 결과가 Run에 연결되기를 기다리고 있습니다."
+      : trainingPhase === "connecting"
+        ? "Cloud Run에서 학습 실행을 준비하고 있습니다. 상태는 자동으로 갱신됩니다."
+        : trainingPhase === "starting"
+          ? "실행 연결을 마쳤으며 학습 컨테이너가 시작되기를 기다리고 있습니다."
+          : "모델 학습과 MLflow 등록이 진행 중입니다.";
+  const modelReviewLabel = modelReview?.decision === "RECOMMENDED"
+    ? "승격 추천"
+    : modelReview?.decision === "NOT_RECOMMENDED"
+      ? "승격 비추천"
+      : isModelReviewLoading
+        ? "판단 중…"
+        : modelReviewError
+          ? "판단 불가"
+          : run?.status === "CANDIDATE"
+            ? "판단 준비"
+            : isCurrentProduction
+              ? "운영 기준"
+              : "해당 없음";
+  const modelReviewTone = modelReview?.decision === "RECOMMENDED"
+    ? "recommended"
+    : modelReview?.decision === "NOT_RECOMMENDED"
+      ? "not-recommended"
+    : "pending";
 
   return (
     <ModelPageShell
@@ -267,7 +362,7 @@ export function ModelRunPage() {
               <div><dt>데이터셋</dt><dd>{dataset?.version ?? `#${run.dataset_version_id}`}</dd></div>
               <div><dt>학습 요청</dt><dd>{formatDate(run.created_at)}</dd></div>
               <div><dt>MLflow Run</dt><dd title={run.mlflow_run_id ?? undefined}>{run.mlflow_run_id?.slice(0, 14) ?? "—"}</dd></div>
-              <div><dt>추천</dt><dd>{recommendation}</dd></div>
+              <div><dt>AI 판단</dt><dd className={modelReviewTone}>{modelReviewLabel}</dd></div>
             </dl>
           </header>
 
@@ -288,7 +383,13 @@ export function ModelRunPage() {
                   <h2>후보 성능 비교</h2>
                   <small>{isCurrentProduction ? "현재 운영 모델의 기준 성능입니다." : "현재 운영 모델과 같은 검증 지표로 비교합니다."}</small>
                 </div>
-                {details && <em className="recommendation">{recommendation}</em>}
+                {details && (
+                  <em className={`recommendation ${modelReviewTone}`}>
+                    {run.status === "CANDIDATE"
+                      ? `AI 판단 · ${modelReviewLabel}`
+                      : modelReviewLabel}
+                  </em>
+                )}
               </div>
               <div aria-label="선택 모델과 운영 모델 성능 비교" className="model-comparison" role="table">
                 <div className="model-comparison-row model-comparison-header" role="row">
@@ -318,17 +419,46 @@ export function ModelRunPage() {
             <aside className="admin-panel run-action-panel">
               <div>
                 <p className="admin-eyebrow">CURRENT ACTION</p>
-                <h2>{isCandidatePreparing ? "검증 후보 준비 중" : displayStatus && STATUS_LABELS[displayStatus]}</h2>
-                <p className="run-action-guide">{actionGuide(run, isCurrentProduction, candidateReady)}</p>
+                <h2>{run.status === "RUNNING" ? trainingActionTitle : isCandidatePreparing ? "검증 후보 준비 중" : displayStatus && STATUS_LABELS[displayStatus]}</h2>
+                <p className="run-action-guide">{run.status === "RUNNING" ? trainingActionGuide : actionGuide(run, isCurrentProduction, candidateReady)}</p>
               </div>
 
               {run.error_message && <div className="run-error-message"><strong>실패 원인</strong><span>{run.error_message}</span></div>}
 
               {run.status === "CANDIDATE" && (
-                <div className="run-action-buttons">
-                  <button className="admin-button danger-button" disabled={isBusy} onClick={() => void decide("REJECT")} type="button">후보 거절</button>
-                  <button className="admin-button primary" disabled={isBusy} onClick={() => void decide("APPROVE")} type="button">검증 후보로 승인</button>
-                </div>
+                <>
+                  <section
+                    aria-live="polite"
+                    className={`model-ai-review ${modelReviewTone}`}
+                  >
+                    <header>
+                      <span>AI 판단 근거</span>
+                      <em>{modelReviewLabel}</em>
+                    </header>
+                    {isModelReviewLoading ? (
+                      <div className="model-ai-review-loading">
+                        <i aria-hidden="true" />
+                        <p>후보와 운영 모델의 성능 차이를 검토하고 있습니다.</p>
+                      </div>
+                    ) : modelReview ? (
+                      <p>{modelReview.summary}</p>
+                    ) : (
+                      <div className="model-ai-review-error">
+                        <p>AI 판단을 불러오지 못했습니다. 성능 지표를 직접 확인하거나 다시 요청해 주세요.</p>
+                        <button
+                          onClick={() => void requestModelReview(run.id)}
+                          type="button"
+                        >
+                          다시 판단
+                        </button>
+                      </div>
+                    )}
+                  </section>
+                  <div className="run-action-buttons">
+                    <button className="admin-button danger-button" disabled={isBusy} onClick={() => void decide("REJECT")} type="button">후보 거절</button>
+                    <button className="admin-button primary" disabled={isBusy} onClick={() => void decide("APPROVE")} type="button">검증 후보로 승인</button>
+                  </div>
+                </>
               )}
 
               {["STAGED", "DEPLOYMENT_FAILED"].includes(run.status) && (
@@ -365,16 +495,48 @@ export function ModelRunPage() {
               )}
 
               {run.status === "RUNNING" && (
-                <button
-                  className="admin-button"
-                  disabled={isBusy || !run.cloud_run_execution_name}
-                  onClick={() => void reconcile()}
-                  type="button"
-                >
-                  {run.cloud_run_execution_name
-                    ? "Cloud Run 상태 확인"
-                    : "Cloud Run 실행 연결 대기 중"}
-                </button>
+                <div className={`training-progress-card ${trainingPhase ?? "connecting"}`}>
+                  <div aria-live="polite" className="training-progress-summary">
+                    <span aria-hidden="true" className="training-progress-signal" />
+                    <div>
+                      <span>{trainingActionTitle}</span>
+                      <strong>{run.cloud_run_execution_name ?? "Cloud Run 실행 확인 중"}</strong>
+                    </div>
+                  </div>
+
+                  <div aria-hidden="true" className="training-progress-track"><i /></div>
+
+                  <div className="training-progress-log">
+                    <header><strong>진행 로그</strong><small>실제 상태 기준</small></header>
+                    <ol>
+                      <li className="complete">
+                        <time>{formatClock(run.created_at)}</time><i aria-hidden="true" />
+                        <span>학습 요청을 접수했습니다.</span>
+                      </li>
+                      <li className={run.cloud_run_execution_name ? "complete" : "active"}>
+                        <time>{execution?.create_time ? formatClock(execution.create_time) : run.cloud_run_execution_name ? "확인됨" : "현재"}</time><i aria-hidden="true" />
+                        <span>{run.cloud_run_execution_name ? "Cloud Run 실행 연결을 확인했습니다." : "Cloud Run 실행 연결을 기다리고 있습니다."}</span>
+                      </li>
+                      <li className={trainingPhase === "failed" ? "error" : trainingPhase === "syncing" ? "complete" : trainingPhase === "training" ? "active" : "pending"}>
+                        <time>{execution?.start_time ? formatClock(execution.start_time) : "대기"}</time><i aria-hidden="true" />
+                        <span>{trainingPhase === "failed"
+                          ? execution?.failure_reason ?? "Cloud Run 학습 실행이 실패했습니다."
+                          : trainingPhase === "syncing"
+                            ? "모델 학습을 마치고 결과를 연결하고 있습니다."
+                            : trainingPhase === "training"
+                              ? "모델 학습과 MLflow 등록을 진행하고 있습니다."
+                              : "실행이 준비되면 모델 학습을 시작합니다."}</span>
+                      </li>
+                    </ol>
+                  </div>
+
+                  <footer className="training-progress-footer">
+                    <span>5초마다 자동 갱신 · 마지막 확인 {formatClock(lastRefreshedAt)}</span>
+                    {run.cloud_run_execution_name && (
+                      <button className="admin-button compact" disabled={isBusy} onClick={() => void reconcile()} type="button">상태 즉시 확인</button>
+                    )}
+                  </footer>
+                </div>
               )}
             </aside>
           </section>

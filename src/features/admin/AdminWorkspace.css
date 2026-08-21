@@ -92,7 +92,7 @@
 
   .rule-section-nav{margin-bottom:8px}
   .rule-workspace{min-height:0;flex:1;grid-template-columns:200px minmax(500px,1fr) clamp(320px,20vw,350px);gap:8px}
-  .rule-edit-workspace{grid-template-columns:200px minmax(0,1fr)}
+  .rule-edit-workspace{grid-template-columns:232px minmax(0,1fr)}
   .rule-verify-workspace{min-height:0;flex:1;grid-template-columns:minmax(370px,.72fr) minmax(720px,1.7fr);gap:8px}
   .verify-control-panel,.replay-report-panel{min-height:0}
   .verify-control-panel,.replay-report-content{overflow-y:auto;scrollbar-gutter:stable}
@@ -105,7 +105,7 @@
   .rule-tabs{padding:7px 10px 0;gap:4px}
   .rule-tabs button{min-height:32px;padding:0 11px;font-size:11px}
   /* 룰이 적어도 남은 높이를 카드가 나눠 갖지 않도록 행 높이를 고정한다. */
-  .component-list{min-height:0;flex:1;padding:8px;gap:6px;align-content:start;grid-template-columns:repeat(3,minmax(0,1fr));grid-auto-rows:minmax(132px,max-content);overflow-y:auto;scrollbar-gutter:stable}
+  .component-list{min-height:0;flex:1;padding:8px;gap:6px;align-content:start;grid-template-columns:repeat(3,minmax(0,1fr));grid-auto-rows:minmax(166px,max-content);overflow-y:auto;scrollbar-gutter:stable}
   .component-row{padding:11px 13px 16px;grid-template-columns:minmax(0,1fr) 76px;gap:10px}
   .component-row strong{font-size:13px}
   .component-row .condition-summary{margin-top:5px;font-size:11px;line-height:1.4}
@@ -145,7 +145,7 @@
   .admin-page{padding:22px 15px 30px}.admin-header h1{font-size:26px}.admin-actions{display:grid;grid-template-columns:1fr 1fr}.version-list{grid-template-columns:1fr 1fr}.component-list{grid-template-columns:1fr}.component-row{grid-template-columns:1fr}.weight-track{width:calc(100% - 30px)}.component-row input{width:100%}.rule-total,.editor-actions{align-items:flex-start;gap:8px}.editor-actions{display:grid}.verification-flow{grid-template-columns:1fr}.verification-flow li{border-right:1px solid var(--ops-line);border-bottom:0}.verification-flow li:first-child{border-radius:8px 8px 0 0}.verification-flow li:last-child{border-bottom:1px solid var(--ops-line);border-radius:0 0 8px 8px}.rule-verify-workspace .verify-actions{grid-template-columns:1fr}.verification-summary-grid{grid-template-columns:1fr}.feature-list{grid-template-columns:1fr}.admin-dialog-backdrop{padding:12px}.admin-dialog{max-height:calc(100vh - 24px)}
 }
 
-@media(prefers-reduced-motion:reduce){.admin-button{transition:none}}
+@media(prefers-reduced-motion:reduce){.admin-button{transition:none}.training-progress-signal::before,.training-progress-track i,.training-progress-log li.active i{animation:none}}
 
 /* 모델 관리는 역할별 화면을 나누되 같은 운영 콘솔 구조를 사용한다. */
 .model-section-page{min-height:100vh;box-sizing:border-box}
@@ -201,7 +201,7 @@
 .training-workspace{min-height:0;display:grid;grid-template-columns:minmax(300px,1fr) minmax(700px,1.55fr);gap:12px}.dataset-ledger,.training-runs-panel{min-height:0;display:flex;flex-direction:column}.panel-title.split>strong{color:var(--ops-focus);font-size:24px}.dataset-ledger-list{min-height:0;padding:9px;display:grid;flex:1;align-content:start;gap:7px;overflow:hidden}.dataset-ledger-list article{min-height:0;padding:12px 13px;border:1px solid var(--ops-line);border-radius:9px;display:flex;flex-direction:column;background:var(--ops-surface-sunken)}.dataset-ledger-list article.latest{border-color:var(--ops-focus);background:var(--ops-focus-soft)}.dataset-ledger-list header{display:flex;align-items:center;justify-content:space-between;gap:10px}.dataset-ledger-list header strong{overflow:hidden;font-size:12px;text-overflow:ellipsis;white-space:nowrap}.dataset-ledger-list header em{padding:4px 7px;border-radius:99px;background:var(--ops-focus-soft);color:#aebee9;font-size:8px;font-style:normal;font-weight:800}.dataset-ledger-list dl{margin:9px 0 8px;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:5px}.dataset-ledger-list dl div{min-width:0;padding:7px 8px;border-radius:6px;background:var(--ops-surface-raised)}.dataset-ledger-list dt{overflow:hidden;color:var(--ops-text-subtle);font-size:8px;text-overflow:ellipsis;white-space:nowrap}.dataset-ledger-list dd{margin:4px 0 0;overflow:hidden;font-size:10px;font-weight:700;text-overflow:ellipsis;white-space:nowrap}.dataset-ledger-list article>small{display:block;overflow:hidden;color:var(--ops-text-subtle);font-size:9px;text-overflow:ellipsis;white-space:nowrap}.training-runs-panel .admin-table-wrap{min-height:0;flex:1;overflow:auto}.training-runs-panel td:nth-child(4){max-width:none;color:inherit}.training-runs-table{table-layout:fixed}.training-runs-table th:nth-child(1){width:6%}.training-runs-table th:nth-child(2){width:40%}.training-runs-table th:nth-child(3){width:12%}.training-runs-table th:nth-child(4){width:16%}.training-runs-table th:nth-child(5){width:17%}.training-runs-table th:nth-child(6){width:9%}.training-runs-table th:last-child,.training-runs-table td:last-child{padding-left:6px;text-align:right}.training-run-dataset-cell,.run-error-cell{overflow:hidden;text-overflow:ellipsis}.training-run-row{cursor:pointer}.training-run-row:focus-visible{outline:2px solid var(--ops-focus);outline-offset:-2px;background:var(--ops-focus-soft)}.run-id-label{font-size:10px}.run-error-cell{color:#a3a6b2!important}.table-action-button{padding:4px 6px;border:0;background:transparent;color:var(--ops-focus);font-size:10px;font-weight:700}.row-open-hint{color:var(--ops-focus);font-size:10px;font-weight:700}.training-run-row:hover .row-open-hint{color:#aebee9}.table-empty{padding:28px;color:var(--ops-text-muted);font-size:11px;text-align:center}
 .training-workspace-skeleton>.admin-panel{position:relative;min-height:360px;padding:18px;display:flex;flex-direction:column;gap:18px;overflow:hidden}.training-skeleton-heading{display:grid;gap:8px}.training-skeleton-heading i,.training-skeleton-cards i,.training-skeleton-rows i{display:block;border-radius:7px;background:#2a2a34}.training-skeleton-heading i:first-child{width:34%;height:20px}.training-skeleton-heading i:last-child{width:52%;height:10px}.training-skeleton-cards,.training-skeleton-rows{display:grid;gap:9px}.training-skeleton-cards i{height:88px}.training-skeleton-rows i{height:42px}.training-workspace-skeleton>.admin-panel::after{content:"";position:absolute;inset:0;transform:translateX(-100%);background:linear-gradient(105deg,transparent 30%,rgb(111 143 230 / 9%) 50%,transparent 70%);animation:monitoring-skeleton-scan 1.5s ease-in-out infinite}.training-workspace-skeleton>.admin-panel:last-child::after{animation-delay:.12s}
 
-.dataset-card-header>div{min-width:0;display:grid;gap:5px}.dataset-card-badges{display:flex;gap:5px}.dataset-ledger-list header em.used{background:#17392c;color:#62d9a1}.dataset-delete-button{min-width:42px;height:29px;border:1px solid #63343e;border-radius:7px;background:#281b20;color:#e88e96;font-size:9px;font-weight:700}.dataset-delete-button:hover:not(:disabled){border-color:#8a4652;background:#3a2229}.dataset-delete-button:disabled{border-color:var(--ops-line);background:var(--ops-surface-raised);color:#626572}.dataset-delete-button:focus-visible{outline:2px solid var(--ops-focus);outline-offset:2px}.dataset-period{margin:8px 0 0;display:flex;align-items:center;justify-content:space-between;gap:10px}.dataset-period span{color:var(--ops-text-subtle);font-size:8px;white-space:nowrap}.dataset-period strong{overflow:hidden;font-size:10px;text-align:right;text-overflow:ellipsis;white-space:nowrap}.dataset-ledger-list dl div.normal dd,.dataset-preview dl div.normal dd{color:#58d49c}.dataset-ledger-list dl div.fraud dd,.dataset-preview dl div.fraud dd{color:#ff8994}.dataset-label-mix{height:5px;margin:0 0 8px;border-radius:99px;display:flex;overflow:hidden;background:#2b2b34}.dataset-label-mix span{height:100%}.dataset-label-mix .normal{background:#48d192}.dataset-label-mix .fraud{background:#ff7d89}
+.dataset-card-header>div{min-width:0;display:grid;gap:5px}.dataset-card-badges{display:flex;gap:5px}.dataset-ledger-list header em.used{background:#17392c;color:#62d9a1}.dataset-delete-button{min-width:42px;height:29px;padding:0 8px;border:1px solid #63343e;border-radius:7px;flex:0 0 auto;background:#281b20;color:#e88e96;font-size:9px;font-weight:700;white-space:nowrap}.dataset-delete-button:hover:not(:disabled){border-color:#8a4652;background:#3a2229}.dataset-delete-button:disabled{border-color:var(--ops-line);background:var(--ops-surface-raised);color:#626572}.dataset-delete-button:focus-visible{outline:2px solid var(--ops-focus);outline-offset:2px}.dataset-period{margin:8px 0 0;display:flex;align-items:center;justify-content:space-between;gap:10px}.dataset-period span{color:var(--ops-text-subtle);font-size:8px;white-space:nowrap}.dataset-period strong{overflow:hidden;font-size:10px;text-align:right;text-overflow:ellipsis;white-space:nowrap}.dataset-ledger-list dl div.normal dd,.dataset-preview dl div.normal dd{color:#58d49c}.dataset-ledger-list dl div.fraud dd,.dataset-preview dl div.fraud dd{color:#ff8994}.dataset-label-mix{height:5px;margin:0 0 8px;border-radius:99px;display:flex;overflow:hidden;background:#2b2b34}.dataset-label-mix span{height:100%}.dataset-label-mix .normal{background:#48d192}.dataset-label-mix .fraud{background:#ff7d89}
 .dataset-pagination{min-height:44px;margin-top:auto;padding:0 11px;border-top:1px solid var(--ops-line);display:flex;align-items:center;justify-content:space-between;color:var(--ops-text-muted);font-size:9px}.dataset-pagination strong{color:var(--ops-text)}.dataset-pagination button{min-width:48px;min-height:30px;padding:5px 8px;border:1px solid var(--ops-line-strong);border-radius:7px;background:var(--ops-surface-raised);color:var(--ops-focus);font-size:9px;font-weight:700}.dataset-pagination button:hover:not(:disabled){border-color:var(--ops-focus);background:var(--ops-focus-soft)}.dataset-pagination button:disabled{color:#626672}.dataset-pagination button:focus-visible{outline:2px solid var(--ops-focus);outline-offset:2px}
 
 .dataset-dialog{width:min(580px,100%)}.dataset-build-form{display:grid;gap:15px}.dataset-period-fields{display:grid;grid-template-columns:1fr 1fr;gap:10px}.dataset-preview{padding:14px;border:1px solid var(--ops-line);border-radius:10px;background:var(--ops-surface-sunken)}.dataset-preview-title{display:flex;align-items:center;justify-content:space-between;gap:12px}.dataset-preview-title strong{font-size:11px}.dataset-preview-title span{color:var(--ops-focus);font-size:10px;font-weight:800}.dataset-preview>p{margin:13px 0 0;color:var(--ops-text-muted);font-size:10px}.dataset-preview>p.error{color:#ff8994}.dataset-preview dl{margin:12px 0 0;display:grid;grid-template-columns:repeat(3,1fr);gap:7px}.dataset-preview dl div{padding:10px;border-radius:7px;background:#23232b}.dataset-preview dt{color:var(--ops-text-subtle);font-size:9px}.dataset-preview dd{margin:6px 0 0;font-size:16px;font-weight:800}.dataset-name-guide{margin:0;color:var(--ops-text-subtle);font-size:9px}.dataset-delete-copy{margin:0;color:#adb0bc;font-size:11px;line-height:1.6}.dataset-delete-summary{padding:13px;border:1px solid #58303a;border-radius:9px;display:grid;gap:6px;background:#281b20}.dataset-delete-summary strong{font-size:11px;overflow-wrap:anywhere}.dataset-delete-summary small{color:#a9797f;font-size:9px;overflow-wrap:anywhere}.dialog-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px}
@@ -210,11 +210,31 @@
 .run-detail-header{padding:15px 18px;border:1px solid var(--ops-line);border-radius:12px;display:flex;align-items:center;justify-content:space-between;gap:24px;background:var(--ops-surface)}.run-detail-identity{min-width:280px;display:flex;align-items:center;gap:14px}.run-detail-identity h2{margin:0;font-size:20px}.run-detail-header dl{min-width:0;margin:0;display:grid;grid-template-columns:repeat(4,minmax(120px,1fr));gap:7px}.run-detail-header dl div{min-width:0;padding:9px 11px;border-radius:7px;background:var(--ops-surface-sunken)}.run-detail-header dt{color:var(--ops-text-subtle);font-size:8px}.run-detail-header dd{margin:5px 0 0;overflow:hidden;font-size:10px;font-weight:700;text-overflow:ellipsis;white-space:nowrap}
 .run-workflow-rail{margin:0}.run-detail-workspace{min-height:0;display:grid;grid-template-columns:minmax(560px,1.4fr) minmax(360px,.7fr);gap:12px}.run-comparison-panel,.run-action-panel{min-height:0}.run-comparison-panel{display:flex;flex-direction:column}.run-comparison-panel .model-comparison{min-height:0;flex:1;display:grid;grid-template-rows:repeat(7,1fr)}.run-comparison-panel .model-comparison-row{min-height:0}.run-action-panel{padding:20px;display:flex;flex-direction:column;gap:15px}.run-action-panel h2{margin:0 0 6px;font-size:20px}.run-action-guide{margin:0;color:var(--ops-text-muted);font-size:11px;line-height:1.65}.run-error-message{padding:12px;border:1px solid #64303a;border-radius:8px;display:grid;gap:5px;background:#291b20}.run-error-message strong{color:#ff909a;font-size:10px}.run-error-message span{color:#c7a4a7;font-size:10px;line-height:1.5}.run-action-buttons{margin-top:auto;display:grid;grid-template-columns:1fr 1fr;gap:8px}.automatic-smoke-card{min-height:0;flex:1;padding:16px;border:1px solid var(--ops-line);border-radius:10px;display:flex;flex-direction:column;gap:14px;background:var(--ops-surface-sunken)}.automatic-smoke-card>div{margin:auto 0;display:grid;gap:8px}.automatic-smoke-card span{color:var(--ops-focus);font-size:10px;font-weight:800}.automatic-smoke-card strong{font-size:15px;line-height:1.45}.automatic-smoke-card p{margin:0;color:var(--ops-text-muted);font-size:10px;line-height:1.6}.automatic-smoke-card .admin-button{margin-top:auto}.traffic-progress-card{margin-top:auto;display:grid;gap:12px}.traffic-progress-card>div:first-child{display:flex;align-items:flex-end;justify-content:space-between;gap:12px}.traffic-progress-card span{color:var(--ops-text-muted);font-size:10px}.traffic-progress-card strong{color:var(--ops-focus);font-size:30px}.traffic-progress-track{height:9px;border-radius:99px;background:var(--ops-surface-sunken);overflow:hidden}.traffic-progress-track i{display:block;height:100%;border-radius:inherit;background:var(--ops-focus)}.traffic-progress-card p{margin:0;color:var(--ops-text-muted);font-size:10px;line-height:1.6}
 
+.training-progress-card{min-height:0;padding-top:14px;border-top:1px solid var(--ops-line);display:flex;flex-direction:column;gap:11px}
+.training-progress-summary{display:flex;align-items:center;gap:11px}.training-progress-summary>div{min-width:0;display:grid;gap:3px}.training-progress-summary span{color:var(--ops-focus);font-size:10px;font-weight:800}.training-progress-summary strong{overflow:hidden;font-size:13px;text-overflow:ellipsis;white-space:nowrap}
+.training-progress-signal{position:relative;width:34px;height:34px;box-sizing:border-box;border:1px solid var(--ops-line-strong);border-radius:50%;flex:0 0 34px;background:var(--ops-surface-sunken)}.training-progress-signal::before{content:"";position:absolute;inset:6px;border:2px solid var(--ops-line-strong);border-top-color:var(--ops-focus);border-radius:50%;animation:training-progress-spin .85s linear infinite}.training-progress-card.failed .training-progress-signal::before{border-color:#ff7d89;animation:none}.training-progress-card.syncing .training-progress-signal::before{border-color:#48d192;border-right-color:transparent}
+.training-progress-track{height:4px;border-radius:99px;overflow:hidden;background:var(--ops-surface-sunken)}.training-progress-track i{display:block;width:34%;height:100%;border-radius:inherit;background:linear-gradient(90deg,transparent,var(--ops-focus),#48d192,transparent);animation:training-progress-sweep 1.7s ease-in-out infinite}.training-progress-card.failed .training-progress-track i{width:100%;background:#ff7d89;animation:none}
+.training-progress-log{padding:11px 12px;border:1px solid var(--ops-line);border-radius:9px;background:var(--ops-surface-sunken)}.training-progress-log header{margin-bottom:9px;display:flex;align-items:center;justify-content:space-between;gap:10px}.training-progress-log header strong{font-size:11px}.training-progress-log header small{color:var(--ops-text-subtle);font-size:9px}.training-progress-log ol{margin:0;padding:0;display:grid;gap:8px;list-style:none}.training-progress-log li{min-width:0;display:grid;grid-template-columns:72px 8px minmax(0,1fr);align-items:start;gap:7px;color:var(--ops-text-muted);font-size:10px;line-height:1.45}.training-progress-log time{color:var(--ops-text-subtle);font-variant-numeric:tabular-nums;white-space:nowrap}.training-progress-log li>i{width:7px;height:7px;margin-top:3px;border:1px solid var(--ops-line-strong);border-radius:50%;box-sizing:border-box}.training-progress-log li.complete>i{border-color:#48d192;background:#48d192}.training-progress-log li.active{color:var(--ops-text)}.training-progress-log li.active>i{border-color:var(--ops-focus);background:var(--ops-focus);box-shadow:0 0 0 4px var(--ops-focus-soft);animation:training-progress-pulse .8s ease-in-out infinite alternate}.training-progress-log li.error{color:#ff929c}.training-progress-log li.error>i{border-color:#ff7d89;background:#ff7d89}.training-progress-log li.pending{color:var(--ops-text-subtle)}.training-progress-log li span{min-width:0;overflow-wrap:anywhere}
+.training-progress-footer{display:flex;align-items:center;justify-content:space-between;gap:10px}.training-progress-footer>span{color:var(--ops-text-subtle);font-size:9px}.training-progress-footer .admin-button{min-height:31px;padding:5px 10px;font-size:10px}
+@keyframes training-progress-spin{to{transform:rotate(360deg)}}
+@keyframes training-progress-sweep{from{transform:translateX(-110%)}to{transform:translateX(350%)}}
+@keyframes training-progress-pulse{to{opacity:.42}}
+
 /* 모델 비교와 승인 화면은 작은 수치를 읽고 바로 판단하는 곳이므로 본문 글자를 한 단계 키운다. */
 .run-detail-header dt{font-size:10px}.run-detail-header dd{font-size:12px}
 .run-workflow-rail .workflow-step strong{font-size:14px}.run-workflow-rail .workflow-step span{font-size:12px}
 .run-comparison-panel .model-comparison-row>strong{font-size:13px}.run-comparison-panel .model-comparison-row>strong small{font-size:10px}.run-comparison-panel .model-comparison-row>span,.run-comparison-panel .model-comparison-row>em{font-size:14px}.run-comparison-panel .model-comparison-header>span{font-size:11px}
 .run-action-panel h2{font-size:22px}.run-action-guide{font-size:13px}.run-error-message strong,.run-error-message span{font-size:12px}
+.run-detail-header dd.recommended{color:#48d192}.run-detail-header dd.not-recommended{color:#ff7d89}
+.recommendation.recommended{background:rgb(72 209 146 / 13%);color:#75dfad}.recommendation.not-recommended{background:rgb(255 125 137 / 13%);color:#ff939e}
+.model-ai-review{position:relative;min-height:150px;flex:1;padding:18px;border:1px solid var(--ops-line);border-radius:11px;display:flex;flex-direction:column;gap:14px;overflow:hidden;background:linear-gradient(135deg,var(--ops-focus-soft),var(--ops-surface-sunken) 58%)}
+.model-ai-review::before{content:"";position:absolute;inset:0 auto 0 0;width:3px;background:var(--ops-focus)}
+.model-ai-review.recommended::before{background:#48d192}.model-ai-review.not-recommended::before{background:#ff7d89}
+.model-ai-review header{display:flex;align-items:center;justify-content:space-between;gap:12px}.model-ai-review header span{color:var(--ops-focus);font-size:12px;font-weight:800;letter-spacing:.08em}.model-ai-review header em{padding:5px 8px;border-radius:99px;background:var(--ops-focus-soft);color:#aebee9;font-size:11px;font-style:normal;font-weight:800;white-space:nowrap}.model-ai-review.recommended header em{background:rgb(72 209 146 / 13%);color:#75dfad}.model-ai-review.not-recommended header em{background:rgb(255 125 137 / 13%);color:#ff939e}
+.model-ai-review>p,.model-ai-review-error>p,.model-ai-review-loading>p{margin:0;color:var(--ops-text);font-size:13px;line-height:1.72;white-space:normal;word-break:keep-all;overflow-wrap:anywhere}
+.model-ai-review-loading{margin:auto 0;display:grid;grid-template-columns:10px minmax(0,1fr);align-items:center;gap:10px}.model-ai-review-loading i{width:9px;height:9px;border-radius:50%;background:var(--ops-focus);box-shadow:0 0 0 5px var(--ops-focus-soft);animation:model-ai-review-pulse 1s ease-in-out infinite alternate}
+.model-ai-review-error{margin:auto 0;display:grid;gap:12px}.model-ai-review-error button{justify-self:start;padding:0;border:0;background:transparent;color:var(--ops-focus);font-size:12px;font-weight:800}.model-ai-review-error button:focus-visible{outline:2px solid var(--ops-focus);outline-offset:3px}
+@keyframes model-ai-review-pulse{to{opacity:.35;transform:scale(.78)}}
 /* 큰 내부 박스를 없애 안내와 실행 버튼이 하나의 조치 영역으로 읽히게 한다. */
 .automatic-smoke-card{padding:16px 0 0;border:0;border-top:1px solid var(--ops-line);border-radius:0;background:transparent}
 .automatic-smoke-card>div{margin:0;padding:16px;border:1px solid var(--ops-line);border-radius:9px;background:var(--ops-surface-sunken)}
@@ -340,6 +360,15 @@
 :root[data-theme="light"] .transaction-delta,
 :root[data-theme="light"] .report-scope,
 :root[data-theme="light"] .recommendation{color:var(--ops-focus)!important}
+:root[data-theme="light"] .run-detail-header dd.recommended{color:var(--ops-low)}
+:root[data-theme="light"] .run-detail-header dd.not-recommended{color:var(--ops-critical)}
+:root[data-theme="light"] .recommendation.recommended{background:rgb(46 107 75 / 10%);color:var(--ops-low)!important}
+:root[data-theme="light"] .recommendation.not-recommended{background:rgb(184 62 72 / 10%);color:var(--ops-critical)!important}
+:root[data-theme="light"] .model-ai-review{background:linear-gradient(135deg,var(--ops-focus-soft),var(--ops-surface) 62%)}
+:root[data-theme="light"] .model-ai-review.recommended::before{background:var(--ops-low)}
+:root[data-theme="light"] .model-ai-review.not-recommended::before{background:var(--ops-critical)}
+:root[data-theme="light"] .model-ai-review.recommended header em{background:rgb(46 107 75 / 10%);color:var(--ops-low)}
+:root[data-theme="light"] .model-ai-review.not-recommended header em{background:rgb(184 62 72 / 10%);color:var(--ops-critical)}
 :root[data-theme="light"] .verification-flow li.active>span,
 :root[data-theme="light"] .verification-flow li.active small,
 :root[data-theme="light"] .workflow-step.active small,
@@ -419,6 +448,14 @@
   .model-command-grid,.training-workspace,.run-detail-workspace,.monitoring-chart-grid,.labeling-workspace{overflow:visible}
   .labeling-queue-list{max-height:470px}
   .dataset-ledger-list{max-height:none}.run-detail-header{align-items:flex-start;flex-direction:column}.run-detail-header dl{width:100%}.monitoring-summary-grid{grid-template-columns:repeat(3,1fr)}.monitoring-freshness{grid-template-columns:1fr auto}.monitoring-freshness>p{grid-column:1/-1;grid-row:2;justify-content:flex-start}
+  /* 카드 폭을 확보해 순서 번호와 건수가 설명에 겹치지 않게 한다. */
+  .model-summary-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .model-summary-grid>a:last-child{grid-column:1/-1}
+}
+
+@media(max-width:960px){
+  .model-summary-grid{grid-template-columns:1fr}
+  .model-summary-grid>a:last-child{grid-column:auto}
 }
 
 @media(max-width:820px){
@@ -591,9 +628,10 @@
   .labeling-status-strip span{font-size:14px}
   .labeling-status-strip small{font-size:13px}
   .labeling-filters input,
-  .labeling-filters select,
-  .labeling-filters form button{font-size:14px}
-  .labeling-filters label span{font-size:13px}
+  .labeling-filters select{height:44px;font-size:14px}
+  .labeling-filters select{padding:18px 30px 2px 10px}
+  .labeling-filters form button{font-size:14px;white-space:nowrap}
+  .labeling-filters label span{top:4px;font-size:13px;line-height:1}
   .labeling-row-main strong,
   .labeling-row-main b{font-size:15px}
   .labeling-row-main small{font-size:13px}
@@ -620,6 +658,12 @@
   .run-detail-header dd{font-size:15px}
   .run-workflow-rail .workflow-step small{font-size:14px}
   .run-action-guide{font-size:15px}
+  .model-ai-review header span{font-size:14px}
+  .model-ai-review header em{font-size:13px}
+  .model-ai-review>p,
+  .model-ai-review-error>p,
+  .model-ai-review-loading>p{font-size:15px;line-height:1.72}
+  .model-ai-review-error button{font-size:14px}
   .run-error-message strong,
   .run-error-message span{font-size:14px}
   .automatic-smoke-card span{font-size:14px}
@@ -627,6 +671,14 @@
   .automatic-smoke-card p,
   .traffic-progress-card span,
   .traffic-progress-card p{font-size:14px}
+  .training-progress-summary span{font-size:14px}
+  .training-progress-summary strong{font-size:16px}
+  .training-progress-log header strong{font-size:14px}
+  .training-progress-log header small,
+  .training-progress-log li,
+  .training-progress-footer>span{font-size:13px}
+  .training-progress-log li{grid-template-columns:82px 8px minmax(0,1fr)}
+  .training-progress-footer .admin-button{font-size:14px}
 
   .monitoring-range-control button{font-size:14px}
   .monitoring-service-rail small{font-size:13px}
@@ -668,4 +720,10 @@
   .dataset-period-fields,.dialog-actions{grid-template-columns:1fr}
   .dataset-preview dl{grid-template-columns:1fr 1fr}
   .dataset-preview dl div:first-child{grid-column:1/-1}
+  .model-ai-review{min-height:0;padding:15px}
+  .model-ai-review header{align-items:flex-start;flex-direction:column}
+}
+
+@media(prefers-reduced-motion:reduce){
+  .model-ai-review-loading i{animation:none}
 }
