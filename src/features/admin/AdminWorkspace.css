@@ -483,34 +483,34 @@
   .rule-verify-workspace{grid-template-columns:minmax(500px,.9fr) minmax(700px,1.25fr)}
 
   .rule-admin-page .admin-header>div>p:last-child,
-  .model-section-page .admin-header>div>p:last-child{font-size:15px;line-height:1.5}
+  .model-section-page .admin-header>div>p:last-child{font-size:16px;line-height:1.5}
   .rule-admin-page .admin-eyebrow{font-size:13px}
   .model-section-page .app-page-eyebrow{font-size:13px}
   .model-section-page .admin-eyebrow{font-size:14px}
   .rule-admin-page .admin-button,
-  .model-section-page .admin-button{font-size:15px}
+  .model-section-page .admin-button{font-size:16px}
   .rule-admin-page .admin-alert,
-  .model-section-page .admin-alert{font-size:14px}
+  .model-section-page .admin-alert{font-size:15px}
   .rule-admin-page .panel-title h2,
-  .model-section-page .panel-title h2{font-size:20px}
-  .rule-admin-page .panel-title small{font-size:14px;line-height:1.5}
-  .model-section-page .panel-title small{font-size:15px;line-height:1.5}
-  .rule-admin-page .status{font-size:13px}
-  .model-section-page .status{font-size:14px}
+  .model-section-page .panel-title h2{font-size:22px}
+  .rule-admin-page .panel-title small{font-size:15px;line-height:1.5}
+  .model-section-page .panel-title small{font-size:16px;line-height:1.5}
+  .rule-admin-page .status{font-size:14px}
+  .model-section-page .status{font-size:15px}
   .rule-section-nav button,
-  .model-section-nav a{font-size:15px}
+  .model-section-nav a{font-size:16px}
 
-  .version-list strong{font-size:15px}
-  .version-list small{font-size:12px}
-  .version-panel-actions small{font-size:12px;line-height:1.5}
-  .rule-tabs button{font-size:13px}
+  .version-list strong{font-size:16px}
+  .version-list small{font-size:13px}
+  .version-panel-actions small{font-size:13px;line-height:1.5}
+  .rule-tabs button{font-size:14px}
   .component-list{grid-auto-rows:minmax(142px,max-content)}
-  .component-row strong{font-size:14px;line-height:1.4}
-  .component-row .condition-summary{font-size:12px;line-height:1.55}
-  .component-row label{font-size:12px}
-  .component-row input{font-size:13px}
-  .rule-total,.rule-total strong{font-size:13px}
-  .editor-actions small{font-size:12px;line-height:1.5}
+  .component-row strong{font-size:15px;line-height:1.4}
+  .component-row .condition-summary{font-size:13px;line-height:1.55}
+  .component-row label{font-size:13px}
+  .component-row input{font-size:14px}
+  .rule-total,.rule-total strong{font-size:14px}
+  .editor-actions small{font-size:13px;line-height:1.5}
 
   .rule-version-compare span,
   .rule-version-compare small{font-size:12px}
@@ -556,40 +556,40 @@
   .replay-result dt{font-size:12px}
 
   .rule-admin-page table,
-  .model-section-page table{font-size:14px}
-  .rule-admin-page th{font-size:13px}
-  .model-section-page th{font-size:14px}
+  .model-section-page table{font-size:15px}
+  .rule-admin-page th{font-size:14px}
+  .model-section-page th{font-size:15px}
 
-  .production-command>header small{font-size:14px}
-  .production-command-main>span{font-size:14px}
-  .production-command-main h2{font-size:28px}
-  .production-command-main p{font-size:15px;line-height:1.55}
+  .production-command>header small{font-size:15px}
+  .production-command-main>span{font-size:15px}
+  .production-command-main h2{font-size:30px}
+  .production-command-main p{font-size:16px;line-height:1.55}
   .production-live-state>strong{font-size:16px}
   .traffic-ring.compact span{font-size:13px}
   .production-facts dt{font-size:14px}
   .production-facts dd{font-size:16px}
   .model-action-inbox h2{font-size:20px}
   .model-action-list>a strong{font-size:16px}
-  .model-action-list>a span{font-size:14px}
+  .model-action-list>a span{font-size:15px}
   .model-empty-state strong{font-size:16px}
-  .model-empty-state span{font-size:14px;line-height:1.5}
-  .inbox-footer-link{font-size:14px}
-  .model-summary-grid header small{font-size:13px}
-  .model-summary-grid h3{font-size:20px}
+  .model-empty-state span{font-size:15px;line-height:1.5}
+  .inbox-footer-link{font-size:15px}
+  .model-summary-grid header small{font-size:14px}
+  .model-summary-grid h3{font-size:22px}
   .model-summary-grid header>em{font-size:14px}
   .model-summary-heading>b{width:44px;height:44px;font-size:17px}
-  .model-summary-primary>span{font-size:13px}
-  .model-summary-primary>strong{font-size:32px}
+  .model-summary-primary>span{font-size:14px}
+  .model-summary-primary>strong{font-size:32px;line-height:1.2}
   .model-summary-primary>strong.text-value{font-size:26px}
   .model-summary-primary>strong small{font-size:14px}
-  .model-summary-primary>p{font-size:13px}
-  .model-summary-grid dt{font-size:13px}
-  .model-summary-grid dd{font-size:17px}
-  .model-workflow-grid>a>small{font-size:13px}
-  .model-workflow-grid h3{font-size:20px}
-  .model-workflow-grid p{font-size:14px}
-  .model-workflow-grid li strong{font-size:14px}
-  .model-workflow-grid li span{font-size:13px}
+  .model-summary-primary>p{font-size:14px}
+  .model-summary-grid dt{font-size:14px}
+  .model-summary-grid dd{font-size:18px}
+  .model-workflow-grid>a>small{font-size:14px}
+  .model-workflow-grid h3{font-size:22px}
+  .model-workflow-grid p{font-size:15px}
+  .model-workflow-grid li strong{font-size:15px}
+  .model-workflow-grid li span{font-size:14px}
   .model-workflow-grid footer strong,
   .model-workflow-grid footer em{font-size:14px}
   .model-summary-details span{font-size:14px}
