@@ -28,7 +28,7 @@ import type {
 } from "./mlopsTypes";
 
 const TRAINING_REFRESH_MS = 5_000;
-const MIN_DATASET_PERIOD_START = "2026-08-01";
+const DEFAULT_DATASET_PERIOD_START = "2026-08-01";
 const DATASETS_PER_PAGE = 3;
 
 const todayInputValue = () => {
@@ -49,7 +49,7 @@ export function ModelTrainingPage() {
   const [runs, setRuns] = useState<TrainingRun[]>([]);
   const [dialog, setDialog] = useState<"dataset" | "training" | null>(null);
   const [trainingDatasetId, setTrainingDatasetId] = useState<number | null>(null);
-  const [periodStart, setPeriodStart] = useState(MIN_DATASET_PERIOD_START);
+  const [periodStart, setPeriodStart] = useState(DEFAULT_DATASET_PERIOD_START);
   const [periodEnd, setPeriodEnd] = useState(todayInputValue);
   const [periodPreview, setPeriodPreview] = useState<DatasetPeriodSummary | null>(null);
   const [previewError, setPreviewError] = useState<string | null>(null);
@@ -430,7 +430,6 @@ export function ModelTrainingPage() {
                 <label>
                   <span>시작일</span>
                   <input
-                    min={MIN_DATASET_PERIOD_START}
                     onChange={(event) => setPeriodStart(event.target.value)}
                     type="date"
                     value={periodStart}
@@ -439,7 +438,7 @@ export function ModelTrainingPage() {
                 <label>
                   <span>종료일</span>
                   <input
-                    min={periodStart || MIN_DATASET_PERIOD_START}
+                    min={periodStart}
                     onChange={(event) => setPeriodEnd(event.target.value)}
                     type="date"
                     value={periodEnd}
