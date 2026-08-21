@@ -1,6 +1,7 @@
 import { adminRequest } from "../admin/adminApi";
 import type {
   FraudRule,
+  FraudRuleTypeInput,
   RuleComponentInput,
   RuleFeature,
   RuleFeatureStatistics,
@@ -49,6 +50,17 @@ export const createRuleDraft = (sourceId?: number) =>
 
 export const deleteRuleDraft = (id: number) =>
   adminRequest<void>(`/rule-sets/${id}`, { method: "DELETE" });
+
+export const createRuleType = (ruleSetId: number, input: FraudRuleTypeInput) =>
+  adminRequest<FraudRule>(`/rule-sets/${ruleSetId}/rules`, {
+    method: "POST",
+    body: JSON.stringify(input),
+  });
+
+export const deleteRuleType = (ruleSetId: number, ruleId: number) =>
+  adminRequest<void>(`/rule-sets/${ruleSetId}/rules/${ruleId}`, {
+    method: "DELETE",
+  });
 
 export const saveRuleComponents = (ruleSetId: number, rule: FraudRule) =>
   adminRequest<FraudRule>(`/rule-sets/${ruleSetId}/rules/${rule.id}/components`, {
