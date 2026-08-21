@@ -299,7 +299,7 @@ export function ModelTrainingPage() {
       <section className="training-workspace">
         <aside className="admin-panel dataset-ledger">
           <div className="panel-title split">
-            <div><p className="admin-eyebrow">DATASET VERSIONS</p><h2>학습 데이터셋</h2><small>확정 라벨을 합친 불변 GCS 객체입니다.</small></div>
+            <div><p className="admin-eyebrow">DATASET VERSIONS</p><h2>학습 데이터셋</h2><small>기존 학습 데이터에 선택 기간의 확정 라벨을 추가해 만든 데이터입니다.</small></div>
             <strong>{datasets.length}</strong>
           </div>
           <div className="dataset-ledger-list">
