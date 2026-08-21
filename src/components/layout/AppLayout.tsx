@@ -11,6 +11,7 @@ import "./AppLayout.css";
 type AppLayoutProps = {
   activeNav: "dashboard" | "analysis" | "rules" | "model";
   children: ReactNode;
+  className?: string;
 };
 
 const navigation = [
@@ -46,7 +47,7 @@ function demoStatusText(status: DemoTransactionInjectionStatus | null) {
 }
 
 // 모든 화면에서 같은 사이드바와 화면 폭을 사용한다.
-export function AppLayout({ activeNav, children }: AppLayoutProps) {
+export function AppLayout({ activeNav, children, className }: AppLayoutProps) {
   const [theme, setTheme] = useState<Theme>(() => (
     localStorage.getItem(THEME_STORAGE_KEY) === "light" ? "light" : "dark"
   ));
@@ -117,7 +118,7 @@ export function AppLayout({ activeNav, children }: AppLayoutProps) {
   };
 
   return (
-    <main className="app-layout">
+    <main className={`app-layout${className ? ` ${className}` : ""}`}>
       <a className="app-skip-link" href="#app-content">본문으로 건너뛰기</a>
       <aside className="app-sidebar">
         <a aria-label="FDShield 이상거래 감시" className="app-brand" href="/#main">

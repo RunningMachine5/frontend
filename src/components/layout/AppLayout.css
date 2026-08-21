@@ -55,6 +55,13 @@
     .app-sidebar{height:100vh;min-height:0}
 }
 
+/* 크롬 UI가 포함된 1920 화면에서는 운영 현황의 아래 카드까지 자연스럽게 스크롤한다. */
+@media(min-width:1440px) and (min-height:800px) and (max-height:959px){
+    .model-overview-layout{height:auto;min-height:100vh;overflow:visible}
+    .model-overview-layout .app-content-root{height:auto;min-height:100vh;overflow:visible}
+    .model-overview-layout .app-sidebar{position:sticky;top:0;height:100vh}
+}
+
 @media(min-width:1600px){
     .app-sidebar{width:260px;flex-basis:260px}
     .app-brand-copy small,.app-nav-title{font-size:12px}
