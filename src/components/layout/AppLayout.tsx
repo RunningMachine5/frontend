@@ -166,7 +166,7 @@ export function AppLayout({ activeNav, children }: AppLayoutProps) {
               <input
                 disabled={demoStatus?.state === "RUNNING"}
                 id="demo-transactions-per-second"
-                max="20"
+                max="5"
                 min="1"
                 onInput={(event) => (
                   setDemoTransactionsPerSecond(Number(event.currentTarget.value))
