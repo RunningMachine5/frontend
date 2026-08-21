@@ -36,7 +36,7 @@ import type { TransactionLabelQueueSummary } from "./transactionLabelingTypes";
 const OVERVIEW_REFRESH_MS = 15_000;
 const numberFormat = new Intl.NumberFormat("ko-KR");
 const rateFormat = new Intl.NumberFormat("ko-KR", { maximumFractionDigits: 1 });
-const ACTION_RUNS_PER_PAGE = 4;
+const ACTION_RUNS_PER_PAGE = 10;
 
 interface ModelOverviewSnapshot {
   datasets: DatasetVersion[];
