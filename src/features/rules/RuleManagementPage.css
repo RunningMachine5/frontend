@@ -41,6 +41,102 @@
   color: var(--ops-focus);
 }
 
+.component-controls {
+  display: grid;
+  align-content: start;
+  justify-items: end;
+  gap: 5px;
+}
+
+.component-remove-button {
+  min-height: 23px;
+  padding: 0 7px;
+  border: 1px solid #743643;
+  border-radius: 6px;
+  background: #2c1c23;
+  color: #ff9da4;
+  font-size: 9px;
+  font-weight: 700;
+}
+
+.rule-pattern-dialog {
+  width: min(620px, 100%);
+}
+
+.pattern-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 13px;
+}
+
+.pattern-form-grid .wide-field {
+  grid-column: 1 / -1;
+}
+
+.pattern-form-grid label small,
+.pattern-value-field small {
+  color: var(--ops-text-subtle);
+  font-size: 10px;
+  font-weight: 500;
+  line-height: 1.45;
+}
+
+.pattern-value-field {
+  display: grid;
+  gap: 7px;
+  color: #b7b7c3;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.pattern-value-field input,
+.pattern-value-field select {
+  width: 100%;
+  height: 42px;
+  padding: 0 12px;
+  border: 1px solid var(--ops-line-strong);
+  border-radius: 9px;
+  background: var(--ops-surface-sunken);
+  color: var(--ops-text);
+}
+
+.range-value-inputs {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 9px;
+}
+
+.pattern-save-guide {
+  margin: 0;
+  padding: 11px 13px;
+  border-left: 3px solid var(--ops-focus);
+  background: var(--ops-surface-sunken);
+  color: var(--ops-text-muted);
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.pattern-dialog-actions {
+  display: grid;
+  grid-template-columns: 1fr 1.35fr;
+  gap: 9px;
+}
+
+:root[data-theme="light"] .component-remove-button {
+  border-color: rgb(200 71 81 / 38%);
+  background: rgb(200 71 81 / 8%);
+  color: var(--ops-critical);
+}
+
+:root[data-theme="light"] .pattern-value-field {
+  color: var(--ops-text-muted);
+}
+
+:root[data-theme="light"] .pattern-value-field input,
+:root[data-theme="light"] .pattern-value-field select {
+  background: var(--ops-surface);
+}
+
 @media (min-width: 1440px) and (min-height: 700px) {
   .draft-source-control {
     height: 38px;
@@ -54,5 +150,27 @@
 
   .draft-source-control select {
     font-size: 13px;
+  }
+
+  .component-remove-button {
+    font-size: 11px;
+  }
+
+  .pattern-form-grid label small,
+  .pattern-value-field small,
+  .pattern-save-guide {
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 620px) {
+  .pattern-form-grid,
+  .pattern-dialog-actions,
+  .range-value-inputs {
+    grid-template-columns: 1fr;
+  }
+
+  .pattern-form-grid .wide-field {
+    grid-column: auto;
   }
 }

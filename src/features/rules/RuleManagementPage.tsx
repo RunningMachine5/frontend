@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { AppLayout } from "../../components/layout/AppLayout";
 import { PageHeading } from "../../components/layout/PageHeading";
@@ -10,11 +10,12 @@ import {
   fetchRuleSet,
   fetchRuleSets,
   replayRuleSet,
-  saveRuleWeights,
+  saveRuleComponents,
   validateRuleSet,
 } from "./ruleApi";
 import type {
   FraudRule,
+  RuleComponentInput,
   RuleExpression,
   RuleFeature,
   RuleReplay,
@@ -22,6 +23,7 @@ import type {
   RuleSetSummary,
   RuleValidation,
 } from "./ruleTypes";
+import { RulePatternDialog } from "./RulePatternDialog";
 import { RuleReplayReport, RuleReplaySummary } from "./RuleReplayReport";
 import "../admin/AdminWorkspace.css";
 import "./RuleManagementPage.css";
@@ -107,10 +109,11 @@ export function RuleManagementPage() {
   const [replay, setReplay] = useState<RuleReplay | null>(null);
   const [workspaceTab, setWorkspaceTab] = useState<WorkspaceTab>("edit");
   const [replaySampleSize, setReplaySampleSize] = useState(100);
-  const [dialog, setDialog] = useState<"features" | null>(null);
+  const [dialog, setDialog] = useState<"features" | "pattern" | null>(null);
   const [isBusy, setIsBusy] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const temporaryComponentId = useRef(-1);
 
   const loadRuleSet = useCallback(async (id: number) => {
     const detail = await fetchRuleSet(id);
@@ -201,12 +204,35 @@ export function RuleManagementPage() {
     } : current);
   };
 
+  const addPattern = (component: RuleComponentInput) => {
+    const id = temporaryComponentId.current;
+    temporaryComponentId.current -= 1;
+    const now = new Date().toISOString();
+    setEditingRule((current) => current ? {
+      ...current,
+      components: [
+        ...current.components,
+        { ...component, id, created_at: now, updated_at: now },
+      ],
+    } : current);
+    setDialog(null);
+  };
+
+  const removePattern = (componentId: number) => {
+    setEditingRule((current) => current ? {
+      ...current,
+      components: current.components
+        .filter((component) => component.id !== componentId)
+        .map((component, index) => ({ ...component, sort_order: index })),
+    } : current);
+  };
+
   const saveCurrentRule = () => runAction(async () => {
     if (!selectedSet || !editingRule) return;
-    const saved = await saveRuleWeights(selectedSet.id, editingRule);
+    const saved = await saveRuleComponents(selectedSet.id, editingRule);
     setEditingRule(saved);
     await loadRuleSet(selectedSet.id);
-    setNotice("가중치를 DRAFT에 저장했습니다. 운영 반영 전 다시 검증하세요.");
+    setNotice("패턴과 가중치를 DRAFT에 저장했습니다. 운영 반영 전 다시 검증하세요.");
   });
 
   const discardDraft = () => {
@@ -348,16 +374,57 @@ export function RuleManagementPage() {
 
             <section className="admin-panel rule-editor">
               <div className="panel-title split">
-                <div><p className="admin-eyebrow">{selectedSet?.status ?? "RULE SET"} v{selectedSet?.version ?? "—"}</p><h2>사기유형별 가중치 편집</h2><small>구성요소 가중치 합계는 유형별 1.000이어야 합니다.</small></div>
+                <div><p className="admin-eyebrow">{selectedSet?.status ?? "RULE SET"} v{selectedSet?.version ?? "—"}</p><h2>사기유형별 패턴 편집</h2><small>사기유형은 고정하며 패턴과 가중치만 변경합니다. 합계는 유형별 1.000이어야 합니다.</small></div>
+                <button
+                  className="admin-button compact"
+                  disabled={!canEdit || !editingRule || isBusy}
+                  onClick={() => setDialog("pattern")}
+                  type="button"
+                >
+                  + 패턴 추가
+                </button>
               </div>
               <div aria-label="사기유형 선택" className="rule-tabs" role="tablist">
                 {selectedSet?.rules.map((rule) => <button aria-selected={selectedRuleId === rule.id} className={selectedRuleId === rule.id ? "active" : ""} key={rule.id} onClick={() => setSelectedRuleId(rule.id)} role="tab" type="button">{rule.display_name}</button>)}
               </div>
               <div className="component-list">
-                {editingRule?.components.map((component) => <article className="component-row" key={component.id}><div><strong>{component.name}</strong><p className="condition-summary">{formatExpression(component.condition_expression, featureByField)}</p></div><label><span>가중치</span><input disabled={!canEdit} max="1" min="0.001" onChange={(event) => updateWeight(component.id, Number(event.target.value))} step="0.01" type="number" value={component.weight} /></label><div className="weight-track"><i style={{ width: `${Math.min(component.weight * 100, 100)}%` }} /></div></article>)}
+                {editingRule?.components.map((component) => (
+                  <article className="component-row" key={component.id}>
+                    <div>
+                      <strong>{component.name}</strong>
+                      <p className="condition-summary">{formatExpression(component.condition_expression, featureByField)}</p>
+                    </div>
+                    <div className="component-controls">
+                      {canEdit && (
+                        <button
+                          className="component-remove-button"
+                          disabled={editingRule.components.length === 1}
+                          onClick={() => removePattern(component.id)}
+                          title={editingRule.components.length === 1 ? "유형에는 패턴이 하나 이상 필요합니다." : "이 패턴을 목록에서 제거합니다."}
+                          type="button"
+                        >
+                          삭제
+                        </button>
+                      )}
+                      <label>
+                        <span>가중치</span>
+                        <input
+                          disabled={!canEdit}
+                          max="1"
+                          min="0.001"
+                          onChange={(event) => updateWeight(component.id, Number(event.target.value))}
+                          step="0.01"
+                          type="number"
+                          value={component.weight}
+                        />
+                      </label>
+                    </div>
+                    <div className="weight-track"><i style={{ width: `${Math.min(component.weight * 100, 100)}%` }} /></div>
+                  </article>
+                ))}
               </div>
               <footer className="rule-total"><span>{editingRule?.display_name ?? "선택된 유형 없음"} 구성요소 합계</span><strong className={Math.abs(componentTotal - 1) < 0.0001 ? "positive" : "danger"}>{componentTotal.toFixed(3)} · {Math.abs(componentTotal - 1) < 0.0001 ? "정상" : "확인 필요"}</strong></footer>
-              <div className="editor-actions"><small>{canEdit ? "저장하면 기존 검증과 Replay 결과가 초기화됩니다." : `${selectedSet?.status ?? "선택한"} 버전은 조회만 가능합니다.`}</small><button className="admin-button primary" disabled={!canEdit || isBusy || !editingRule} onClick={saveCurrentRule} type="button">DRAFT 가중치 저장</button></div>
+              <div className="editor-actions"><small>{canEdit ? "추가·삭제는 저장 버튼을 누르기 전까지 서버에 반영되지 않습니다." : `${selectedSet?.status ?? "선택한"} 버전은 조회만 가능합니다.`}</small><button className="admin-button primary" disabled={!canEdit || isBusy || !editingRule} onClick={saveCurrentRule} type="button">DRAFT 패턴 저장</button></div>
             </section>
           </section>
         )}
@@ -392,6 +459,15 @@ export function RuleManagementPage() {
         )}
 
         {dialog === "features" && <div className="admin-dialog-backdrop" role="presentation" onMouseDown={() => setDialog(null)}><section aria-modal="true" className="admin-dialog feature-dialog" onMouseDown={(event) => event.stopPropagation()} role="dialog"><header><div><p className="admin-eyebrow">RULE FEATURES</p><h2>사용 가능한 Feature</h2></div><button onClick={() => setDialog(null)} type="button">닫기</button></header><div className="feature-list">{features.map((feature) => <article key={feature.field}><strong>{feature.display_name}</strong><code>{feature.field}</code><span>{feature.value_type}{feature.derived ? " · 파생값" : ""}</span></article>)}</div></section></div>}
+        {dialog === "pattern" && editingRule && (
+          <RulePatternDialog
+            existingKeys={editingRule.components.map((component) => component.component_key)}
+            features={features}
+            nextSortOrder={editingRule.components.length}
+            onAdd={addPattern}
+            onClose={() => setDialog(null)}
+          />
+        )}
       </section>
     </AppLayout>
   );
