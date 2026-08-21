@@ -663,16 +663,26 @@
   .labeling-detail-grid dd,
   .signal-section li strong{font-size:14px}
 
-  .run-detail-identity h2{font-size:22px}
-  .run-detail-header dt{font-size:14px}
-  .run-detail-header dd{font-size:15px}
-  .run-workflow-rail .workflow-step small{font-size:14px}
-  .run-action-guide{font-size:15px}
-  .model-ai-review header span{font-size:14px}
-  .model-ai-review header em{font-size:13px}
+  /* Run 상세는 성능 비교와 승인 판단에 쓰이므로 다른 모델 관리 화면과 같은 크기로 읽히게 한다. */
+  .run-detail-identity h2{font-size:25px}
+  .run-detail-header dt{font-size:15px}
+  .run-detail-header dd{font-size:17px}
+  .run-workflow-rail .workflow-step small{font-size:15px}
+  .run-workflow-rail .workflow-step strong{font-size:16px}
+  .run-workflow-rail .workflow-step span{font-size:14px}
+  .run-comparison-panel .panel-title h2,
+  .run-action-panel h2{font-size:24px}
+  .run-comparison-panel .model-comparison-row>strong{font-size:16px}
+  .run-comparison-panel .model-comparison-row>strong small{font-size:13px}
+  .run-comparison-panel .model-comparison-row>span,
+  .run-comparison-panel .model-comparison-row>em{font-size:17px}
+  .run-comparison-panel .model-comparison-header>span{font-size:15px}
+  .run-action-guide{font-size:16px}
+  .model-ai-review header span{font-size:15px}
+  .model-ai-review header em{font-size:14px}
   .model-ai-review>p,
   .model-ai-review-error>p,
-  .model-ai-review-loading>p{font-size:15px;line-height:1.72}
+  .model-ai-review-loading>p{font-size:16px;line-height:1.68}
   .model-ai-review-error button{font-size:14px}
   .run-error-message strong,
   .run-error-message span{font-size:14px}
