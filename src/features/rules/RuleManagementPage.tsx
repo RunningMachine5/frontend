@@ -5,7 +5,9 @@ import { PageHeading } from "../../components/layout/PageHeading";
 import {
   activateRuleSet,
   createRuleDraft,
+  createRuleType,
   deleteRuleDraft,
+  deleteRuleType,
   fetchRuleFeatures,
   fetchRulePatternStatistics,
   fetchRuleSet,
@@ -16,6 +18,7 @@ import {
 } from "./ruleApi";
 import type {
   FraudRule,
+  FraudRuleTypeInput,
   RuleComponentInput,
   RuleExpression,
   RuleFeature,
@@ -25,6 +28,7 @@ import type {
   RuleSetSummary,
   RuleValidation,
 } from "./ruleTypes";
+import { CreateFraudTypeDialog } from "./CreateFraudTypeDialog";
 import { RulePatternDialog } from "./RulePatternDialog";
 import { RuleReplayReport, RuleReplaySummary } from "./RuleReplayReport";
 import "../admin/AdminWorkspace.css";
@@ -116,7 +120,7 @@ export function RuleManagementPage() {
   const [replay, setReplay] = useState<RuleReplay | null>(null);
   const [workspaceTab, setWorkspaceTab] = useState<WorkspaceTab>("edit");
   const [replaySampleSize, setReplaySampleSize] = useState(100);
-  const [dialog, setDialog] = useState<"features" | "pattern" | null>(null);
+  const [dialog, setDialog] = useState<"features" | "pattern" | "fraudType" | null>(null);
   const [isBusy, setIsBusy] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -263,6 +267,35 @@ export function RuleManagementPage() {
     });
   };
 
+  const addFraudType = (input: FraudRuleTypeInput) => {
+    if (!selectedSet || selectedSet.status !== "DRAFT") return;
+    void runAction(async () => {
+      const created = await createRuleType(selectedSet.id, input);
+      await loadRuleSet(selectedSet.id);
+      setSelectedRuleId(created.id);
+      setDialog(null);
+      setNotice(`${created.display_name} 유형을 추가했습니다. 탐지 패턴을 구성해 주세요.`);
+    });
+  };
+
+  const removeFraudType = () => {
+    if (!selectedSet || !editingRule || selectedSet.status !== "DRAFT" || isBusy) return;
+    const patternCount = editingRule.components.length;
+    const message = [
+      `${editingRule.display_name} 유형을 DRAFT에서 삭제할까요?`,
+      patternCount > 0 ? `이 유형의 패턴 ${patternCount}개도 함께 삭제됩니다.` : "",
+      "현재 운영 중인 룰셋에는 영향을 주지 않습니다.",
+    ].filter(Boolean).join("\n");
+    if (!window.confirm(message)) return;
+
+    void runAction(async () => {
+      const deletedName = editingRule.display_name;
+      await deleteRuleType(selectedSet.id, editingRule.id);
+      await loadRuleSet(selectedSet.id);
+      setNotice(`${deletedName} 유형을 DRAFT에서 삭제했습니다.`);
+    });
+  };
+
   const canEdit = selectedSet?.status === "DRAFT";
   const canVerify = selectedSet?.status === "DRAFT" && Boolean(activeSet);
   const activationGuide = !draftSet
@@ -391,7 +424,7 @@ export function RuleManagementPage() {
 
             <section className="admin-panel rule-editor">
               <div className="panel-title split">
-                <div><p className="admin-eyebrow">{selectedSet?.status ?? "RULE SET"} v{selectedSet?.version ?? "—"}</p><h2>사기유형별 패턴 편집</h2><small>사기유형은 고정하며 패턴과 가중치만 변경합니다. 합계는 유형별 1.000이어야 합니다.</small></div>
+                <div><p className="admin-eyebrow">{selectedSet?.status ?? "RULE SET"} v{selectedSet?.version ?? "—"}</p><h2>사기유형별 패턴 편집</h2><small>DRAFT에서 사기유형과 패턴을 구성합니다. 활성 유형의 가중치 합계는 1.000이어야 합니다.</small></div>
                 <div className="pattern-editor-actions">
                   <button
                     className="admin-button compact"
@@ -407,6 +440,16 @@ export function RuleManagementPage() {
                   >
                     {patternStatistics ? "통계 다시 계산" : "표본 통계 계산"}
                   </button>
+                  {canEdit && editingRule && (
+                    <button
+                      className="admin-button danger-button compact"
+                      disabled={isBusy}
+                      onClick={removeFraudType}
+                      type="button"
+                    >
+                      유형 삭제
+                    </button>
+                  )}
                   <button
                     className="admin-button compact"
                     disabled={!canEdit || !editingRule || isBusy}
@@ -418,7 +461,26 @@ export function RuleManagementPage() {
                 </div>
               </div>
               <div aria-label="사기유형 선택" className="rule-tabs" role="tablist">
-                {selectedSet?.rules.map((rule) => <button aria-selected={selectedRuleId === rule.id} className={selectedRuleId === rule.id ? "active" : ""} key={rule.id} onClick={() => setSelectedRuleId(rule.id)} role="tab" type="button">{rule.display_name}</button>)}
+                {selectedSet?.rules.map((rule) => (
+                  <button aria-selected={selectedRuleId === rule.id} className={selectedRuleId === rule.id ? "active" : ""} key={rule.id} onClick={() => setSelectedRuleId(rule.id)} role="tab" type="button">
+                    <span>{rule.display_name}</span>
+                    {!rule.enabled && <em>준비 중</em>}
+                  </button>
+                ))}
+                <button
+                  aria-label="새 사기유형 추가"
+                  className="rule-type-add-button"
+                  disabled={!canEdit || isBusy}
+                  onClick={() => {
+                    setError(null);
+                    setDialog("fraudType");
+                  }}
+                  role="button"
+                  title={canEdit ? "DRAFT에 새 사기유형을 추가합니다." : "DRAFT에서만 유형을 추가할 수 있습니다."}
+                  type="button"
+                >
+                  <span aria-hidden="true">＋</span> 사기유형
+                </button>
               </div>
               <div className="component-list">
                 {editingRule?.components.map((component) => {
@@ -475,9 +537,22 @@ export function RuleManagementPage() {
                     </article>
                   );
                 })}
+                {editingRule && editingRule.components.length === 0 && (
+                  <div className="rule-type-empty">
+                    <div>
+                      <strong>아직 탐지 패턴이 없습니다.</strong>
+                      <p>첫 패턴을 추가하면 이 유형의 조건과 가중치를 설정할 수 있습니다.</p>
+                    </div>
+                    {canEdit && (
+                      <button className="admin-button compact" onClick={() => setDialog("pattern")} type="button">
+                        + 첫 패턴 추가
+                      </button>
+                    )}
+                  </div>
+                )}
               </div>
               <footer className="rule-total"><span>{editingRule?.display_name ?? "선택된 유형 없음"} 구성요소 합계</span><strong className={Math.abs(componentTotal - 1) < 0.0001 ? "positive" : "danger"}>{componentTotal.toFixed(3)} · {Math.abs(componentTotal - 1) < 0.0001 ? "정상" : "확인 필요"}</strong></footer>
-              <div className="editor-actions"><small>{canEdit ? "추가·삭제는 저장 버튼을 누르기 전까지 서버에 반영되지 않습니다." : `${selectedSet?.status ?? "선택한"} 버전은 조회만 가능합니다.`}</small><button className="admin-button primary" disabled={!canEdit || isBusy || !editingRule} onClick={saveCurrentRule} type="button">DRAFT 패턴 저장</button></div>
+              <div className="editor-actions"><small>{canEdit ? editingRule?.enabled ? "패턴 추가·삭제는 저장 버튼을 누르면 DRAFT에 반영됩니다." : "새 유형은 Agent 대응 정책 연결 전까지 준비 중 상태로 유지됩니다." : `${selectedSet?.status ?? "선택한"} 버전은 조회만 가능합니다.`}</small><button className="admin-button primary" disabled={!canEdit || isBusy || !editingRule?.components.length} onClick={saveCurrentRule} type="button">DRAFT 패턴 저장</button></div>
             </section>
           </section>
         )}
@@ -512,6 +587,14 @@ export function RuleManagementPage() {
         )}
 
         {dialog === "features" && <div className="admin-dialog-backdrop" role="presentation" onMouseDown={() => setDialog(null)}><section aria-modal="true" className="admin-dialog feature-dialog" onMouseDown={(event) => event.stopPropagation()} role="dialog"><header><div><p className="admin-eyebrow">RULE FEATURES</p><h2>사용 가능한 Feature</h2></div><button onClick={() => setDialog(null)} type="button">닫기</button></header><div className="feature-list">{features.map((feature) => <article key={feature.field}><strong>{feature.display_name}</strong><code>{feature.field}</code><span>{feature.value_type}{feature.derived ? " · 파생값" : ""}</span></article>)}</div></section></div>}
+        {dialog === "fraudType" && (
+          <CreateFraudTypeDialog
+            error={error}
+            isBusy={isBusy}
+            onClose={() => setDialog(null)}
+            onCreate={addFraudType}
+          />
+        )}
         {dialog === "pattern" && editingRule && (
           <RulePatternDialog
             existingKeys={editingRule.components.map((component) => component.component_key)}
