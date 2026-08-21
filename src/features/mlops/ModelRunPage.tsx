@@ -48,7 +48,7 @@ import type {
   TrainingRun,
 } from "./mlopsTypes";
 
-const RUN_REFRESH_MS = 5_000;
+const RUN_REFRESH_MS = 3_000;
 const TRAINING_PHASE_TRANSITION_MS = 650;
 const ORDERED_TRAINING_PHASES = [
   "connecting",
@@ -346,6 +346,15 @@ export function ModelRunPage() {
         : trainingPhase === "starting"
           ? "실행 연결을 마쳤으며 학습 컨테이너가 시작되기를 기다리고 있습니다."
           : "모델 학습과 MLflow 등록이 진행 중입니다.";
+  const executionSummary = run?.cloud_run_execution_name
+    ?? (operationId ? "Cloud Run 실행 생성 요청 완료" : "Cloud Run 실행 확인 중");
+  const executionRequestDetail = operationId ? `요청 ${operationId}` : null;
+  const trainingTaskDetail = execution
+    ? [
+      execution.running_count ? `실행 중 ${execution.running_count}개` : null,
+      execution.retried_count ? `재시도 ${execution.retried_count}회` : null,
+    ].filter(Boolean).join(" · ") || "Cloud Run 학습 상태를 확인하고 있습니다."
+    : "실행 상태를 자동으로 확인합니다.";
   const modelReviewLabel = modelReview?.decision === "RECOMMENDED"
     ? "승격 추천"
     : modelReview?.decision === "NOT_RECOMMENDED"
@@ -537,14 +546,22 @@ export function ModelRunPage() {
                     <span aria-hidden="true" className="training-progress-signal" />
                     <div>
                       <span>{trainingActionTitle}</span>
-                      <strong>{run.cloud_run_execution_name ?? "Cloud Run 실행 확인 중"}</strong>
+                      <strong>{executionSummary}</strong>
+                      {executionRequestDetail && !run.cloud_run_execution_name && <small>{executionRequestDetail}</small>}
                     </div>
                   </div>
 
                   <div aria-hidden="true" className="training-progress-track"><i /></div>
 
+                  <ol aria-label="학습 처리 단계" className="training-progress-phases">
+                    <li className="complete"><i>01</i><span>요청 접수</span></li>
+                    <li className={trainingPhase === "connecting" ? "active" : "complete"}><i>02</i><span>실행 연결</span></li>
+                    <li className={trainingPhase === "failed" ? "error" : trainingPhase === "starting" || trainingPhase === "training" ? "active" : trainingPhase === "syncing" ? "complete" : "pending"}><i>03</i><span>모델 학습</span></li>
+                    <li className={trainingPhase === "syncing" ? "active" : "pending"}><i>04</i><span>MLflow 등록</span></li>
+                  </ol>
+
                   <div className="training-progress-log">
-                    <header><strong>진행 로그</strong><small>실제 상태 기준</small></header>
+                    <header><strong>처리 로그</strong><small>실제 상태 기준</small></header>
                     <ol>
                       <li className="complete">
                         <time>{formatClock(run.created_at)}</time><i aria-hidden="true" />
@@ -552,31 +569,40 @@ export function ModelRunPage() {
                       </li>
                       <li className={trainingPhase === "connecting" ? "active" : "complete"}>
                         <time>{execution?.create_time ? formatClock(execution.create_time) : run.cloud_run_execution_name ? "확인됨" : "현재"}</time><i aria-hidden="true" />
-                        <span>{trainingPhase === "connecting" ? "Cloud Run 실행 환경에 연결하고 있습니다." : "Cloud Run 실행 연결을 확인했습니다."}</span>
+                        <div>
+                          <span>{trainingPhase === "connecting" ? "Cloud Run 실행 환경에 연결하고 있습니다." : "Cloud Run 실행 연결을 확인했습니다."}</span>
+                          {executionRequestDetail && <small>{executionRequestDetail}</small>}
+                        </div>
                       </li>
                       <li className={trainingPhase === "failed" ? "error" : trainingPhase === "starting" || trainingPhase === "training" ? "active" : trainingPhase === "syncing" ? "complete" : "pending"}>
                         <time>{execution?.start_time ? formatClock(execution.start_time) : "대기"}</time><i aria-hidden="true" />
-                        <span>{trainingPhase === "failed"
-                          ? execution?.failure_reason ?? "Cloud Run 학습 실행이 실패했습니다."
-                          : trainingPhase === "starting"
-                            ? "학습 컨테이너를 시작하고 있습니다."
-                            : trainingPhase === "training"
-                              ? "모델 학습을 진행하고 있습니다."
-                              : trainingPhase === "syncing"
-                                ? "모델 학습을 완료했습니다."
-                                : "실행 연결이 끝나면 모델 학습을 시작합니다."}</span>
+                        <div>
+                          <span>{trainingPhase === "failed"
+                            ? execution?.failure_reason ?? "Cloud Run 학습 실행이 실패했습니다."
+                            : trainingPhase === "starting"
+                              ? "학습 컨테이너를 시작하고 있습니다."
+                              : trainingPhase === "training"
+                                ? "모델 학습을 진행하고 있습니다."
+                                : trainingPhase === "syncing"
+                                  ? "모델 학습을 완료했습니다."
+                                  : "실행 연결이 끝나면 모델 학습을 시작합니다."}</span>
+                          {(trainingPhase === "starting" || trainingPhase === "training") && <small>{trainingTaskDetail}</small>}
+                        </div>
                       </li>
                       <li className={trainingPhase === "syncing" ? "active" : "pending"}>
                         <time>{execution?.completion_time ? formatClock(execution.completion_time) : "대기"}</time><i aria-hidden="true" />
-                        <span>{trainingPhase === "syncing"
-                          ? "학습 결과를 MLflow와 Run에 연결하고 있습니다."
-                          : "학습이 끝나면 결과를 MLflow에 등록합니다."}</span>
+                        <div>
+                          <span>{trainingPhase === "syncing"
+                            ? "학습 결과를 MLflow와 Run에 연결하고 있습니다."
+                            : "학습이 끝나면 결과를 MLflow에 등록합니다."}</span>
+                          <small>모델 아티팩트와 검증 지표를 저장합니다.</small>
+                        </div>
                       </li>
                     </ol>
                   </div>
 
                   <footer className="training-progress-footer">
-                    <span>5초마다 자동 갱신 · 마지막 확인 {formatClock(lastRefreshedAt)}</span>
+                    <span>3초마다 자동 갱신 · 마지막 확인 {formatClock(lastRefreshedAt)}</span>
                     {run.cloud_run_execution_name && (
                       <button className="admin-button compact" disabled={isBusy} onClick={() => void reconcile()} type="button">상태 즉시 확인</button>
                     )}

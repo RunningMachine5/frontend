@@ -226,22 +226,22 @@ export function ModelMonitoringPage() {
     >
       <section aria-label="모델 운영 서버 선택" className="monitoring-service-rail">
         <button className={target === "serving" ? "active" : undefined} onClick={() => setTarget("serving")} type="button">
-          <small>01 · ONLINE INFERENCE</small>
-          <strong>추론 서비스</strong>
+          <small>01 · ML INFERENCE</small>
+          <strong>ML 추론 서버</strong>
           <span>{serving?.reconciling ? "트래픽 전환 중" : serving ? "정상 운영" : "확인 불가"}</span>
           <em>{serving ? `${trafficPercent}% 트래픽` : "Cloud Run 추론"}</em>
         </button>
         <button className={target === "training" ? "active" : undefined} onClick={() => setTarget("training")} type="button">
-          <small>02 · BATCH TRAINING</small>
-          <strong>학습 작업</strong>
+          <small>02 · ML TRAINING</small>
+          <strong>ML 학습 서버</strong>
           <span>{latestRun ? STATUS_LABELS[latestRun.status] : "실행 이력 없음"}</span>
           <em>{latestRun ? `최근 학습 #${latestRun.id}` : "Cloud Run 작업"}</em>
         </button>
         <button className={target === "platform" ? "active" : undefined} onClick={() => setTarget("platform")} type="button">
-          <small>03 · APPLICATION CORE</small>
-          <strong>VM · DB</strong>
+          <small>03 · PLATFORM VM</small>
+          <strong>운영 VM</strong>
           <span>{platformStatus?.database_status === "UP" ? "정상 운영" : "확인 필요"}</span>
-          <em>백엔드 · PostgreSQL</em>
+          <em>백엔드 · MLflow · PostgreSQL</em>
         </button>
       </section>
 

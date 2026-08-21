@@ -382,13 +382,22 @@
 
   .monitoring-top-row{grid-template-columns:minmax(0,1.55fr) minmax(430px,1fr);gap:10px}
   .monitoring-bottom-row{grid-template-columns:minmax(0,1.8fr) minmax(430px,.8fr);gap:10px}
-  .bottom-right-col{gap:10px}
+  .bottom-right-col{grid-template-rows:minmax(166px,.78fr) minmax(0,1.62fr);gap:10px}
   .dashboard-monitoring-grid{gap:10px}
   .panel{border-radius:7px;background:#191522;border-color:#332b40}
   .panel-head{padding-bottom:9px;border-bottom:1px solid #332b40}
   .panel-head h2,.agent-panel-head h2{letter-spacing:-.02em}
   .trend-chart-wrap{height:236px}
   .mini-bars-7days{height:174px}
+  .suspicious-panel .panel-head{gap:6px}
+  .suspicious-panel .panel-head>div:first-child{min-width:0}
+  .suspicious-panel .panel-head h2,
+  .suspicious-panel .panel-caption{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .suspicious-panel-meta{flex:0 0 auto;flex-wrap:nowrap;gap:6px}
+  .suspicious-amount{gap:5px}
+  .suspicious-amount strong{font-size:20px}
+  .suspicious-amount span{font-size:11px}
+  .suspicious-count-tag{font-size:12px}
   .agent-summary{background:#130f1b;border-color:#30283b}
   .agent-row{min-height:34px}
   .solar-arc-chart-wrap{height:142px}
@@ -468,6 +477,30 @@
   .metric-card.red{border-color:rgb(228 91 100 / 42%);background:var(--ops-surface)}
   .panel-head{border-color:var(--ops-line)}
   .agent-summary{border-color:var(--ops-line);background:var(--ops-surface-sunken)}
+}
+
+/* 1920 화면에서 브라우저 UI로 높이가 줄어도 하단 판단 정보를 모두 보이게 한다. */
+@media(min-width:1440px) and (min-height:760px) and (max-height:959px){
+  .monitoring-top-row{height:39%}
+  .monitoring-bottom-row{height:61%}
+  .bottom-right-col{grid-template-rows:minmax(166px,.95fr) minmax(0,1.25fr);gap:8px}
+
+  .agent-panel{padding:9px 12px}
+  .agent-summary{padding:5px 10px}
+  .agent-summary p{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .agent-graph-section{gap:2px;margin-top:2px}
+  .agent-graph-legend{line-height:1}
+  .agent-bars-comparative{gap:2px}
+  .agent-comparative-row{gap:1px;padding:2px 7px}
+  .agent-row-label{overflow:hidden;font-size:12px;text-overflow:ellipsis;white-space:nowrap}
+  .agent-row-title-wrap{min-height:16px}
+  .agent-dual-bars{gap:1px;margin-top:0}
+  .bar-sub-row{font-size:10px;line-height:1}
+  .current-bar-row .bar-track{height:6px}
+  .prev-bar-row .bar-track{height:4px}
+
+  .solar-arc-chart-wrap{min-height:0}
+  .channel-stat-list-bottom{gap:2px}
 }
 
 :root[data-theme="light"] .live-pill,

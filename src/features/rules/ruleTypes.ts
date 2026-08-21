@@ -35,6 +35,11 @@ export type FraudRule = {
   updated_at: string;
 };
 
+export type FraudRuleTypeInput = Pick<
+  FraudRule,
+  "type_code" | "display_name" | "description"
+>;
+
 export type RuleSetSummary = {
   id: number;
   version: number;
