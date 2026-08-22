@@ -68,7 +68,6 @@ export function ModelRunPage() {
     (location.state as { executeTraining?: boolean } | null)?.executeTraining,
   );
   const executionRequestStarted = useRef(false);
-  const reviewRequestedRunId = useRef<number | null>(null);
   const [run, setRun] = useState<TrainingRun | null>(null);
   const [dataset, setDataset] = useState<DatasetVersion | null>(null);
   const [productionRun, setProductionRun] = useState<TrainingRun | null>(null);
@@ -102,7 +101,7 @@ export function ModelRunPage() {
             ? "starting"
             : "training";
 
-  const load = useCallback(async (showLoading = false) => {
+  const loadPage = useCallback(async (showLoading = false) => {
     if (showLoading) setIsLoading(true);
     try {
       const [runRow, runs, datasets, servingStatus] = await Promise.all([
@@ -112,22 +111,18 @@ export function ModelRunPage() {
         fetchServingStatus().catch(() => null),
       ]);
       const currentProduction = findCurrentProductionRun(runs);
-      const selectedDetails = runRow.mlflow_run_id
-        ? await fetchModelDetails(runRow.id).catch(() => null)
-        : null;
-      const selectedExecution = runRow.status === "RUNNING" && runRow.cloud_run_execution_name
-        ? await fetchTrainingExecution(runRow.id).catch(() => null)
-        : null;
-      const currentProductionDetails = currentProduction?.mlflow_run_id
-        ? currentProduction.id === runRow.id
-          ? selectedDetails
-          : await fetchModelDetails(currentProduction.id).catch(() => null)
-        : null;
+      const [selectedExecution, currentProductionDetails] = await Promise.all([
+        runRow.status === "RUNNING" && runRow.cloud_run_execution_name
+          ? fetchTrainingExecution(runRow.id).catch(() => null)
+          : null,
+        currentProduction?.mlflow_run_id && currentProduction.id !== runRow.id
+          ? fetchModelDetails(currentProduction.id).catch(() => null)
+          : null,
+      ]);
 
       setRun(runRow);
       setDataset(datasets.find((item) => item.id === runRow.dataset_version_id) ?? null);
       setProductionRun(currentProduction);
-      setDetails(selectedDetails);
       setProductionDetails(currentProductionDetails);
       setServing(servingStatus);
       setExecution(selectedExecution);
@@ -137,6 +132,32 @@ export function ModelRunPage() {
       setError(cause instanceof Error ? cause.message : "Run 상세 정보를 불러오지 못했습니다.");
     } finally {
       if (showLoading) setIsLoading(false);
+    }
+  }, [runId]);
+
+  const refreshRun = useCallback(async () => {
+    try {
+      const runRow = await fetchTrainingRun(runId);
+      const shouldFetchExecution = runRow.status === "RUNNING"
+        && Boolean(runRow.cloud_run_execution_name);
+      const shouldFetchServing = runRow.status === "STAGED"
+        || runRow.status === "PROMOTING";
+      const [selectedExecution, servingStatus] = await Promise.all([
+        shouldFetchExecution
+          ? fetchTrainingExecution(runRow.id).catch(() => null)
+          : null,
+        shouldFetchServing
+          ? fetchServingStatus().catch(() => null)
+          : null,
+      ]);
+
+      setRun(runRow);
+      setExecution(selectedExecution);
+      if (servingStatus) setServing(servingStatus);
+      setLastRefreshedAt(new Date());
+      setError(null);
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : "Run 상태를 갱신하지 못했습니다.");
     }
   }, [runId]);
 
@@ -152,16 +173,16 @@ export function ModelRunPage() {
     try {
       const result = await executeTrainingRun(selectedRunId);
       setOperationId(result.operation_id ?? "");
-      await load();
+      await refreshRun();
       setNotice("모델 학습 실행을 요청했습니다.");
     } catch (cause) {
-      await load();
+      await refreshRun();
       setError(cause instanceof Error ? cause.message : "학습 실행을 요청하지 못했습니다.");
     } finally {
       setIsBusy(false);
       setBusyActivity(null);
     }
-  }, [load]);
+  }, [refreshRun]);
 
   const requestModelReview = useCallback(async (selectedRunId: number) => {
     setIsModelReviewLoading(true);
@@ -181,25 +202,35 @@ export function ModelRunPage() {
   }, []);
 
   useEffect(() => {
-    void load(true);
-  }, [load]);
+    void loadPage(true);
+  }, [loadPage]);
+
+  useEffect(() => {
+    setDetails(null);
+    if (!run?.mlflow_run_id) return;
+
+    let ignoreResult = false;
+    void fetchModelDetails(run.id)
+      .then((modelDetails) => {
+        if (!ignoreResult) setDetails(modelDetails);
+      })
+      .catch(() => {
+        if (!ignoreResult) setDetails(null);
+      });
+    return () => {
+      ignoreResult = true;
+    };
+  }, [run?.id, run?.mlflow_run_id]);
+
+  useEffect(() => {
+    if (run?.id === productionRun?.id) setProductionDetails(details);
+  }, [details, productionRun?.id, run?.id]);
 
   useEffect(() => {
     setModelReview(null);
     setModelReviewError(null);
     setIsModelReviewLoading(false);
   }, [runId]);
-
-  useEffect(() => {
-    if (
-      run?.status !== "CANDIDATE"
-      || !details
-      || reviewRequestedRunId.current === run.id
-    ) return;
-
-    reviewRequestedRunId.current = run.id;
-    void requestModelReview(run.id);
-  }, [details, requestModelReview, run]);
 
   useEffect(() => {
     if (
@@ -221,10 +252,10 @@ export function ModelRunPage() {
     );
     if (!shouldRefresh) return;
     const timer = window.setInterval(() => {
-      if (document.visibilityState === "visible") void load();
+      if (document.visibilityState === "visible") void refreshRun();
     }, RUN_REFRESH_MS);
     return () => window.clearInterval(timer);
-  }, [isCandidatePreparing, load, run]);
+  }, [isCandidatePreparing, refreshRun, run]);
 
   useEffect(() => {
     setDisplayedTrainingPhase("connecting");
@@ -252,6 +283,7 @@ export function ModelRunPage() {
   const runAction = async (
     activity: ModelLoadingStatusProps,
     action: () => Promise<string>,
+    refresh: () => Promise<void> = refreshRun,
   ) => {
     setIsBusy(true);
     setBusyActivity(activity);
@@ -259,7 +291,7 @@ export function ModelRunPage() {
     setNotice(null);
     try {
       setNotice(await action());
-      await load();
+      await refresh();
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "요청을 처리하지 못했습니다.");
     } finally {
@@ -305,7 +337,7 @@ export function ModelRunPage() {
     if (!run) return "";
     await completeDeployment(run.id, operationId);
     return "새 모델을 운영 모델로 확정했습니다.";
-  });
+  }, () => loadPage());
 
   const reconcile = () => runAction({
     description: "Cloud Run 실행 결과와 저장된 Run 상태를 맞춥니다.",
@@ -361,13 +393,13 @@ export function ModelRunPage() {
       ? "승격 비추천"
       : isModelReviewLoading
         ? "판단 중…"
-        : modelReviewError
-          ? "판단 불가"
-          : run?.status === "CANDIDATE"
-            ? "판단 준비"
-            : isCurrentProduction
-              ? "운영 기준"
-              : "해당 없음";
+          : modelReviewError
+            ? "판단 불가"
+            : run?.status === "CANDIDATE"
+              ? "미실행"
+              : isCurrentProduction
+                ? "운영 기준"
+                : "해당 없음";
   const modelReviewTone = modelReview?.decision === "RECOMMENDED"
     ? "recommended"
     : modelReview?.decision === "NOT_RECOMMENDED"
@@ -489,13 +521,19 @@ export function ModelRunPage() {
                     ) : modelReview ? (
                       <p>{modelReview.summary}</p>
                     ) : (
-                      <div className="model-ai-review-error">
-                        <p>AI 판단을 불러오지 못했습니다. 성능 지표를 직접 확인하거나 다시 요청해 주세요.</p>
+                      <div className={`model-ai-review-action${modelReviewError ? " failed" : ""}`}>
+                        <p>
+                          {modelReviewError
+                            ? "AI 검토를 완료하지 못했습니다. 지표를 직접 검토하거나 다시 실행하세요."
+                            : "AI 검토는 자동으로 실행되지 않습니다. 성능 지표를 확인한 뒤 필요할 때 실행하세요."}
+                        </p>
+                        {modelReviewError && <small>{modelReviewError}</small>}
                         <button
+                          className="admin-button compact"
                           onClick={() => void requestModelReview(run.id)}
                           type="button"
                         >
-                          다시 판단
+                          {modelReviewError ? "AI 검토 다시 실행" : "AI 검토 실행"}
                         </button>
                       </div>
                     )}

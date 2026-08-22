@@ -245,9 +245,9 @@
 .model-ai-review::before{content:"";position:absolute;inset:0 auto 0 0;width:3px;background:var(--ops-focus)}
 .model-ai-review.recommended::before{background:#48d192}.model-ai-review.not-recommended::before{background:#ff7d89}
 .model-ai-review header{display:flex;align-items:center;justify-content:space-between;gap:12px}.model-ai-review header span{color:var(--ops-focus);font-size:12px;font-weight:800;letter-spacing:.08em}.model-ai-review header em{padding:5px 8px;border-radius:99px;background:var(--ops-focus-soft);color:#aebee9;font-size:11px;font-style:normal;font-weight:800;white-space:nowrap}.model-ai-review.recommended header em{background:rgb(72 209 146 / 13%);color:#75dfad}.model-ai-review.not-recommended header em{background:rgb(255 125 137 / 13%);color:#ff939e}
-.model-ai-review>p,.model-ai-review-error>p,.model-ai-review-loading>p{margin:0;color:var(--ops-text);font-size:13px;line-height:1.72;white-space:normal;word-break:keep-all;overflow-wrap:anywhere}
+.model-ai-review>p,.model-ai-review-action>p,.model-ai-review-loading>p{margin:0;color:var(--ops-text);font-size:13px;line-height:1.72;white-space:normal;word-break:keep-all;overflow-wrap:anywhere}
 .model-ai-review-loading{margin:auto 0;display:grid;grid-template-columns:10px minmax(0,1fr);align-items:center;gap:10px}.model-ai-review-loading i{width:9px;height:9px;border-radius:50%;background:var(--ops-focus);box-shadow:0 0 0 5px var(--ops-focus-soft);animation:model-ai-review-pulse 1s ease-in-out infinite alternate}
-.model-ai-review-error{margin:auto 0;display:grid;gap:12px}.model-ai-review-error button{justify-self:start;padding:0;border:0;background:transparent;color:var(--ops-focus);font-size:12px;font-weight:800}.model-ai-review-error button:focus-visible{outline:2px solid var(--ops-focus);outline-offset:3px}
+.model-ai-review-action{margin:auto 0;display:grid;gap:12px}.model-ai-review-action small{color:var(--ops-text-muted);font-size:10px;line-height:1.5}.model-ai-review-action.failed small{color:#ff939e}.model-ai-review-action .admin-button{justify-self:start}
 @keyframes model-ai-review-pulse{to{opacity:.35;transform:scale(.78)}}
 /* 큰 내부 박스를 없애 안내와 실행 버튼이 하나의 조치 영역으로 읽히게 한다. */
 .automatic-smoke-card{padding:16px 0 0;border:0;border-top:1px solid var(--ops-line);border-radius:0;background:transparent}
@@ -718,9 +718,9 @@
   .model-ai-review header span{font-size:16px}
   .model-ai-review header em{font-size:15px}
   .model-ai-review>p,
-  .model-ai-review-error>p,
+  .model-ai-review-action>p,
   .model-ai-review-loading>p{font-size:17px;line-height:1.65}
-  .model-ai-review-error button{font-size:15px}
+  .model-ai-review-action small{font-size:14px}
   .run-error-message strong,
   .run-error-message span{font-size:15px}
   .automatic-smoke-card span{font-size:14px}
