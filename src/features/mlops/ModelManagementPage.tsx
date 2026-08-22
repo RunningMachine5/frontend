@@ -430,7 +430,7 @@ export function ModelManagementPage() {
           <div className="model-summary-primary">
             <span>저장된 학습 모델</span>
             <strong>{models ? numberFormat.format(models.length) : "—"}{models && <small>개</small>}</strong>
-            <p>{models ? "학습 성능과 실제 운영 이력을 모델별로 확인합니다." : "모델 목록을 불러오지 못해 자동으로 다시 확인합니다."}</p>
+            <p>{models ? "학습 성능과 실제 처리 기록을 모델별로 확인합니다." : "모델 목록을 불러오지 못해 자동으로 다시 확인합니다."}</p>
           </div>
           <ul className="model-summary-details">
             {models === null ? (
@@ -455,7 +455,7 @@ export function ModelManagementPage() {
                 <strong>
                   {model.usage.processed_transaction_count > 0
                     ? numberFormat.format(model.usage.processed_transaction_count)
-                    : "이력 없음"}
+                    : "기록 없음"}
                   {model.usage.processed_transaction_count > 0 && <small>건</small>}
                 </strong>
               </li>

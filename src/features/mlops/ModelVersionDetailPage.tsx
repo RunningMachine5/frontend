@@ -1,7 +1,7 @@
 // 한 모델의 학습 성능과 실제 처리 거래를 분리해 비교한다.
 
 import { useEffect, useMemo, useState } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 
 import { AdminAlert } from "../admin/AdminAlert";
 import { ModelLoadError } from "./components/ModelLoadError";
@@ -39,6 +39,7 @@ function labelText(value: boolean | null) {
 }
 
 export function ModelVersionDetailPage() {
+  const location = useLocation();
   const navigate = useNavigate();
   const { runId: runIdParam } = useParams();
   const runId = Number(runIdParam);
@@ -55,6 +56,7 @@ export function ModelVersionDetailPage() {
   const [transactionsError, setTransactionsError] = useState<string | null>(null);
   const [loadAttempt, setLoadAttempt] = useState(0);
   const [transactionsAttempt, setTransactionsAttempt] = useState(0);
+  const catalogSearch = (location.state as { catalogSearch?: string } | null)?.catalogSearch ?? "";
 
   useEffect(() => {
     let active = true;
@@ -143,7 +145,7 @@ export function ModelVersionDetailPage() {
               {isReactivating ? "준비 요청 중…" : "운영 반영 준비"}
             </button>
           )}
-          <Link className="admin-button" to="/models/versions">모델 목록으로</Link>
+          <Link className="admin-button" to={`/models/versions${catalogSearch}`}>모델 목록으로</Link>
         </>
       )}
     >
@@ -181,8 +183,8 @@ export function ModelVersionDetailPage() {
             <dl>
               <div><dt>학습 Run</dt><dd>#{model.training_run_id}</dd></div>
               <div><dt>학습 데이터셋</dt><dd title={model.dataset_version}>{model.dataset_version}</dd></div>
-              <div><dt>등록 시각</dt><dd>{formatDate(model.created_at)}</dd></div>
-              <div><dt>실제 처리</dt><dd>{model.usage.processed_transaction_count > 0 ? `${numberFormat.format(model.usage.processed_transaction_count)}건` : "운영 이력 없음"}</dd></div>
+              <div><dt>학습 요청 시각</dt><dd>{formatDate(model.created_at)}</dd></div>
+              <div><dt>실제 처리</dt><dd>{model.usage.processed_transaction_count > 0 ? `${numberFormat.format(model.usage.processed_transaction_count)}건` : "처리 기록 없음"}</dd></div>
             </dl>
           </header>
 
@@ -225,7 +227,7 @@ export function ModelVersionDetailPage() {
                 <div><dt>평균 응답</dt><dd>{model.usage.average_latency_ms === null ? "—" : `${numberFormat.format(model.usage.average_latency_ms)}ms`}</dd></div>
               </dl>
               <p className="model-version-period">
-                처리 기간 · {model.usage.first_inference_at ? formatDate(model.usage.first_inference_at) : "이력 없음"}
+                처리 기간 · {model.usage.first_inference_at ? formatDate(model.usage.first_inference_at) : "기록 없음"}
                 {model.usage.latest_inference_at ? ` ~ ${formatDate(model.usage.latest_inference_at)}` : ""}
               </p>
             </article>
@@ -287,8 +289,8 @@ export function ModelVersionDetailPage() {
               </table>}
               {!transactionsError && !isTransactionsLoading && transactions?.items.length === 0 && (
                 <div className="model-catalog-empty">
-                  <strong>{model.usage.processed_transaction_count > 0 ? "조건에 맞는 거래가 없습니다." : "운영 이력이 없습니다."}</strong>
-                  <span>{model.usage.processed_transaction_count > 0 ? "다른 비교 조건을 선택해보세요." : "이 모델이 운영 요청을 처리하면 여기에 기록됩니다."}</span>
+                  <strong>{model.usage.processed_transaction_count > 0 ? "조건에 맞는 거래가 없습니다." : "처리 기록이 없습니다."}</strong>
+                  <span>{model.usage.processed_transaction_count > 0 ? "다른 비교 조건을 선택해보세요." : "이 모델이 추론 요청을 처리하면 여기에 기록됩니다."}</span>
                 </div>
               )}
             </div>
