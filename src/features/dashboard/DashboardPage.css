@@ -687,3 +687,8 @@
   /* 마지막 비교 행도 카드 테두리에 붙지 않도록 하단 여백을 유지한다. */
   .agent-panel{padding-bottom:14px}
 }
+
+/* F11에서는 큰 글자 크기를 유지하면서 비교 행만 조밀하게 맞춘다. */
+@media(min-width:1600px) and (min-height:900px){
+  .agent-comparative-row{padding:2.5px 9px}
+}
