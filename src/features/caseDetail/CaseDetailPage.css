@@ -1431,6 +1431,12 @@
 :root[data-theme="light"] .j-btn-primary{border-color:var(--ops-focus);background:var(--ops-focus);color:#fff}
 :root[data-theme="light"] .j-btn-primary:hover:not(:disabled){background:var(--ops-focus)}
 :root[data-theme="light"] .j-btn-primary:disabled{border-color:var(--ops-disabled-line);background:var(--ops-disabled-bg);color:var(--ops-disabled-text);opacity:1}
+:root[data-theme="light"] .j-guide-action-details header span{
+  border:1px solid var(--ops-focus);
+  background:var(--ops-focus-soft);
+  color:var(--ops-focus);
+  font-weight:800;
+}
 
 /* 사건을 열자마자 현재 처리 위치를 알 수 있도록 세 단계로 표시한다. */
 .j-workflow-progress{display:flex;align-items:center;gap:18px;padding:12px 16px;border:1px solid var(--ops-line);border-radius:3px;background:var(--ops-surface)}.j-workflow-label{flex:0 0 auto;color:var(--ops-text-muted);font-size:11px;font-weight:700}.j-workflow-progress ol{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));width:100%;margin:0;padding:0;list-style:none}.j-workflow-progress li{position:relative;display:flex;align-items:center;gap:8px;min-width:0;color:var(--ops-text-muted);font-size:12px}.j-workflow-progress li:not(:last-child)::after{position:absolute;top:50%;right:0;width:22%;height:1px;background:var(--ops-line-strong);content:""}.j-workflow-progress li>span{position:relative;z-index:1;display:grid;flex:0 0 22px;width:22px;height:22px;place-items:center;border:1px solid var(--ops-line-strong);border-radius:50%;background:var(--ops-surface-sunken);font-size:11px;font-weight:700}.j-workflow-progress li.done,.j-workflow-progress li.current{color:var(--ops-text)}.j-workflow-progress li.done>span{border-color:var(--ops-low);background:var(--ops-low);color:#fff}.j-workflow-progress li.current>span{border-color:var(--ops-focus);background:var(--ops-focus-soft);color:#c7d2ef}.j-workflow-progress li.done::after{background:var(--ops-low)}
