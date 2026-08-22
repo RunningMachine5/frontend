@@ -1,4 +1,4 @@
-// EventSource로 SSE 수신 후 overview 재조회
+// 거래 SSE는 화면에 즉시 반영하고, 기존 알림은 전체 조회로 보정한다.
 
 import { useEffect, useState } from "react";
 
@@ -9,6 +9,13 @@ import {
     type DashOverviewParams,
 } from "./DashboardOverviewApi";
 import type { DashboardOverviewResponse, RecentTransaction } from "./dashboardOverviewTypes";
+import {
+    applyDashboardTransactionPatch,
+    parseDashboardEventSource,
+    parseDashboardTransactionPatch,
+    upsertRealtimeRiskRow,
+    upsertRecentTransaction,
+} from "./dashboardPatch";
 import { fetchQueueRows } from "../queue/queueApi";
 import type { CaseListItem } from "../queue/queueTypes";
 
@@ -36,6 +43,10 @@ export function useDashboardOverview(params: DashOverviewParams){
         let refreshTimer: number | null = null;
         let isRefreshRunning = false;
         let refreshPending = false;
+        let hasSnapshot = false;
+        let hasConnected = false;
+        const seenEventIds = new Set<string>();
+        const seenTransactionIds = new Set<number>();
 
         async function loadOverview(generateIfMissing = false){
             try {
@@ -53,20 +64,27 @@ export function useDashboardOverview(params: DashOverviewParams){
                     return;
                 }
 
+                for (const transaction of recentTransactions) {
+                    seenTransactionIds.add(transaction.transaction_id);
+                    seenEventIds.add(`transaction:${transaction.transaction_id}`);
+                }
+
                 setData(overview);
                 setRealtimeRiskRows(riskRows.items);
                 setRecentTransactions(recentTransactions);
                 setErrorMessage(null);
+                hasSnapshot = true;
 
                 // 첫 조회에 해당 기간 요약이 없을 때만 한 번 생성한다.
                 if (generateIfMissing && overview.agent_insight === null) {
                     const insight = await generateDashboardInsight(params);
 
                     if (isActive) {
-                        setData({
-                            ...overview,
-                            agent_insight: insight,
-                        });
+                        setData((current) =>
+                            current
+                                ? { ...current, agent_insight: insight }
+                                : current,
+                        );
                     }
                 }
             }catch(error){
@@ -113,11 +131,66 @@ export function useDashboardOverview(params: DashOverviewParams){
             );
         }
 
+        function handleDashboardUpdated(event: Event) {
+            if (!(event instanceof MessageEvent)) {
+                scheduleRefresh();
+                return;
+            }
+
+            const patch = parseDashboardTransactionPatch(event.data);
+            if (!patch) {
+                // 거래 patch에 이미 대시보드 표시값이 있으므로 Agent 완료는
+                // 처리 목록에서만 최종 상태를 다시 조회한다.
+                if (parseDashboardEventSource(event.data) === "agent") return;
+                scheduleRefresh();
+                return;
+            }
+
+            // 조회와 부분 갱신이 겹치면 응답 순서에 따라 화면이 과거 값으로
+            // 돌아갈 수 있으므로, 실행·예약된 조회가 끝난 뒤 DB 값으로 보정한다.
+            if (!hasSnapshot || isRefreshRunning || refreshTimer !== null) {
+                scheduleRefresh();
+                return;
+            }
+
+            const transactionId = patch.transaction.transaction_id;
+            if (
+                seenEventIds.has(patch.event_id) ||
+                seenTransactionIds.has(transactionId)
+            ) {
+                return;
+            }
+
+            seenEventIds.add(patch.event_id);
+            seenTransactionIds.add(transactionId);
+            const suspiciousCase = patch.suspicious_case;
+            setRecentTransactions((current) =>
+                upsertRecentTransaction(current, patch.transaction),
+            );
+            setData((current) =>
+                current
+                    ? applyDashboardTransactionPatch(current, patch)
+                    : current,
+            );
+            if (suspiciousCase) {
+                setRealtimeRiskRows((current) =>
+                    upsertRealtimeRiskRow(current, suspiciousCase),
+                );
+            }
+        }
+
+        function handleOpen() {
+            // 최초 연결은 첫 조회가 담당하고, 실제 재연결 때만 누락 구간을 맞춘다.
+            if (hasConnected) scheduleRefresh();
+            hasConnected = true;
+        }
+
         // 화면 첫 진입 시 overview 조회
         void runRefresh(true);
 
         const eventSource = new EventSource("/api/dashboard/events");
-        eventSource.addEventListener("dashboard_updated", scheduleRefresh);
+        eventSource.addEventListener("dashboard_updated", handleDashboardUpdated);
+        eventSource.addEventListener("open", handleOpen);
 
         return () => {
             isActive = false;

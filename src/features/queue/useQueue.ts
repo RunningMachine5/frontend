@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 
+import { parseDashboardTransactionPatch } from "../dashboard/dashboardPatch";
 import { fetchQueueRows } from "./queueApi";
 import type { CaseListItem, QueueSearchFilters } from "./queueTypes";
 
@@ -70,10 +71,33 @@ export function useQueue(filters: QueueSearchFilters, pageSize: number) {
       );
     }
 
+    function handleDashboardUpdated(event: Event) {
+      if (!(event instanceof MessageEvent)) {
+        scheduleRefresh();
+        return;
+      }
+
+      const patch = parseDashboardTransactionPatch(event.data);
+      if (patch) {
+        // 정상 거래는 처리 목록에 나타나지 않으므로 재조회하지 않는다.
+        if (patch.suspicious_case) scheduleRefresh();
+        return;
+      }
+
+      // Agent 완료 알림과 기존 payload는 DB 최종 상태로 다시 맞춘다.
+      scheduleRefresh();
+    }
+
+    function handleOpen() {
+      // 최초 연결 직전 누락과 재연결 중 누락을 모두 DB 조회로 맞춘다.
+      scheduleRefresh();
+    }
+
     void runRefresh(true);
 
     const eventSource = new EventSource("/api/dashboard/events");
-    eventSource.addEventListener("dashboard_updated", scheduleRefresh);
+    eventSource.addEventListener("dashboard_updated", handleDashboardUpdated);
+    eventSource.addEventListener("open", handleOpen);
 
     return () => {
       active = false;
