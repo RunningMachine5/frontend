@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import type { CaseListItem } from "../../queue/queueTypes";
 import { formatCompactMoney, formatNumber } from "../dashboardFormatters";
 
@@ -139,8 +139,10 @@ export function RealtimeRiskTrendChart({
   height?: number;
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
+  const tooltipRef = useRef<HTMLDivElement>(null);
   const [containerWidth, setContainerWidth] = useState(800);
   const [containerHeight, setContainerHeight] = useState(height);
+  const [tooltipPosition, setTooltipPosition] = useState<{ left: number; top: number } | null>(null);
 
   // 카드 안에서 실제로 확보된 크기만큼 차트를 그려 불필요한 위아래 여백을 남기지 않는다.
   useEffect(() => {
@@ -222,7 +224,51 @@ export function RealtimeRiskTrendChart({
   const activeItem = hoveredIndex !== null ? items[hoveredIndex] : null;
   const activeScoreCoord = hoveredIndex !== null ? scoreCoords[hoveredIndex] : null;
   const activeGradeStyle = activeItem ? getRiskGradeStyle(activeItem.score) : null;
-  const showTooltipBelow = activeScoreCoord ? activeScoreCoord.y < renderHeight / 2 : false;
+
+  useLayoutEffect(() => {
+    const container = containerRef.current;
+    const tooltip = tooltipRef.current;
+    if (!activeScoreCoord || !container || !tooltip) return;
+
+    const boundaryGap = 8;
+    const pointGap = 14;
+    const containerRect = container.getBoundingClientRect();
+    const cardRect = container.closest(".panel")?.getBoundingClientRect() ?? containerRect;
+    const pointX = (activeScoreCoord.x / width) * container.clientWidth;
+    const pointY = (activeScoreCoord.y / renderHeight) * container.clientHeight;
+    const tooltipWidth = tooltip.offsetWidth;
+    const tooltipHeight = tooltip.offsetHeight;
+    const minLeft = cardRect.left - containerRect.left + boundaryGap;
+    const maxRight = cardRect.right - containerRect.left - boundaryGap;
+    const minTop = cardRect.top - containerRect.top + boundaryGap;
+    const maxBottom = cardRect.bottom - containerRect.top - boundaryGap;
+    const canPlaceRight = pointX + pointGap + tooltipWidth <= maxRight;
+    const canPlaceLeft = pointX - pointGap - tooltipWidth >= minLeft;
+
+    let left: number;
+    let top: number;
+
+    if (canPlaceRight || canPlaceLeft) {
+      const placeRight = canPlaceRight && (!canPlaceLeft || pointX <= container.clientWidth / 2);
+      left = placeRight ? pointX + pointGap : pointX - pointGap - tooltipWidth;
+      top = pointY - tooltipHeight / 2;
+    } else {
+      // 좁은 화면에서는 카드 헤더 여유까지 포함해 점을 가리지 않는 방향을 사용한다.
+      left = pointX - tooltipWidth / 2;
+      const canPlaceBelow = pointY + pointGap + tooltipHeight <= maxBottom;
+      const canPlaceAbove = pointY - pointGap - tooltipHeight >= minTop;
+      top = canPlaceBelow && (!canPlaceAbove || pointY <= (minTop + maxBottom) / 2)
+        ? pointY + pointGap
+        : pointY - pointGap - tooltipHeight;
+    }
+
+    const maxLeft = Math.max(minLeft, maxRight - tooltipWidth);
+    const maxTop = Math.max(minTop, maxBottom - tooltipHeight);
+    setTooltipPosition({
+      left: Math.min(Math.max(left, minLeft), maxLeft),
+      top: Math.min(Math.max(top, minTop), maxTop),
+    });
+  }, [activeScoreCoord?.x, activeScoreCoord?.y, containerHeight, containerWidth, renderHeight, width]);
 
   return (
     <div className="trend-chart-wrap realtime-risk-chart-wrap" ref={containerRef}>
@@ -478,13 +524,13 @@ export function RealtimeRiskTrendChart({
       {/* 스마트 플로팅 툴팁 카드 (위험 등급 뱃지 & 색상 반영) */}
       {activeItem && activeScoreCoord && activeGradeStyle && (
         <div
-          className={`chart-floating-tooltip ${showTooltipBelow ? "tooltip-below" : "tooltip-above"}`}
+          className="chart-floating-tooltip"
+          ref={tooltipRef}
           style={{
-            left: `clamp(130px, ${activeScoreCoord.x}px, calc(100% - 130px))`,
-            top: showTooltipBelow
-              ? `min(${activeScoreCoord.y + 12}px, calc(100% - 124px))`
-              : `${activeScoreCoord.y - 12}px`,
+            left: tooltipPosition?.left ?? 0,
+            top: tooltipPosition?.top ?? 0,
             borderColor: activeGradeStyle.mainColor,
+            visibility: tooltipPosition ? "visible" : "hidden",
           }}
         >
           <div className="tooltip-head">
