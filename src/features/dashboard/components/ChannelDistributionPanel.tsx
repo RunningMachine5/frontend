@@ -345,9 +345,7 @@ export function ChannelDistributionPanel({
           <p className="panel-caption">채널별 거래량 비중 및 피해 금액 집중도</p>
         </div>
         <div className="channel-total-badge">
-          <span>총</span>
-          <strong>{formatNumber(totalCount)}</strong>
-          <span>건</span>
+          <span>총 <strong>{formatNumber(totalCount)}</strong>건</span>
         </div>
       </div>
       <ChannelBubbles items={items} totalCount={totalCount} />
