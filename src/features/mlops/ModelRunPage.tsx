@@ -587,7 +587,7 @@ export function ModelRunPage() {
                     <p>{isCandidatePreparing ? "준비 상태는 자동으로 확인합니다. 입력할 값은 없습니다." : "거래와 검증 데이터는 서버가 자동으로 선택합니다."}</p>
                   </div>
                   <button className="admin-button primary" disabled={isBusy || isCandidatePreparing} onClick={() => void promote()} type="button">
-                    {isCandidatePreparing ? "운영 반영 준비 중…" : "자동 검증 후 100% 전환"}
+                    {isCandidatePreparing ? "운영 반영 준비 중…" : "후보 검증 후 운영 전환"}
                   </button>
                 </div>
               )}
