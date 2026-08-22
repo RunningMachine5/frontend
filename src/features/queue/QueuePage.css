@@ -295,6 +295,18 @@
 
 /* 1920 시연 화면에서는 한 화면 구성을 유지하면서 표와 보조 문구를 한 단계 키운다. */
 @media(min-width:1600px) and (min-height:900px){
+  .queue-filter{
+    grid-template-columns:minmax(120px,.72fr) minmax(160px,.95fr) minmax(275px,1.25fr) minmax(200px,1fr) minmax(205px,1fr) minmax(205px,1fr) auto;
+    column-gap:10px;
+  }
+  .queue-filter-actions{align-self:end;flex-wrap:nowrap}
+  .queue-filter-actions button{
+    min-width:70px;
+    height:42px;
+    padding:0 16px;
+    font-weight:700;
+    white-space:nowrap;
+  }
   .queue-header p,
   .queue-panel-head p,
   .queue-filter label,
