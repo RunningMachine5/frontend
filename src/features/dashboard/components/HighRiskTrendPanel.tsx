@@ -506,9 +506,8 @@ export function HighRiskTrendPanel({
   return (
     <article className="panel priority-panel realtime-risk-panel">
       <div className="panel-head">
-        <h2>실시간 사기 의심 거래 반영 현황</h2>
-        <div className="trend-panel-meta realtime-trend-meta">
-          {/* 초 단위 / 분 단위 선택 토글 */}
+        <div className="trend-title-controls">
+          <h2>실시간 사기 의심 거래 반영 현황</h2>
           <div className="time-interval-toggle" role="group" aria-label="시간 단위 선택">
             <button
               type="button"
@@ -525,7 +524,9 @@ export function HighRiskTrendPanel({
               분 단위
             </button>
           </div>
+        </div>
 
+        <div className="trend-panel-meta realtime-trend-meta">
           <span className="live-status-tag">
             <i aria-hidden="true" className="live-green-dot" />
             실시간 감시

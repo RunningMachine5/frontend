@@ -21,8 +21,8 @@ export function AllTransactionTrendPanel({
   return (
     <article className="panel priority-panel realtime-all-panel">
       <div className="panel-head">
-        <h2>실시간 전체 거래 반영 현황</h2>
-        <div className="realtime-all-meta">
+        <div className="trend-title-controls">
+          <h2>실시간 전체 거래 반영 현황</h2>
           <div className="time-interval-toggle" role="group" aria-label="시간 단위 선택">
             <button
               className={timeInterval === "second" ? "active" : ""}
@@ -39,6 +39,9 @@ export function AllTransactionTrendPanel({
               분 단위
             </button>
           </div>
+        </div>
+
+        <div className="realtime-all-meta">
           <span className="live-status-tag">
             <i aria-hidden="true" className="live-green-dot" />
             실시간 감시

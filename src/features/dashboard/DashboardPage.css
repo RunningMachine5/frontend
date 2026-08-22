@@ -515,6 +515,8 @@
 /* 좌측 그래프와 같은 선 그래프를 쓰되 HIGH · VERY_HIGH 범위만 보여 준다. */
 .realtime-all-panel{display:flex;min-height:0;flex-direction:column}.realtime-all-panel .panel-head{align-items:flex-start}.realtime-all-meta{display:flex;align-items:flex-end;gap:6px;flex-direction:column}
 @media(max-width:1080px){.realtime-all-panel .panel-head{flex-wrap:wrap}.realtime-all-meta{align-items:flex-start}}
+.trend-title-controls{display:flex;min-width:0;align-items:center;gap:8px;white-space:nowrap}
+@media(max-width:1080px){.trend-title-controls{width:100%;flex-wrap:wrap;white-space:normal}}
 
 /* SSE 수신 후 실제 데이터를 다시 읽었을 때만 짧게 강조한다. */
 .live-green-dot{animation:none}
