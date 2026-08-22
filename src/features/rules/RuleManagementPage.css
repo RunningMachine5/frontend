@@ -119,10 +119,30 @@
   transform: translateY(1px);
 }
 
+.rule-tabs .rule-type-add-button:disabled {
+  border-color: var(--ops-line-strong);
+  background: var(--ops-surface-sunken);
+  color: var(--ops-text-subtle);
+  box-shadow: none;
+}
+
 :root[data-theme="light"] .rule-tabs .rule-type-add-button {
   border-color: var(--ops-focus);
   background: var(--ops-focus);
   color: #fff;
+}
+
+:root[data-theme="light"] .rule-tabs .rule-type-add-button:disabled {
+  border-color: var(--ops-disabled-line);
+  background: var(--ops-disabled-bg);
+  color: var(--ops-disabled-text);
+  box-shadow: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rule-tabs .rule-type-add-button {
+    transition: none;
+  }
 }
 
 .rule-type-empty {
