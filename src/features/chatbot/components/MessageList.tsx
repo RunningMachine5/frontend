@@ -1,26 +1,24 @@
-// 대화 스크롤 영역 — 말풍선, 버튼 3종, 타이핑 표시.
-// 디자인 원본의 스크롤 블록이며, 목 데이터로 돌던 퀵리플라이는 대응 API 가 없어 옮기지 않았다.
+// 대화 스크롤 영역 — 말풍선, 서버 계약 기반 네/아니요 퀵리플라이, 타이핑 표시.
 
 import type { RefObject } from "react";
 
 import hamsterImage from "../../../assets/chatbot/financial-chatbot-hamster-70.png";
 import { ACCENT } from "../chatbotColors";
 import type { ChatSizes } from "../chatbotSizes";
-import type { ChatBubble, ChatButtonAction } from "../chatbotTypes";
-
-// 라벨은 PRD 2.3 의 버튼 이름을 쓴다. 문구를 내려주는 API 가 없어 프론트 상수로 둔다.
-const ACTION_BUTTONS: { action: ChatButtonAction; label: string }[] = [
-    { action: "START_CHAT", label: "챗봇 상담" },
-    { action: "REQUEST_HANDOFF", label: "상담사 연결" },
-    { action: "END_CHAT", label: "종료" },
-];
+import type {
+    ChatBubble,
+    ChatQuickReply,
+    DiscriminationQuestionId,
+} from "../chatbotTypes";
 
 type MessageListProps = {
     scrollRef: RefObject<HTMLDivElement | null>;
     bubbles: ChatBubble[];
     isTyping: boolean;
-    showActions: boolean;
-    onSelectAction: (action: ChatButtonAction) => void;
+    questionId: DiscriminationQuestionId | null;
+    quickReplies: ChatQuickReply[];
+    turnBusy: boolean;
+    onSelectQuickReply: (reply: ChatQuickReply) => void;
     sizes: ChatSizes;
 };
 
@@ -28,8 +26,10 @@ export function MessageList({
     scrollRef,
     bubbles,
     isTyping,
-    showActions,
-    onSelectAction,
+    questionId,
+    quickReplies,
+    turnBusy,
+    onSelectQuickReply,
     sizes,
 }: MessageListProps) {
     const avatarSize = { width: sizes.avatarSmall, height: sizes.avatarSmall };
@@ -78,26 +78,28 @@ export function MessageList({
                 </div>
             )}
 
-            {showActions && (
+            {questionId && quickReplies.length > 0 && !turnBusy && (
                 <div
+                    key={questionId}
                     style={{
-                        ...actionColumnStyle,
+                        ...quickReplyRowStyle,
                         paddingLeft: sizes.actionIndent,
                     }}
                 >
-                    {ACTION_BUTTONS.map(({ action, label }, index) => (
+                    {quickReplies.map((reply, index) => (
                         <button
-                            key={action}
-                            onClick={() => onSelectAction(action)}
+                            key={`${questionId}-${reply.action}`}
+                            onClick={() => onSelectQuickReply(reply)}
+                            aria-label={`${reply.label} 답변`}
                             style={{
-                                // 첫 버튼(챗봇 상담)만 강조색이다.
+                                // 네는 강조하고 아니요는 보조 버튼으로 구분한다.
                                 ...(index === 0
                                     ? primaryActionStyle
                                     : secondaryActionStyle),
                                 ...actionSize,
                             }}
                         >
-                            {label}
+                            {reply.label}
                         </button>
                     ))}
                 </div>
@@ -193,10 +195,9 @@ function typingDotStyle(delaySeconds: number) {
     };
 }
 
-// 들여쓰기(paddingLeft)로 말풍선 본문과 세로선을 맞춘다.
-const actionColumnStyle = {
+// 들여쓰기로 챗봇 말풍선 본문과 시작선을 맞춘다.
+const quickReplyRowStyle = {
     display: "flex",
-    flexDirection: "column" as const,
     gap: "8px",
 };
 
@@ -204,7 +205,8 @@ const baseActionStyle = {
     fontFamily: "var(--font-brand)",
     borderRadius: "14px",
     cursor: "pointer",
-    textAlign: "left" as const,
+    textAlign: "center" as const,
+    flex: 1,
 };
 
 const primaryActionStyle = {

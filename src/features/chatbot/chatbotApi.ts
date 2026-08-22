@@ -4,9 +4,11 @@
 
 import type {
     ApiResponse,
-    ChatButtonAction,
+    ChatDiscriminationAction,
     ChatSessionDetail,
     ChatTurnResult,
+    DiscriminationQuestionId,
+    FraudTypeConfirmedEvent,
 } from "./chatbotTypes";
 
 const CHAT_API_BASE = "/api/chat";
@@ -89,24 +91,14 @@ export function fetchChatSession(
     );
 }
 
-/** 최초 알림 뒤 버튼 3종 처리 (PRD 2.3). status 가 URL_SENT 일 때만 받는다. */
-export function sendChatButtonAction(
-    chatSessionId: string,
-    action: ChatButtonAction,
-): Promise<ChatTurnResult> {
-    return requestChatApi<ChatTurnResult>(
-        `/${encodeURIComponent(chatSessionId)}/actions`,
-        jsonRequest({ action }),
-    );
-}
-
 export type ChatMessageSnapshot = {
     message_index: number;
     message_text: string;
 };
 
-type SendChatMessageOptions = {
+type SendChatTurnOptions = {
     onSnapshot: (snapshot: ChatMessageSnapshot) => void;
+    onFraudTypeConfirmed?: (event: FraudTypeConfirmedEvent) => void;
     signal?: AbortSignal;
 };
 
@@ -119,18 +111,19 @@ type SseEvent = {
  * 고객 답변 한 건을 POST하고 SSE 스트림을 소비한다(PRD 2.4~2.6).
  * EventSource는 POST 본문을 보낼 수 없으므로 fetch의 ReadableStream을 직접 읽는다.
  */
-export async function sendChatMessage(
+async function sendStreamingChatTurn(
     chatSessionId: string,
-    messageText: string,
-    options: SendChatMessageOptions,
+    path: string,
+    body: unknown,
+    options: SendChatTurnOptions,
 ): Promise<ChatTurnResult> {
     let response: Response;
 
     try {
         response = await fetch(
-            `${CHAT_API_BASE}/${encodeURIComponent(chatSessionId)}/messages`,
+            `${CHAT_API_BASE}/${encodeURIComponent(chatSessionId)}${path}`,
             {
-                ...jsonRequest({ message_text: messageText }),
+                ...jsonRequest(body),
                 signal: options.signal,
             },
         );
@@ -161,6 +154,12 @@ export async function sendChatMessage(
             options.onSnapshot(message.data as ChatMessageSnapshot);
             return;
         }
+        if (message.event === "fraud_type_confirmed") {
+            options.onFraudTypeConfirmed?.(
+                message.data as FraudTypeConfirmedEvent,
+            );
+            return;
+        }
         if (message.event === "chat_turn_completed") {
             completed = message.data as ChatTurnResult;
             return;
@@ -181,6 +180,36 @@ export async function sendChatMessage(
         );
     }
     return completed;
+}
+
+/** 유형 판별 단계의 네/아니요 전용 액션. 자유 텍스트 API와 계약을 섞지 않는다. */
+export function sendDiscriminationAction(
+    chatSessionId: string,
+    action: ChatDiscriminationAction,
+    questionId: DiscriminationQuestionId,
+    requestId: string,
+    options: SendChatTurnOptions,
+): Promise<ChatTurnResult> {
+    return sendStreamingChatTurn(
+        chatSessionId,
+        "/discrimination-actions",
+        { action, question_id: questionId, request_id: requestId },
+        options,
+    );
+}
+
+/** 대응가이드 이후 FREE_CHAT/HANDOFF_PENDING 단계의 자유 질문. */
+export function sendChatMessage(
+    chatSessionId: string,
+    messageText: string,
+    options: SendChatTurnOptions,
+): Promise<ChatTurnResult> {
+    return sendStreamingChatTurn(
+        chatSessionId,
+        "/messages",
+        { message_text: messageText },
+        options,
+    );
 }
 
 async function consumeSseStream(
