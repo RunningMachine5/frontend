@@ -6,7 +6,12 @@ import { Link } from "react-router-dom";
 import { AdminAlert } from "../admin/AdminAlert";
 import { ModelLoadingStatus } from "./components/ModelLoadingStatus";
 import { ModelPageShell } from "./components/ModelPageShell";
-import { formatDate, STATUS_LABELS } from "./modelOperations";
+import {
+  formatDate,
+  hasEnoughLabelSample,
+  labelCoveragePercent,
+  STATUS_LABELS,
+} from "./modelOperations";
 import { fetchModelVersions } from "./mlopsApi";
 import type { ModelVersionSummary } from "./mlopsTypes";
 
@@ -40,9 +45,15 @@ function usageText(model: ModelVersionSummary) {
 
 function agreementText(model: ModelVersionSummary) {
   const agreement = model.usage.label_agreement_percent;
-  return agreement === null
-    ? "라벨 없음"
-    : `${agreement.toFixed(1)}% · ${numberFormat.format(model.usage.labeled_transaction_count)}건`;
+  return agreement === null ? "라벨 없음" : `${agreement.toFixed(1)}%`;
+}
+
+function labelSampleText(model: ModelVersionSummary) {
+  const labelCount = model.usage.labeled_transaction_count;
+  if (labelCount === 0) return "담당자 확정 라벨이 없습니다.";
+  const coverage = labelCoveragePercent(model.usage);
+  const prefix = hasEnoughLabelSample(model.usage) ? "" : "표본 적음 · ";
+  return `${prefix}${numberFormat.format(labelCount)}건 · 적용률 ${coverage?.toFixed(1)}%`;
 }
 
 export function ModelVersionsPage() {
@@ -90,8 +101,13 @@ export function ModelVersionsPage() {
           return right.usage.processed_transaction_count - left.usage.processed_transaction_count;
         }
         if (sort === "AGREEMENT") {
-          return (right.usage.label_agreement_percent ?? -1)
+          const sampleOrder = Number(hasEnoughLabelSample(right.usage))
+            - Number(hasEnoughLabelSample(left.usage));
+          if (sampleOrder !== 0) return sampleOrder;
+          const agreementOrder = (right.usage.label_agreement_percent ?? -1)
             - (left.usage.label_agreement_percent ?? -1);
+          if (agreementOrder !== 0) return agreementOrder;
+          return right.usage.labeled_transaction_count - left.usage.labeled_transaction_count;
         }
         return new Date(right.created_at).getTime() - new Date(left.created_at).getTime();
       });
@@ -213,7 +229,9 @@ export function ModelVersionsPage() {
                       </td>
                       <td data-label="라벨 비교">
                         <strong>{agreementText(model)}</strong>
-                        <small>담당자 확정 라벨 기준</small>
+                        <small className={hasEnoughLabelSample(model.usage) ? undefined : "model-label-sample low"}>
+                          {labelSampleText(model)}
+                        </small>
                       </td>
                       <td data-label="상세">
                         <Link className="model-catalog-open" to={`/models/versions/${model.training_run_id}`}>

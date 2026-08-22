@@ -9,6 +9,8 @@ import { ModelPageShell } from "./components/ModelPageShell";
 import {
   COMPARISON_METRICS,
   formatDate,
+  hasEnoughLabelSample,
+  labelCoveragePercent,
   metric,
   metricText,
   STATUS_LABELS,
@@ -99,6 +101,8 @@ export function ModelVersionDetailPage() {
     label: item.label,
     value: metric(details, ...item.keys),
   })), [details]);
+  const labelCoverage = model ? labelCoveragePercent(model.usage) : null;
+  const hasLabelSample = model ? hasEnoughLabelSample(model.usage) : false;
 
   const reactivate = async () => {
     if (!model) return;
@@ -196,7 +200,11 @@ export function ModelVersionDetailPage() {
                 <div className="primary">
                   <dt>라벨 일치율</dt>
                   <dd>{model.usage.label_agreement_percent === null ? "—" : `${model.usage.label_agreement_percent.toFixed(1)}%`}</dd>
-                  <small>확정 라벨 {numberFormat.format(model.usage.labeled_transaction_count)}건 기준</small>
+                  <small className={!hasLabelSample && model.usage.labeled_transaction_count > 0 ? "model-label-sample low" : undefined}>
+                    {model.usage.labeled_transaction_count === 0
+                      ? "확정 라벨 없음"
+                      : `${hasLabelSample ? "" : "표본 적음 · "}확정 라벨 ${numberFormat.format(model.usage.labeled_transaction_count)}건 · 적용률 ${labelCoverage?.toFixed(1)}%`}
+                  </small>
                 </div>
                 <div><dt>사기 예측</dt><dd>{numberFormat.format(model.usage.fraud_prediction_count)}건</dd></div>
                 <div><dt>정상을 사기로 예측</dt><dd>{numberFormat.format(model.usage.false_positive_count)}건</dd></div>

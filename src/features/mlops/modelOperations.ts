@@ -1,6 +1,11 @@
 // 모델 운영 화면들이 함께 사용하는 상태 이름과 표시 형식을 모은다.
 
-import type { ModelDetails, ServingStatus, TrainingRun } from "./mlopsTypes";
+import type {
+  ModelDetails,
+  ModelUsageSummary,
+  ServingStatus,
+  TrainingRun,
+} from "./mlopsTypes";
 
 export const STATUS_LABELS: Record<string, string> = {
   REQUESTED: "요청됨",
@@ -66,6 +71,18 @@ export const COMPARISON_METRICS = [
   { label: "Precision", keys: ["validation_precision"], lowerIsBetter: false },
   { label: "FPR", keys: ["validation_fpr"], lowerIsBetter: true },
 ] as const;
+
+// 30건 미만은 성능 판정 기준이 아니라 화면에서 참고용 표본으로 표시한다.
+export const MIN_MODEL_LABEL_SAMPLE = 30;
+
+export function labelCoveragePercent(usage: ModelUsageSummary) {
+  if (usage.processed_transaction_count === 0) return null;
+  return usage.labeled_transaction_count / usage.processed_transaction_count * 100;
+}
+
+export function hasEnoughLabelSample(usage: ModelUsageSummary) {
+  return usage.labeled_transaction_count >= MIN_MODEL_LABEL_SAMPLE;
+}
 
 export function formatDate(value: string | null) {
   if (!value) return "—";
