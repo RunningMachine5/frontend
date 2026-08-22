@@ -18,6 +18,11 @@ export type RuleComponent = {
   updated_at: string;
 };
 
+export type RuleComponentInput = Pick<
+  RuleComponent,
+  "component_key" | "name" | "condition_expression" | "weight" | "sort_order"
+>;
+
 export type FraudRule = {
   id: number;
   type_code: string;
@@ -29,6 +34,11 @@ export type FraudRule = {
   created_at: string;
   updated_at: string;
 };
+
+export type FraudRuleTypeInput = Pick<
+  FraudRule,
+  "type_code" | "display_name" | "description"
+>;
 
 export type RuleSetSummary = {
   id: number;
@@ -49,6 +59,45 @@ export type RuleFeature = {
   allowed_values: (string | number | boolean)[] | null;
   derived: boolean;
   source_fields: string[];
+};
+
+export type RulePatternValueCount = {
+  value: string | number | boolean;
+  count: number;
+  rate: number | null;
+};
+
+export type RulePatternFeatureStatistics = {
+  field: string;
+  value_type: "integer" | "number" | "boolean" | "enum";
+  value_count: number;
+  average: number | null;
+  median: number | null;
+  p90: number | null;
+  value_counts: RulePatternValueCount[];
+};
+
+export type RuleFeatureStatistics = {
+  selection_basis: "LATEST_ML_POSITIVE";
+  requested_count: number;
+  sample_count: number;
+  has_more: boolean;
+  feature_statistics: RulePatternFeatureStatistics;
+};
+
+export type RulePatternStatisticsItem = {
+  component_key: string;
+  matched_count: number;
+  matched_rate: number | null;
+  feature_statistics: RulePatternFeatureStatistics | null;
+};
+
+export type RulePatternStatistics = {
+  selection_basis: "LATEST_ML_POSITIVE";
+  requested_count: number;
+  sample_count: number;
+  has_more: boolean;
+  patterns: RulePatternStatisticsItem[];
 };
 
 export type RuleValidation = {

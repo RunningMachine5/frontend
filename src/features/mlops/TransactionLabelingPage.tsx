@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react";
 
 import { ModelPageShell } from "./components/ModelPageShell";
+import { ModelLoadingStatus } from "./components/ModelLoadingStatus";
 import {
   clearTransactionLabel,
   fetchTransactionLabelQueue,
@@ -13,7 +14,7 @@ import type {
   TransactionPredictionFilter,
 } from "./transactionLabelingTypes";
 
-const PAGE_SIZE = 30;
+const PAGE_SIZE = 8;
 const numberFormat = new Intl.NumberFormat("ko-KR");
 const dateTimeFormat = new Intl.DateTimeFormat("ko-KR", {
   month: "2-digit",
@@ -68,6 +69,7 @@ export function TransactionLabelingPage() {
   const [searchText, setSearchText] = useState("");
   const [transactionId, setTransactionId] = useState<number | null>(null);
   const [page, setPage] = useState(1);
+  const [pageInput, setPageInput] = useState("1");
   const [data, setData] = useState<TransactionLabelQueueResponse | null>(null);
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -109,6 +111,21 @@ export function TransactionLabelingPage() {
     [data?.items, selectedId],
   );
   const totalPages = Math.max(1, Math.ceil((data?.total_count ?? 0) / PAGE_SIZE));
+
+  useEffect(() => {
+    setPageInput(String(page));
+  }, [page]);
+
+  const moveToPage = (value: string) => {
+    const requestedPage = Number(value);
+    if (!Number.isInteger(requestedPage)) {
+      setPageInput(String(page));
+      return;
+    }
+    const nextPage = Math.min(totalPages, Math.max(1, requestedPage));
+    setPageInput(String(nextPage));
+    setPage(nextPage);
+  };
 
   const nextTransactionId = () => {
     if (!selected || !data || data.items.length < 2) {
@@ -198,6 +215,16 @@ export function TransactionLabelingPage() {
       {error && <div className="admin-alert error" role="alert">{error}</div>}
       {notice && <div className="admin-alert success" role="status">{notice}</div>}
 
+      {(isLoading || isSaving) && (
+        <ModelLoadingStatus
+          description={isSaving
+            ? "판정 결과를 저장한 뒤 거래 목록과 라벨 집계를 다시 맞춥니다."
+            : "선택한 조건의 거래 목록과 라벨 현황을 함께 조회합니다."}
+          label={isSaving ? "LABEL UPDATE" : "REVIEW QUEUE"}
+          title={isSaving ? "담당자 판정을 저장하고 있습니다" : "라벨링 거래를 불러오고 있습니다"}
+        />
+      )}
+
       <section aria-label="거래 라벨 현황" className="labeling-status-strip">
         {labelFilters.map((filter) => (
           <button
@@ -260,7 +287,7 @@ export function TransactionLabelingPage() {
           <div className="labeling-queue-list">
             {isLoading && !data ? (
               <div aria-label="거래 목록을 불러오는 중" className="labeling-list-skeleton">
-                <i /><i /><i /><i />
+                {Array.from({ length: PAGE_SIZE }, (_, index) => <i key={index} />)}
               </div>
             ) : data?.items.length ? data.items.map((item) => (
               <button
@@ -294,7 +321,21 @@ export function TransactionLabelingPage() {
 
           <footer className="labeling-pagination">
             <button disabled={page <= 1 || isLoading} onClick={() => setPage(page - 1)} type="button">이전</button>
-            <span>{page} / {totalPages}</span>
+            <form onSubmit={(event) => { event.preventDefault(); moveToPage(pageInput); }}>
+              <input
+                aria-label="이동할 페이지"
+                disabled={isLoading}
+                inputMode="numeric"
+                max={totalPages}
+                min="1"
+                onBlur={() => moveToPage(pageInput)}
+                onChange={(event) => setPageInput(event.target.value)}
+                type="number"
+                value={pageInput}
+              />
+              <span>/ {totalPages}</span>
+              <button disabled={isLoading} type="submit">이동</button>
+            </form>
             <button disabled={page >= totalPages || isLoading} onClick={() => setPage(page + 1)} type="button">다음</button>
           </footer>
         </aside>

@@ -1,7 +1,11 @@
 import { adminRequest } from "../admin/adminApi";
 import type {
   FraudRule,
+  FraudRuleTypeInput,
+  RuleComponentInput,
   RuleFeature,
+  RuleFeatureStatistics,
+  RulePatternStatistics,
   RuleReplay,
   RuleSet,
   RuleSetSummary,
@@ -17,6 +21,27 @@ export const fetchRuleSet = (id: number) =>
 export const fetchRuleFeatures = () =>
   adminRequest<RuleFeature[]>("/rule-features");
 
+export const fetchRuleFeatureStatistics = (field: string, sampleSize = 1000) =>
+  adminRequest<RuleFeatureStatistics>("/rule-feature-statistics", {
+    method: "POST",
+    body: JSON.stringify({ field, sample_size: sampleSize }),
+  });
+
+export const fetchRulePatternStatistics = (
+  patterns: RuleComponentInput[],
+  sampleSize = 1000,
+) =>
+  adminRequest<RulePatternStatistics>("/rule-pattern-statistics", {
+    method: "POST",
+    body: JSON.stringify({
+      sample_size: sampleSize,
+      patterns: patterns.map((pattern) => ({
+        component_key: pattern.component_key,
+        condition_expression: pattern.condition_expression,
+      })),
+    }),
+  });
+
 export const createRuleDraft = (sourceId?: number) =>
   adminRequest<RuleSet>("/rule-sets/drafts", {
     method: "POST",
@@ -26,21 +51,27 @@ export const createRuleDraft = (sourceId?: number) =>
 export const deleteRuleDraft = (id: number) =>
   adminRequest<void>(`/rule-sets/${id}`, { method: "DELETE" });
 
-export const saveRule = (ruleSetId: number, rule: FraudRule) =>
-  adminRequest<FraudRule>(`/rule-sets/${ruleSetId}/rules/${rule.id}`, {
+export const createRuleType = (ruleSetId: number, input: FraudRuleTypeInput) =>
+  adminRequest<FraudRule>(`/rule-sets/${ruleSetId}/rules`, {
+    method: "POST",
+    body: JSON.stringify(input),
+  });
+
+export const deleteRuleType = (ruleSetId: number, ruleId: number) =>
+  adminRequest<void>(`/rule-sets/${ruleSetId}/rules/${ruleId}`, {
+    method: "DELETE",
+  });
+
+export const saveRuleComponents = (ruleSetId: number, rule: FraudRule) =>
+  adminRequest<FraudRule>(`/rule-sets/${ruleSetId}/rules/${rule.id}/components`, {
     method: "PUT",
     body: JSON.stringify({
-      type_code: rule.type_code,
-      display_name: rule.display_name,
-      description: rule.description,
-      enabled: rule.enabled,
-      sort_order: rule.sort_order,
-      components: rule.components.map((component) => ({
+      components: rule.components.map((component, index) => ({
         component_key: component.component_key,
         name: component.name,
         condition_expression: component.condition_expression,
         weight: component.weight,
-        sort_order: component.sort_order,
+        sort_order: index,
       })),
     }),
   });

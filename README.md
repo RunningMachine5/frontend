@@ -51,7 +51,7 @@ npm run dev
 사용 중인 엔드포인트는 다음과 같습니다.
 
 - `GET /api/dashboard/overview?period_start=...&period_end=...` — 대시보드 집계 조회
-- `GET /api/dashboard/events` — SSE 연결. `dashboard_updated` 이벤트 수신 시 overview를 재조회합니다(500ms 디바운스).
+- `GET /api/dashboard/events` — SSE 연결. `dashboard_updated` 이벤트를 모아 일정 간격으로 최신 데이터를 재조회합니다.
 - `POST /api/chat/{id}/verify` · `GET /api/chat/{id}` · `POST /api/chat/{id}/actions` · `POST /api/chat/{id}/messages` — 고객 챗봇 화면
 
 > 백엔드 포트가 다르면 [vite.config.ts](vite.config.ts)의 `BACKEND_TARGET` 값을 바꿔주세요.

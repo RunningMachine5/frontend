@@ -7,12 +7,34 @@ export const STATUS_LABELS: Record<string, string> = {
   RUNNING: "학습 중",
   CANDIDATE: "검토 대기",
   REJECTED: "거절",
-  STAGED: "0% 검증",
-  PROMOTING: "전환 중",
+  STAGED: "운영 반영 준비",
+  PROMOTING: "운영 반영 중",
   PRODUCTION: "운영 중",
+  RETIRED: "이전 운영",
   FAILED: "학습 실패",
-  DEPLOYMENT_FAILED: "배포 실패",
+  DEPLOYMENT_FAILED: "운영 반영 실패",
 };
+
+export type TrainingDisplayStatus = TrainingRun["status"] | "RETIRED";
+
+// 학습 이력 API는 최신 Run부터 반환하므로 첫 PRODUCTION을 현재 운영 Run으로 본다.
+export function findCurrentProductionRun(runs: TrainingRun[]) {
+  return runs.find((run) => run.status === "PRODUCTION") ?? null;
+}
+
+export function trainingDisplayStatus(
+  run: TrainingRun,
+  currentProductionRunId: number | null,
+): TrainingDisplayStatus {
+  if (
+    run.status === "PRODUCTION"
+    && currentProductionRunId !== null
+    && run.id !== currentProductionRunId
+  ) {
+    return "RETIRED";
+  }
+  return run.status;
+}
 
 export const ACTION_REQUIRED_STATUSES = new Set([
   "CANDIDATE",
@@ -21,6 +43,18 @@ export const ACTION_REQUIRED_STATUSES = new Set([
   "FAILED",
   "DEPLOYMENT_FAILED",
 ]);
+
+const ACTION_LABELS: Record<string, string> = {
+  CANDIDATE: "후보 모델 검토",
+  STAGED: "운영 반영 준비",
+  PROMOTING: "운영 모델 확정",
+  FAILED: "학습 실패 원인 확인",
+  DEPLOYMENT_FAILED: "운영 반영 실패 확인",
+};
+
+export function actionLabel(status: string) {
+  return ACTION_LABELS[status] ?? "학습 상태 확인";
+}
 
 export const ACTIVE_RUN_STATUSES = new Set(["REQUESTED", "RUNNING", "PROMOTING"]);
 
@@ -71,6 +105,30 @@ export function latestRevisionTraffic(status: ServingStatus | null) {
   return Math.min(100, Math.max(0, percent));
 }
 
+export function isModelRevisionReady(
+  status: ServingStatus | null,
+  modelVersion: string | undefined,
+) {
+  // 승인 직후에는 DB 상태만 STAGED이고 Cloud Run 리비전은 아직 생성 중일 수 있다.
+  // 승인한 모델 tag가 최신 Ready 리비전을 가리킬 때만 검증 버튼을 연다.
+  if (!status || status.reconciling || !modelVersion) return false;
+  const latestCreated = resourceName(status.latest_created_revision);
+  const latestReady = resourceName(status.latest_ready_revision);
+  if (!latestCreated || latestCreated !== latestReady) return false;
+
+  const modelTag = `model-v${modelVersion}`;
+  return status.traffic.some((target) => {
+    const revision = target.revision
+      ? resourceName(target.revision)
+      : target.type === "TRAFFIC_TARGET_ALLOCATION_TYPE_LATEST"
+        ? latestCreated
+        : null;
+    return target.tag === modelTag
+      && revision === latestCreated
+      && (target.percent ?? 0) === 0;
+  });
+}
+
 export function metric(details: ModelDetails | null, ...keys: string[]) {
   for (const key of keys) {
     if (details?.metrics[key] !== undefined) return details.metrics[key];
@@ -88,24 +146,24 @@ export function metricDeltaText(value: number | null) {
   return `${value > 0 ? "+" : ""}${value.toFixed(4)}`;
 }
 
-export function recommendationLabel(value: string | undefined) {
-  if (value === "RECOMMENDED") return "승격 추천";
-  if (value === "NOT_RECOMMENDED") return "승격 비추천";
-  return "추천 정보 없음";
-}
-
-export function actionGuide(run: TrainingRun, isCurrentProduction: boolean) {
+export function actionGuide(
+  run: TrainingRun,
+  isCurrentProduction: boolean,
+  candidateReady = true,
+) {
   switch (run.status) {
-    case "CANDIDATE": return "운영 모델과 지표를 비교한 뒤 승인하거나 거절하세요.";
-    case "STAGED": return "0% 후보 리비전이 준비됐습니다. 실제 거래로 예측을 검증하세요.";
-    case "DEPLOYMENT_FAILED": return "실패 원인을 확인한 뒤 예측 검증과 전환을 다시 요청하세요.";
-    case "PROMOTING": return "Cloud Run 트래픽 전환이 끝나면 배포 완료를 확인하세요.";
+    case "CANDIDATE": return "운영 모델과 성능을 비교해 승인하거나 거절하세요. 승인해도 아직 운영에는 반영되지 않습니다.";
+    case "STAGED": return candidateReady
+      ? "운영 반영을 시작하면 최근 거래로 후보를 검증하고, 성공 시 운영 트래픽을 100% 전환합니다."
+      : "승인한 후보를 운영에 영향이 없는 환경에서 준비하고 있습니다. 완료될 때까지 상태를 자동으로 확인합니다.";
+    case "DEPLOYMENT_FAILED": return "실패 원인을 확인한 뒤 운영 반영을 다시 요청하세요.";
+    case "PROMOTING": return "검증을 통과해 운영 트래픽을 전환하고 있습니다. 완료되면 운영 모델을 확정하세요.";
     case "PRODUCTION": return isCurrentProduction
-      ? "현재 운영 트래픽을 처리하는 모델입니다."
+      ? "새 모델이 현재 거래를 처리하고 있습니다."
       : "이전에 운영했던 모델입니다. 현재 운영 모델과 성능만 비교할 수 있습니다.";
     case "REJECTED": return "거절된 후보입니다. 다시 사용하려면 새 학습을 실행하세요.";
-    case "REQUESTED": return "Cloud Run이 학습 실행을 접수하는 중입니다.";
-    case "RUNNING": return "학습과 MLflow 등록이 끝나면 후보 검토 단계로 이동합니다.";
+    case "REQUESTED": return "모델 학습 실행을 준비하고 있습니다.";
+    case "RUNNING": return "모델 학습이 끝나면 성능 지표와 AI 판단을 확인할 수 있습니다.";
     default: return run.error_message ?? "실패 원인을 확인한 뒤 새 학습을 실행하세요.";
   }
 }
@@ -116,13 +174,16 @@ export type WorkflowStep = {
   state: "complete" | "active" | "pending" | "error";
 };
 
-export function workflowForRun(run: TrainingRun, trafficPercent: number): WorkflowStep[] {
-  const reviewed = ["STAGED", "PROMOTING", "PRODUCTION"].includes(run.status);
-  const verified = ["PROMOTING", "PRODUCTION"].includes(run.status);
+export function workflowForRun(
+  run: TrainingRun,
+  trafficPercent: number,
+  candidateReady = true,
+  isCurrentProduction = true,
+): WorkflowStep[] {
+  const reviewed = ["STAGED", "PROMOTING", "PRODUCTION", "DEPLOYMENT_FAILED"].includes(run.status);
   return [
-    { label: "데이터셋 준비", status: "완료", state: "complete" },
     {
-      label: "Cloud Run 학습",
+      label: "모델 학습",
       status: ["REQUESTED", "RUNNING"].includes(run.status)
         ? STATUS_LABELS[run.status]
         : run.status === "FAILED" ? "실패" : "완료",
@@ -131,7 +192,7 @@ export function workflowForRun(run: TrainingRun, trafficPercent: number): Workfl
         : run.status === "FAILED" ? "error" : "complete",
     },
     {
-      label: "지표 검토",
+      label: "후보 검토",
       status: run.status === "CANDIDATE"
         ? "검토 필요"
         : run.status === "REJECTED" ? "거절" : reviewed ? "승인" : "대기",
@@ -140,20 +201,15 @@ export function workflowForRun(run: TrainingRun, trafficPercent: number): Workfl
         : run.status === "REJECTED" ? "error" : reviewed ? "complete" : "pending",
     },
     {
-      label: "0% 후보 검증",
+      label: "운영 반영",
       status: run.status === "STAGED"
-        ? "검증 필요"
-        : run.status === "DEPLOYMENT_FAILED" ? "재시도" : verified ? "통과" : "대기",
-      state: run.status === "STAGED"
-        ? "active"
-        : run.status === "DEPLOYMENT_FAILED" ? "error" : verified ? "complete" : "pending",
-    },
-    {
-      label: "운영 전환",
-      status: run.status === "PROMOTING"
-        ? `${trafficPercent}% 전환 중`
-        : run.status === "PRODUCTION" ? "100% 운영" : "대기",
-      state: run.status === "PROMOTING"
+        ? (candidateReady ? "반영 가능" : "준비 중")
+        : run.status === "PROMOTING"
+          ? `${trafficPercent}% 반영 중`
+          : run.status === "PRODUCTION"
+            ? isCurrentProduction ? "운영 중" : "이전 운영"
+            : run.status === "DEPLOYMENT_FAILED" ? "다시 확인" : "대기",
+      state: ["STAGED", "PROMOTING"].includes(run.status)
         ? "active"
         : run.status === "PRODUCTION" ? "complete"
           : run.status === "DEPLOYMENT_FAILED" ? "error" : "pending",

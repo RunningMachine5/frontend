@@ -5,10 +5,15 @@ function appendDateTime(params: URLSearchParams, key: string, value: string) {
   if (value) params.set(key, new Date(value).toISOString());
 }
 
-export async function fetchQueueRows(filters: QueueSearchFilters, pageSize: number) {
+export async function fetchQueueRows(
+  filters: QueueSearchFilters,
+  pageSize: number,
+  sortBy: "transaction_datetime" | "received_at" = "transaction_datetime",
+) {
   const params = new URLSearchParams({
     page: String(filters.page),
     page_size: String(pageSize),
+    sort_by: sortBy,
   });
 
   if (filters.transactionId.trim()) {
@@ -17,6 +22,12 @@ export async function fetchQueueRows(filters: QueueSearchFilters, pageSize: numb
   if (filters.ipAddress.trim()) {
     params.set("ip_address", filters.ipAddress.trim());
   }
+  filters.riskGrades.forEach((riskGrade) => {
+    params.append("risk_grades", riskGrade);
+  });
+  filters.reviewStatuses.forEach((reviewStatus) => {
+    params.append("review_statuses", reviewStatus);
+  });
   appendDateTime(params, "period_start", filters.periodStart);
   appendDateTime(params, "period_end", filters.periodEnd);
 

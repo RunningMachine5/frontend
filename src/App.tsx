@@ -30,8 +30,8 @@ function MonitoringPages() {
     return () => window.removeEventListener("hashchange", syncHash);
   }, []);
 
-  if (hash === "#case") return <CaseDetailPage />;
-  if (hash === "#queue") return <QueuePage />;
+  if (hash.startsWith("#case")) return <CaseDetailPage />;
+  if (hash.startsWith("#queue")) return <QueuePage />;
   if (hash === "#rules") return <RuleManagementPage />;
   if (hash === "#model") return <Navigate to="/models" replace />;
   return <DashboardPage />;

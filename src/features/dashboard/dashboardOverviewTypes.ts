@@ -23,8 +23,9 @@ export type DashboardOverviewSummary = {
     total_transaction_count: number;
     suspicious_transaction_count: number;
     priority_review_count: number;
-    suspicious_amount: number;
-    rule_analysis_completed_count: number;
+  suspicious_amount: number;
+  rule_analysis_completed_count: number;
+  completed_case_count: number;
 };
 
 export type PriorityTrendPoint = {
@@ -63,3 +64,16 @@ export type DashboardOverviewResponse = {
   channel_distribution: DistributionItem[];
   agent_insight: DashboardAgentInsight | null;
 }
+
+// 홈 화면의 실시간 알림에 쓰는 최근 거래 결과다.
+export type RecentTransaction = {
+  transaction_id: number;
+  created_at: string;
+  received_at: string;
+  prediction_status: string;
+  predict_result: boolean | null;
+  predict_proba: number | null;
+  transaction_amount: number;
+  transaction_datetime: string;
+  risk_score: number | null;
+};

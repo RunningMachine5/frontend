@@ -6,9 +6,14 @@ import type {
   DatasetVersion,
   InferencePerformance,
   ModelDetails,
+  ModelReview,
+  PlatformMonitoring,
+  PlatformStatus,
   ServingStatus,
   ServingMonitoring,
   TrainingActionResult,
+  TrainingExecution,
+  TrainingMonitoring,
   TrainingReconcileResult,
   TrainingRun,
 } from "./mlopsTypes";
@@ -42,14 +47,28 @@ export const fetchTrainingRuns = () =>
 export const fetchTrainingRun = (runId: number) =>
   adminRequest<TrainingRun>(`/mlops/training/runs/${runId}`);
 
-export const startTraining = (datasetId: number) =>
-  adminRequest<TrainingActionResult>("/mlops/training/runs", {
+export const fetchTrainingExecution = (runId: number) =>
+  adminRequest<TrainingExecution>(`/mlops/training/runs/${runId}/execution`);
+
+export const prepareTrainingRun = (datasetId: number) =>
+  adminRequest<TrainingRun>("/mlops/training/runs/prepare", {
     method: "POST",
-    body: JSON.stringify({ dataset_version_id: datasetId, min_pr_auc: 0, min_recall: 0 }),
+    body: JSON.stringify({ dataset_version_id: datasetId }),
+  });
+
+export const executeTrainingRun = (runId: number) =>
+  adminRequest<TrainingActionResult>(`/mlops/training/runs/${runId}/execute`, {
+    method: "POST",
+    body: JSON.stringify({ min_pr_auc: 0, min_recall: 0 }),
   });
 
 export const fetchModelDetails = (runId: number) =>
   adminRequest<ModelDetails>(`/mlops/training/runs/${runId}/model-details`);
+
+export const fetchModelReview = (runId: number) =>
+  adminRequest<ModelReview>(`/mlops/training/runs/${runId}/ai-review`, {
+    method: "POST",
+  });
 
 export const decideModel = (
   runId: number,
@@ -71,18 +90,28 @@ export const fetchServingMonitoring = (windowMinutes: number) =>
     `/mlops/serving/monitoring?window_minutes=${windowMinutes}`,
   );
 
+export const fetchTrainingMonitoring = (windowMinutes: number) =>
+  adminRequest<TrainingMonitoring>(
+    `/mlops/training/monitoring?window_minutes=${windowMinutes}`,
+  );
+
+export const fetchPlatformStatus = () =>
+  adminRequest<PlatformStatus>("/mlops/platform/status");
+
+export const fetchPlatformMonitoring = (windowMinutes: number) =>
+  adminRequest<PlatformMonitoring>(
+    `/mlops/platform/monitoring?window_minutes=${windowMinutes}`,
+  );
+
 export const reconcileTrainingRun = (runId: number) =>
   adminRequest<TrainingReconcileResult>(`/mlops/training/runs/${runId}/reconcile`, {
     method: "POST",
   });
 
-export const promoteModel = (
-  runId: number,
-  transactionId: number,
-  features: unknown,
-) => adminRequest<TrainingActionResult>("/mlops/serving/promotions", {
+export const promoteModel = (runId: number) =>
+  adminRequest<TrainingActionResult>("/mlops/serving/promotions", {
   method: "POST",
-  body: JSON.stringify({ training_run_id: runId, transaction_id: transactionId, features }),
+  body: JSON.stringify({ training_run_id: runId }),
 });
 
 export const completeDeployment = (runId: number, operationId: string) =>

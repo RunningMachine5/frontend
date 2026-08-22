@@ -7,7 +7,7 @@ import { AppLayout } from "../../../components/layout/AppLayout";
 import { PageHeading } from "../../../components/layout/PageHeading";
 import "../../admin/AdminWorkspace.css";
 
-type ModelSection = "overview" | "labeling" | "training" | "monitoring";
+type ModelSection = "overview" | "labeling" | "training";
 
 type ModelPageShellProps = {
   activeSection: ModelSection;
@@ -18,8 +18,7 @@ type ModelPageShellProps = {
 const sections: { id: ModelSection; label: string; to: string }[] = [
   { id: "overview", label: "운영 현황", to: "/models" },
   { id: "labeling", label: "거래 라벨링", to: "/models/labeling" },
-  { id: "training", label: "학습 · Run", to: "/models/training" },
-  { id: "monitoring", label: "성능 모니터링", to: "/models/monitoring" },
+  { id: "training", label: "학습 · 배포", to: "/models/training" },
 ];
 
 export function ModelPageShell({
@@ -27,9 +26,11 @@ export function ModelPageShell({
   actions,
   children,
 }: ModelPageShellProps) {
+  const isOverview = activeSection === "overview";
+
   return (
-    <AppLayout activeNav="model">
-      <section className="admin-page model-section-page">
+    <AppLayout activeNav="model" className={isOverview ? "model-overview-layout" : undefined}>
+      <section className={`admin-page model-section-page${isOverview ? " model-overview-page" : ""}`}>
         <header className="app-page-header admin-header">
           <PageHeading eyebrow="MODEL MANAGEMENT" title="모델 관리" />
           {actions && <div className="admin-actions">{actions}</div>}

@@ -40,6 +40,9 @@ export default defineConfig(({ mode }) => {
       "/api/mlops": adminProxy(),
       "/api/rule-sets": adminProxy(),
       "/api/rule-features": adminProxy(),
+      "/api/rule-feature-statistics": adminProxy(),
+      "/api/rule-pattern-statistics": adminProxy(),
+      "/api/demo-transactions": adminProxy(),
       // 대시보드는 백엔드 경로도 /api/dashboard 라 재작성하지 않는다.
       "/api": {
         target: BACKEND_TARGET,

@@ -1,0 +1,538 @@
+.draft-source-control {
+  min-width: 184px;
+  height: 42px;
+  padding: 4px 10px;
+  border: 1px solid var(--ops-line-strong);
+  border-radius: 10px;
+  display: grid;
+  align-content: center;
+  background: var(--ops-surface);
+}
+
+.draft-source-control > span {
+  color: var(--ops-text-subtle);
+  font-size: 9px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.draft-source-control select {
+  height: 21px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--ops-text);
+  color-scheme: dark;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.draft-source-control select option {
+  background: var(--ops-surface);
+  color: var(--ops-text);
+}
+
+:root[data-theme="light"] .draft-source-control select {
+  color-scheme: light;
+}
+
+.default-version-badge {
+  margin-left: 6px;
+  padding: 2px 5px;
+  border-radius: 999px;
+  background: var(--ops-focus-soft);
+  color: #aebee9;
+  font-size: 8px;
+  font-weight: 800;
+  vertical-align: 2px;
+}
+
+:root[data-theme="light"] .default-version-badge {
+  color: var(--ops-focus);
+}
+
+.component-controls {
+  display: grid;
+  align-content: start;
+  justify-items: end;
+  gap: 5px;
+}
+
+.component-description {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.pattern-editor-actions {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.rule-tabs button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.rule-tabs button em {
+  padding: 2px 5px;
+  border-radius: 999px;
+  background: var(--ops-surface-sunken);
+  color: var(--ops-text-subtle);
+  font-size: 8px;
+  font-style: normal;
+}
+
+.rule-tabs .rule-type-add-button {
+  border: 1px dashed var(--ops-line-strong);
+  border-bottom: 0;
+  background: transparent;
+  color: var(--ops-focus);
+}
+
+.rule-tabs .rule-type-add-button:hover:not(:disabled) {
+  border-color: var(--ops-focus);
+  background: var(--ops-focus-soft);
+}
+
+.rule-type-empty {
+  grid-column: 1 / -1;
+  min-height: 160px;
+  padding: 24px;
+  border: 1px dashed var(--ops-line-strong);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+  background: var(--ops-surface-raised);
+  text-align: left;
+}
+
+.rule-type-empty strong {
+  font-size: 14px;
+}
+
+.rule-type-empty p {
+  margin: 7px 0 0;
+  color: var(--ops-text-muted);
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.fraud-type-dialog {
+  width: min(580px, 100%);
+}
+
+.fraud-type-form-grid {
+  display: grid;
+  gap: 13px;
+}
+
+.fraud-type-form-grid label span {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.fraud-type-form-grid label em {
+  color: var(--ops-text-subtle);
+  font-size: 9px;
+  font-style: normal;
+  font-weight: 500;
+}
+
+.fraud-type-form-grid label small {
+  color: var(--ops-text-subtle);
+  font-size: 10px;
+  font-weight: 500;
+}
+
+.fraud-type-form-grid textarea {
+  min-height: 84px;
+  resize: vertical;
+}
+
+.fraud-type-policy-note {
+  padding: 12px 14px;
+  border-left: 3px solid var(--ops-focus);
+  display: grid;
+  gap: 4px;
+  background: var(--ops-surface-sunken);
+}
+
+.fraud-type-policy-note strong {
+  color: var(--ops-text);
+  font-size: 11px;
+}
+
+.fraud-type-policy-note span {
+  color: var(--ops-text-muted);
+  font-size: 10px;
+  line-height: 1.5;
+}
+
+.fraud-type-dialog-error {
+  margin: 0;
+  padding: 10px 12px;
+  border: 1px solid #743643;
+  border-radius: 8px;
+  background: #2c1c23;
+  color: #ff9da4;
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.component-logic-label {
+  display: block;
+  margin-top: 10px;
+  color: var(--ops-text-subtle);
+  font-size: 9px;
+  font-weight: 700;
+}
+
+.component-statistics,
+.component-statistics-empty {
+  margin: auto 0 0;
+  padding-top: 10px;
+}
+
+.component-statistics {
+  display: grid;
+  gap: 5px;
+}
+
+.component-statistics > span,
+.component-statistics-empty {
+  color: var(--ops-text-subtle);
+  font-size: 9px;
+  line-height: 1.4;
+}
+
+.component-statistics > strong {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  color: var(--ops-text-muted);
+  font-size: 10px;
+}
+
+.component-statistics > strong em {
+  color: var(--ops-focus);
+  font-size: 14px;
+  font-style: normal;
+}
+
+.component-statistics > i {
+  height: 6px;
+  border-radius: 99px;
+  display: block;
+  overflow: hidden;
+  background: var(--ops-surface-sunken);
+}
+
+.component-statistics > i b {
+  height: 100%;
+  border-radius: inherit;
+  display: block;
+  background: var(--ops-focus);
+}
+
+.component-remove-button {
+  min-height: 23px;
+  padding: 0 7px;
+  border: 1px solid #743643;
+  border-radius: 6px;
+  background: #2c1c23;
+  color: #ff9da4;
+  font-size: 9px;
+  font-weight: 700;
+}
+
+.rule-pattern-dialog {
+  width: min(760px, 100%);
+  max-height: min(900px, calc(100vh - 48px));
+}
+
+.pattern-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 13px;
+}
+
+.pattern-form-grid .wide-field {
+  grid-column: 1 / -1;
+}
+
+.pattern-form-grid label small,
+.pattern-value-field small {
+  color: var(--ops-text-subtle);
+  font-size: 10px;
+  font-weight: 500;
+  line-height: 1.45;
+}
+
+.pattern-value-field {
+  display: grid;
+  gap: 7px;
+  color: #b7b7c3;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.pattern-value-field input,
+.pattern-value-field select {
+  width: 100%;
+  height: 42px;
+  padding: 0 12px;
+  border: 1px solid var(--ops-line-strong);
+  border-radius: 9px;
+  background: var(--ops-surface-sunken);
+  color: var(--ops-text);
+}
+
+.pattern-statistics-panel {
+  padding: 14px;
+  border: 1px solid var(--ops-line);
+  border-radius: 10px;
+  display: grid;
+  gap: 11px;
+  background: var(--ops-surface-sunken);
+}
+
+.pattern-statistics-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.pattern-statistics-title > div {
+  display: grid;
+  gap: 3px;
+}
+
+.pattern-statistics-title span,
+.pattern-match-summary > span {
+  color: var(--ops-text-subtle);
+  font-size: 9px;
+}
+
+.pattern-statistics-title strong {
+  font-size: 13px;
+}
+
+.pattern-statistics-title .admin-button {
+  width: auto;
+}
+
+.pattern-statistics-empty,
+.pattern-statistics-error {
+  margin: 0;
+  padding: 13px;
+  border: 1px dashed var(--ops-line-strong);
+  border-radius: 8px;
+  color: var(--ops-text-muted);
+  font-size: 10px;
+  line-height: 1.5;
+  text-align: center;
+}
+
+.pattern-statistics-error {
+  border-color: color-mix(in srgb, var(--ops-critical) 45%, transparent);
+  color: var(--ops-critical);
+}
+
+.pattern-statistics-result {
+  display: grid;
+  gap: 10px;
+}
+
+.pattern-match-summary {
+  padding: 11px 12px;
+  border-left: 3px solid var(--ops-focus);
+  display: grid;
+  gap: 6px;
+  background: var(--ops-surface);
+}
+
+.pattern-match-summary strong {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 11px;
+}
+
+.pattern-match-summary em {
+  color: var(--ops-focus);
+  font-size: 18px;
+  font-style: normal;
+}
+
+.pattern-numeric-statistics {
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 7px;
+}
+
+.pattern-numeric-statistics > div {
+  padding: 10px;
+  border: 1px solid var(--ops-line);
+  border-radius: 8px;
+  background: var(--ops-surface);
+}
+
+.pattern-numeric-statistics dt {
+  color: var(--ops-text-subtle);
+  font-size: 9px;
+}
+
+.pattern-numeric-statistics dd {
+  margin: 5px 0 0;
+  color: var(--ops-text);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.pattern-category-statistics {
+  display: grid;
+  gap: 7px;
+}
+
+.pattern-category-statistics > div {
+  display: grid;
+  grid-template-columns: 90px minmax(80px, 1fr) 120px;
+  align-items: center;
+  gap: 8px;
+  color: var(--ops-text-muted);
+  font-size: 9px;
+}
+
+.pattern-category-statistics i {
+  height: 5px;
+  border-radius: 99px;
+  overflow: hidden;
+  background: var(--ops-surface);
+}
+
+.pattern-category-statistics b {
+  height: 100%;
+  border-radius: inherit;
+  display: block;
+  background: var(--ops-focus);
+}
+
+.pattern-category-statistics strong {
+  color: var(--ops-text);
+  font-size: 9px;
+  text-align: right;
+}
+
+.range-value-inputs {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 9px;
+}
+
+.pattern-save-guide {
+  margin: 0;
+  padding: 11px 13px;
+  border-left: 3px solid var(--ops-focus);
+  background: var(--ops-surface-sunken);
+  color: var(--ops-text-muted);
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.pattern-dialog-actions {
+  display: grid;
+  grid-template-columns: 1fr 1.35fr;
+  gap: 9px;
+}
+
+:root[data-theme="light"] .component-remove-button {
+  border-color: rgb(200 71 81 / 38%);
+  background: rgb(200 71 81 / 8%);
+  color: var(--ops-critical);
+}
+
+:root[data-theme="light"] .fraud-type-dialog-error {
+  border-color: rgb(200 71 81 / 38%);
+  background: rgb(200 71 81 / 8%);
+  color: var(--ops-critical);
+}
+
+:root[data-theme="light"] .pattern-value-field {
+  color: var(--ops-text-muted);
+}
+
+:root[data-theme="light"] .pattern-value-field input,
+:root[data-theme="light"] .pattern-value-field select {
+  background: var(--ops-surface);
+}
+
+@media (min-width: 1440px) and (min-height: 700px) {
+  .draft-source-control {
+    height: 38px;
+  }
+}
+
+@media (min-width: 1440px) {
+  .draft-source-control > span {
+    font-size: 11px;
+  }
+
+  .draft-source-control select {
+    font-size: 13px;
+  }
+
+  .component-remove-button {
+    font-size: 11px;
+  }
+
+  .component-logic-label,
+  .component-statistics > span,
+  .component-statistics-empty,
+  .pattern-statistics-title span,
+  .pattern-match-summary > span,
+  .pattern-numeric-statistics dt,
+  .pattern-category-statistics > div,
+  .pattern-category-statistics strong {
+    font-size: 11px;
+  }
+
+  .component-statistics > strong {
+    font-size: 12px;
+  }
+
+  .pattern-form-grid label small,
+  .pattern-value-field small,
+  .pattern-save-guide {
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 620px) {
+  .pattern-form-grid,
+  .pattern-dialog-actions,
+  .range-value-inputs {
+    grid-template-columns: 1fr;
+  }
+
+  .pattern-form-grid .wide-field {
+    grid-column: auto;
+  }
+
+  .pattern-statistics-panel {
+    grid-column: auto;
+  }
+
+  .pattern-category-statistics > div {
+    grid-template-columns: 72px minmax(60px, 1fr) 100px;
+  }
+}

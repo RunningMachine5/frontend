@@ -43,3 +43,10 @@
   .case-analysis-nav{overflow-x:auto}
   .case-analysis-nav a{padding:0 13px;white-space:nowrap}
 }
+
+/* 분석 단계는 장식 탭이 아니라 현재 위치를 알려 주는 얇은 업무 내비게이션으로 표시한다. */
+.case-analysis-nav{border-color:var(--ops-line);gap:2px}
+.case-analysis-nav a{height:36px;border-radius:3px 3px 0 0;color:var(--ops-text-muted);font-weight:600}
+.case-analysis-nav a:hover{background:var(--ops-surface);color:var(--ops-text)}
+.case-analysis-nav a.active{box-shadow:inset 0 -2px var(--ops-info);background:var(--ops-surface);color:var(--ops-text)}
+.case-analysis-nav a:focus-visible{outline-color:var(--ops-focus)}

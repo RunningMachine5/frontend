@@ -7,6 +7,7 @@ export type CaseListItem = {
   primary_fraud_type: string | null;
   transaction_amount: number;
   transaction_datetime: string;
+  received_at?: string;
   ip_address: string | null;
   review_status: string;
 };
@@ -21,6 +22,8 @@ export type CaseListResponse = {
 export type QueueSearchFilters = {
   transactionId: string;
   ipAddress: string;
+  riskGrades: string[];
+  reviewStatuses: string[];
   periodStart: string;
   periodEnd: string;
   page: number;

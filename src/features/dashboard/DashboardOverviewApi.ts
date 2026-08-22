@@ -3,7 +3,8 @@
 import type {
     ApiResponse,
     DashboardAgentInsight,
-    DashboardOverviewResponse
+    DashboardOverviewResponse,
+    RecentTransaction,
 } from "./dashboardOverviewTypes";
 
 export type DashOverviewParams = { // 기간 받기
@@ -33,8 +34,18 @@ export async function fetchDashboardOverview(
     return result.data;
 }
 
+export async function fetchRecentTransactions(): Promise<RecentTransaction[]> {
+    const response = await fetch("/transactions");
+
+    if (!response.ok) {
+        throw new Error("최근 거래를 불러오지 못했습니다.");
+    }
+
+    return response.json() as Promise<RecentTransaction[]>;
+}
+
 export async function generateDashboardInsight(
-    params: DashOverviewParams,
+    params: DashOverviewParams & { forceRefresh?: boolean },
 ): Promise<DashboardAgentInsight> {
     const response = await fetch("/api/dashboard/insights/generate", {
         method: "POST",
@@ -42,6 +53,7 @@ export async function generateDashboardInsight(
         body: JSON.stringify({
             period_start: params.periodStart,
             period_end: params.periodEnd,
+            force_refresh: params.forceRefresh ?? false,
         }),
     });
 
