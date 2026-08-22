@@ -395,7 +395,7 @@
 .period-pill,.live-pill{border:1px solid var(--ops-line);border-radius:4px;background:var(--ops-surface-sunken);color:var(--ops-text)}
 .period-pill span{color:var(--ops-text-subtle)}
 .live-pill{background:var(--ops-focus-soft);color:#b9c9f4}
-.metric-card,.panel{border-color:var(--ops-line);border-radius:4px;background:var(--ops-surface);box-shadow:none}
+.metric-card,.panel{border-color:var(--ops-line);border-radius:var(--ops-panel-radius);background:var(--ops-surface);box-shadow:none}
 .metric-card::before{width:2px;border-radius:0;background:var(--metric-color)}
 .metric-card.brand-tone{--metric-color:var(--ops-focus)}
 .metric-card.purple{--metric-color:var(--ops-info)}
@@ -581,7 +581,7 @@
   }
   .metric-card{
     border:1px solid var(--ops-line);
-    border-radius:4px;
+    border-radius:var(--ops-panel-radius);
   }
 
   .dashboard-monitoring-grid{
@@ -597,7 +597,7 @@
   .monitoring-bottom-row{height:61%}
   .dashboard-monitoring-grid .panel{
     border:1px solid var(--ops-line);
-    border-radius:4px;
+    border-radius:var(--ops-panel-radius);
   }
   .realtime-all-meta{
     flex-direction:row;

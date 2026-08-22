@@ -223,7 +223,7 @@
 .queue-header h1,.queue-panel-head h2{color:var(--ops-text)}
 .queue-header span,.queue-panel-sub-desc,.queue-panel-head>span{color:var(--ops-text-muted)}
 .queue-live{border:1px solid rgb(93 159 126 / 30%);border-radius:3px;background:rgb(93 159 126 / 12%);color:#8bc4a7}
-.queue-filter,.queue-summary,.queue-panel{border-color:var(--ops-line);border-radius:4px;background:var(--ops-surface);box-shadow:none}
+.queue-filter,.queue-summary,.queue-panel{border-color:var(--ops-line);border-radius:var(--ops-panel-radius);background:var(--ops-surface);box-shadow:none}
 .queue-filter label,.queue-summary span{color:var(--ops-text-muted)}
 .queue-filter input{border-color:var(--ops-line);border-radius:3px;background:var(--ops-surface-sunken);color:var(--ops-text)}
 .queue-filter input:hover{border-color:var(--ops-line-strong)}

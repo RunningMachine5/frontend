@@ -1299,7 +1299,7 @@
 
 /* 상세 화면은 판정, 근거, 다음 조치의 의미만 색으로 구분한다. */
 .case-content{background:var(--ops-canvas);color:var(--ops-text)}
-.j-profile-header,.j-card{border-color:var(--ops-line);border-radius:4px;background:var(--ops-surface);box-shadow:none}
+.j-profile-header,.j-card{border-color:var(--ops-line);border-radius:var(--ops-panel-radius);background:var(--ops-surface);box-shadow:none}
 .j-card-header{border-color:var(--ops-line);background:var(--ops-surface-raised)}
 .j-title-wrap h2,.j-meta-value,.j-score-number,.j-signal-val,.j-kv-value,.j-step-content strong,.j-prog-val,.j-drawer-header h2,.j-bubble-text{color:var(--ops-text)}
 .j-section-tag,.j-meta-label{color:var(--ops-text-muted);letter-spacing:.07em}
