@@ -659,7 +659,11 @@
     display:inline-flex;
     align-items:center;
     justify-content:center;
+    gap:2px;
+    line-height:1;
     white-space:nowrap;
   }
+  .channel-total-badge span,
+  .channel-total-badge strong{line-height:1}
   .channel-total-badge strong{font-size:14px}
 }
