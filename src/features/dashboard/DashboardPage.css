@@ -585,6 +585,7 @@
   .realtime-all-panel>.panel-head>.panel-caption{flex:0 0 100%}
   .monitoring-top-row>.priority-panel{justify-content:flex-start}
   .monitoring-top-row .trend-chart-wrap{margin-top:0}
+  .monitoring-top-row .realtime-all-panel .trend-chart-wrap{margin-top:2px}
 }
 
 @media(min-width:1600px) and (min-height:900px){
