@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 
-import { AdminAlert } from "../admin/AdminAlert";
+import { ModelLoadError } from "./components/ModelLoadError";
 import { ModelLoadingStatus } from "./components/ModelLoadingStatus";
 import { ModelPageShell } from "./components/ModelPageShell";
 import {
@@ -63,25 +63,27 @@ export function ModelVersionsPage() {
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [loadAttempt, setLoadAttempt] = useState(0);
 
   useEffect(() => {
     let active = true;
-    void fetchModelVersions()
+    setIsLoading(true);
+    setLoadError(null);
+    void fetchModelVersions(loadAttempt > 0)
       .then((response) => {
         if (!active) return;
         setModels(response);
-        setError(null);
       })
       .catch((cause) => {
         if (!active) return;
-        setError(cause instanceof Error ? cause.message : "모델 목록을 불러오지 못했습니다.");
+        setLoadError(cause instanceof Error ? cause.message : "모델 목록을 불러오지 못했습니다.");
       })
       .finally(() => {
         if (active) setIsLoading(false);
       });
     return () => { active = false; };
-  }, []);
+  }, [loadAttempt]);
 
   useEffect(() => setPage(1), [filter, search, sort]);
 
@@ -128,12 +130,18 @@ export function ModelVersionsPage() {
 
   return (
     <ModelPageShell activeSection="versions">
-      {error && <AdminAlert message={error} onDismiss={() => setError(null)} tone="error" />}
       {isLoading ? (
         <ModelLoadingStatus
           description="MLflow 등록 버전과 실제 거래 처리 이력을 연결하고 있습니다."
           label="MODEL CATALOG"
           title="저장된 모델을 불러오고 있습니다"
+        />
+      ) : loadError ? (
+        <ModelLoadError
+          description={loadError}
+          label="MODEL CATALOG"
+          onRetry={() => setLoadAttempt((current) => current + 1)}
+          title="저장된 모델을 불러오지 못했습니다"
         />
       ) : (
         <section className="model-catalog-workspace">

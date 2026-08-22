@@ -46,7 +46,7 @@ interface ModelOverviewSnapshot {
   serving: ServingStatus | null;
   labelSummary: TransactionLabelQueueSummary | null;
   inference: InferencePerformance | null;
-  models: ModelVersionSummary[];
+  models: ModelVersionSummary[] | null;
   updatedAt: Date;
 }
 
@@ -79,7 +79,7 @@ async function fetchOverview(force = false) {
       pageSize: 1,
     }).then((response) => response.summary).catch(() => null),
     fetchInferencePerformance().catch(() => null),
-    fetchModelVersions().catch(() => []),
+    fetchModelVersions().catch(() => null),
   ]).then(([datasets, runs, serving, labelSummary, inference, models]) => {
     overviewCache = {
       datasets,
@@ -199,7 +199,7 @@ export function ModelManagementPage() {
   const serving = overview?.serving ?? null;
   const labelSummary = overview?.labelSummary ?? null;
   const inference = overview?.inference ?? null;
-  const models = overview?.models ?? [];
+  const models = overview?.models ?? null;
   const updatedAt = overview?.updatedAt ?? null;
   const productionRun = findCurrentProductionRun(runs);
 
@@ -222,7 +222,7 @@ export function ModelManagementPage() {
   const latestRun = runs[0] ?? null;
   const actionRuns = runs.filter((run) => ACTION_REQUIRED_STATUSES.has(run.status));
   const visibleActionRuns = actionRuns.slice(0, ACTION_RUNS_LIMIT);
-  const recentModels = models.slice(0, 3);
+  const recentModels = models?.slice(0, 3) ?? [];
   const trafficPercent = latestRevisionTraffic(serving);
   const inferenceRatePerMinute = inference && inference.window_minutes > 0
     ? inference.inference_count / inference.window_minutes
@@ -429,11 +429,17 @@ export function ModelManagementPage() {
           </header>
           <div className="model-summary-primary">
             <span>저장된 학습 모델</span>
-            <strong>{numberFormat.format(models.length)}<small>개</small></strong>
-            <p>학습 성능과 실제 운영 이력을 모델별로 확인합니다.</p>
+            <strong>{models ? numberFormat.format(models.length) : "—"}{models && <small>개</small>}</strong>
+            <p>{models ? "학습 성능과 실제 운영 이력을 모델별로 확인합니다." : "모델 목록을 불러오지 못해 자동으로 다시 확인합니다."}</p>
           </div>
           <ul className="model-summary-details">
-            {recentModels.length === 0 ? (
+            {models === null ? (
+              <li>
+                <i className="danger" />
+                <div><span>모델 목록 확인 필요</span><small>연결 상태를 다시 확인하고 있습니다.</small></div>
+                <strong>—</strong>
+              </li>
+            ) : recentModels.length === 0 ? (
               <li>
                 <i className="accent" />
                 <div><span>등록된 모델 없음</span><small>학습이 완료되면 모델이 표시됩니다.</small></div>

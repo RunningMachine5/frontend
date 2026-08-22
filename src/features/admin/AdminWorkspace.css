@@ -155,6 +155,7 @@
 .model-loading-signal i:nth-child(2){height:80%;animation-delay:.14s}.model-loading-signal i:nth-child(3){height:58%;animation-delay:.28s}.model-loading-signal i:nth-child(4){height:100%;animation-delay:.42s}
 .model-loading-copy{min-width:0;display:grid;gap:3px}.model-loading-copy small{color:var(--ops-focus);font-size:10px;font-weight:800;letter-spacing:.12em}.model-loading-copy strong{overflow:hidden;font-size:15px;text-overflow:ellipsis;white-space:nowrap}.model-loading-copy p{margin:0;overflow:hidden;color:var(--ops-text-muted);font-size:12px;text-overflow:ellipsis;white-space:nowrap}
 .model-loading-status>em{display:flex;align-items:center;gap:8px;color:var(--ops-text-muted);font-size:11px;font-style:normal;font-weight:700;white-space:nowrap}.model-loading-status>em i{width:8px;height:8px;border-radius:50%;background:#48d192;box-shadow:0 0 0 4px rgb(72 209 146 / 10%);animation:model-loading-pulse .8s ease-in-out infinite alternate}
+.model-load-error{min-height:180px;padding:24px;border:1px solid color-mix(in srgb,#ff6577 52%,var(--ops-line));border-radius:12px;display:flex;align-items:center;justify-content:center;gap:28px;background:color-mix(in srgb,#ff6577 6%,var(--ops-surface));text-align:left}.model-load-error>div{min-width:0;max-width:620px}.model-load-error small{display:block;margin-bottom:5px;color:#d84b5e;font-size:13px;font-weight:800;letter-spacing:.08em}.model-load-error strong{display:block;font-size:20px}.model-load-error p{margin:7px 0 0;color:var(--ops-text-muted);font-size:14px;line-height:1.55}
 .model-loading-track{position:absolute;right:0;bottom:0;left:0;height:3px;overflow:hidden;background:var(--ops-surface-sunken)}.model-loading-track i{display:block;width:32%;height:100%;border-radius:99px;background:linear-gradient(90deg,transparent,var(--ops-focus),#48d192,transparent);animation:model-loading-sweep 1.8s ease-in-out infinite}
 @keyframes model-loading-bars{to{transform:scaleY(.45);opacity:.5}}
 @keyframes model-loading-pulse{to{opacity:.4}}
@@ -767,6 +768,7 @@
 }
 
 @media(max-width:620px){
+  .model-load-error{align-items:stretch;flex-direction:column;gap:14px}.model-load-error .admin-button{width:100%}
   .dataset-period-fields,.dialog-actions{grid-template-columns:1fr}
   .dataset-preview dl{grid-template-columns:1fr 1fr}
   .dataset-preview dl div:first-child{grid-column:1/-1}
