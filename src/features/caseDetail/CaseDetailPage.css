@@ -1487,6 +1487,11 @@
   .j-workflow-footer small,
   .j-stage-workspace-header span,
   .j-stage-workspace-header>strong,
+  .j-guide-overview span,
+  .j-guide-action-reason,
+  .j-guide-detail-columns ol,
+  .j-guide-detail-columns ul,
+  .j-guide-checklist-modal ul,
   .j-guide-action-details header span,
   .j-guide-action-details header em{font-size:14px}
 
@@ -1515,7 +1520,11 @@
   .j-activity-list span,
   .j-workflow-description,
   .j-workflow-footer em,
-  .j-stage-workspace-header p{font-size:15px}
+  .j-stage-workspace-header p,
+  .j-guide-overview p,
+  .j-guide-action-details header strong,
+  .j-guide-detail-columns h3,
+  .j-guide-checklist-modal h3{font-size:15px}
 
   .j-meta-value,
   .j-meta-highlight,
@@ -1525,6 +1534,8 @@
   .j-title-wrap h2,
   .j-workflow-card>strong,
   .j-stage-workspace-header h2{font-size:18px}
+
+  .j-guide-modal h2{font-size:20px}
 
   .j-score-number{font-size:46px}
   .j-amount-val{font-size:28px}
