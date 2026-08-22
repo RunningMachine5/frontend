@@ -1549,7 +1549,7 @@
   .j-workflow-card{min-height:108px;gap:3px;padding:9px 12px}
   .j-workflow-description{line-height:1.3}
   .j-stage-workspace,.j-stage-grid{gap:8px}
-  .j-stage-workspace{min-height:0;flex:1}
+  .j-stage-workspace{min-height:0;flex:0 0 auto}
   .j-card-header{min-height:48px;padding:7px 12px}
   .j-card-body{gap:7px;padding:9px 12px}
   .j-amount-banner{padding:8px 12px}
