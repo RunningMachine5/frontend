@@ -170,10 +170,10 @@ export const promoteModel = (runId: number) =>
   return result;
 });
 
-export const completeDeployment = (runId: number, operationId: string) =>
+export const completeDeployment = (runId: number, promotionOperationId: string) =>
   adminRequest<TrainingActionResult>(`/mlops/training/runs/${runId}/deployment/complete`, {
     method: "POST",
-    body: JSON.stringify({ operation_id: operationId || null }),
+    body: JSON.stringify({ operation_id: promotionOperationId || null }),
   }).then((result) => {
     clearModelVersionsCache();
     return result;

@@ -81,7 +81,8 @@ export function ModelRunPage() {
   const [displayedTrainingPhase, setDisplayedTrainingPhase] =
     useState<TrainingPhase>("connecting");
   const [lastRefreshedAt, setLastRefreshedAt] = useState<Date | null>(null);
-  const [operationId, setOperationId] = useState("");
+  const [trainingOperationId, setTrainingOperationId] = useState("");
+  const [promotionOperationId, setPromotionOperationId] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [isBusy, setIsBusy] = useState(false);
   const [busyActivity, setBusyActivity] = useState<ModelLoadingStatusProps | null>(null);
@@ -172,7 +173,7 @@ export function ModelRunPage() {
     setNotice(null);
     try {
       const result = await executeTrainingRun(selectedRunId);
-      setOperationId(result.operation_id ?? "");
+      setTrainingOperationId(result.operation_id ?? "");
       await refreshRun();
       setNotice("모델 학습 실행을 요청했습니다.");
     } catch (cause) {
@@ -230,6 +231,8 @@ export function ModelRunPage() {
     setModelReview(null);
     setModelReviewError(null);
     setIsModelReviewLoading(false);
+    setTrainingOperationId("");
+    setPromotionOperationId("");
   }, [runId]);
 
   useEffect(() => {
@@ -293,6 +296,7 @@ export function ModelRunPage() {
       setNotice(await action());
       await refresh();
     } catch (cause) {
+      await refresh();
       setError(cause instanceof Error ? cause.message : "요청을 처리하지 못했습니다.");
     } finally {
       setIsBusy(false);
@@ -324,8 +328,9 @@ export function ModelRunPage() {
     title: "후보 모델을 검증하고 있습니다",
   }, async () => {
     if (!run) return "";
+    setPromotionOperationId("");
     const result = await promoteModel(run.id);
-    setOperationId(result.operation_id ?? "");
+    setPromotionOperationId(result.operation_id ?? "");
     return "후보 예측을 검증하고 운영 트래픽 전환을 요청했습니다.";
   });
 
@@ -335,7 +340,7 @@ export function ModelRunPage() {
     title: "운영 모델을 확정하고 있습니다",
   }, async () => {
     if (!run) return "";
-    await completeDeployment(run.id, operationId);
+    await completeDeployment(run.id, promotionOperationId);
     return "새 모델을 운영 모델로 확정했습니다.";
   }, () => loadPage());
 
@@ -379,8 +384,8 @@ export function ModelRunPage() {
           ? "실행 연결을 마쳤으며 학습 컨테이너가 시작되기를 기다리고 있습니다."
           : "모델 학습과 MLflow 등록이 진행 중입니다.";
   const executionSummary = run?.cloud_run_execution_name
-    ?? (operationId ? "Cloud Run 실행 생성 요청 완료" : "Cloud Run 실행 확인 중");
-  const executionRequestDetail = operationId ? `요청 ${operationId}` : null;
+    ?? (trainingOperationId ? "Cloud Run 실행 생성 요청 완료" : "Cloud Run 실행 확인 중");
+  const executionRequestDetail = trainingOperationId ? `요청 ${trainingOperationId}` : null;
   const trainingTaskDetail = execution
     ? [
       execution.running_count ? `실행 중 ${execution.running_count}개` : null,
