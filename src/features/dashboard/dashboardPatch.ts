@@ -60,6 +60,17 @@ function isCaseListItem(value: unknown): value is CaseListItem {
   );
 }
 
+export function parseDashboardEventSource(eventData: string) {
+  try {
+    const payload: unknown = JSON.parse(eventData);
+    return isRecord(payload) && typeof payload.source === "string"
+      ? payload.source
+      : null;
+  } catch {
+    return null;
+  }
+}
+
 export function parseDashboardTransactionPatch(eventData: string) {
   try {
     const payload: unknown = JSON.parse(eventData);

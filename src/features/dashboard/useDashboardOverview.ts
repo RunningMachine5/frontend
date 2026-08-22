@@ -11,6 +11,7 @@ import {
 import type { DashboardOverviewResponse, RecentTransaction } from "./dashboardOverviewTypes";
 import {
     applyDashboardTransactionPatch,
+    parseDashboardEventSource,
     parseDashboardTransactionPatch,
     upsertRealtimeRiskRow,
     upsertRecentTransaction,
@@ -137,6 +138,9 @@ export function useDashboardOverview(params: DashOverviewParams){
 
             const patch = parseDashboardTransactionPatch(event.data);
             if (!patch) {
+                // 거래 patch에 이미 대시보드 표시값이 있으므로 Agent 완료는
+                // 처리 목록에서만 최종 상태를 다시 조회한다.
+                if (parseDashboardEventSource(event.data) === "agent") return;
                 scheduleRefresh();
                 return;
             }
