@@ -787,8 +787,8 @@
   .version-list button{padding:12px}
   .rule-tabs{padding:9px 12px 0;gap:6px}
   .rule-tabs button{min-height:34px;padding-right:13px;padding-left:13px}
-  .component-list{padding:10px;gap:8px;grid-auto-rows:minmax(150px,max-content)}
-  .component-row{padding:13px 15px 17px}
+  .component-list{padding:10px;gap:8px;grid-auto-rows:minmax(178px,max-content)}
+  .component-row{padding:14px 16px 22px}
 
   .workflow-rail{margin:14px 0}
   .workflow-step{min-height:86px;padding:14px 16px}
