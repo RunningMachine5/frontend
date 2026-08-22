@@ -68,7 +68,6 @@ export function ModelRunPage() {
     (location.state as { executeTraining?: boolean } | null)?.executeTraining,
   );
   const executionRequestStarted = useRef(false);
-  const reviewRequestedRunId = useRef<number | null>(null);
   const [run, setRun] = useState<TrainingRun | null>(null);
   const [dataset, setDataset] = useState<DatasetVersion | null>(null);
   const [productionRun, setProductionRun] = useState<TrainingRun | null>(null);
@@ -82,7 +81,8 @@ export function ModelRunPage() {
   const [displayedTrainingPhase, setDisplayedTrainingPhase] =
     useState<TrainingPhase>("connecting");
   const [lastRefreshedAt, setLastRefreshedAt] = useState<Date | null>(null);
-  const [operationId, setOperationId] = useState("");
+  const [trainingOperationId, setTrainingOperationId] = useState("");
+  const [promotionOperationId, setPromotionOperationId] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [isBusy, setIsBusy] = useState(false);
   const [busyActivity, setBusyActivity] = useState<ModelLoadingStatusProps | null>(null);
@@ -102,7 +102,7 @@ export function ModelRunPage() {
             ? "starting"
             : "training";
 
-  const load = useCallback(async (showLoading = false) => {
+  const loadPage = useCallback(async (showLoading = false) => {
     if (showLoading) setIsLoading(true);
     try {
       const [runRow, runs, datasets, servingStatus] = await Promise.all([
@@ -112,22 +112,18 @@ export function ModelRunPage() {
         fetchServingStatus().catch(() => null),
       ]);
       const currentProduction = findCurrentProductionRun(runs);
-      const selectedDetails = runRow.mlflow_run_id
-        ? await fetchModelDetails(runRow.id).catch(() => null)
-        : null;
-      const selectedExecution = runRow.status === "RUNNING" && runRow.cloud_run_execution_name
-        ? await fetchTrainingExecution(runRow.id).catch(() => null)
-        : null;
-      const currentProductionDetails = currentProduction?.mlflow_run_id
-        ? currentProduction.id === runRow.id
-          ? selectedDetails
-          : await fetchModelDetails(currentProduction.id).catch(() => null)
-        : null;
+      const [selectedExecution, currentProductionDetails] = await Promise.all([
+        runRow.status === "RUNNING" && runRow.cloud_run_execution_name
+          ? fetchTrainingExecution(runRow.id).catch(() => null)
+          : null,
+        currentProduction?.mlflow_run_id && currentProduction.id !== runRow.id
+          ? fetchModelDetails(currentProduction.id).catch(() => null)
+          : null,
+      ]);
 
       setRun(runRow);
       setDataset(datasets.find((item) => item.id === runRow.dataset_version_id) ?? null);
       setProductionRun(currentProduction);
-      setDetails(selectedDetails);
       setProductionDetails(currentProductionDetails);
       setServing(servingStatus);
       setExecution(selectedExecution);
@@ -137,6 +133,32 @@ export function ModelRunPage() {
       setError(cause instanceof Error ? cause.message : "Run 상세 정보를 불러오지 못했습니다.");
     } finally {
       if (showLoading) setIsLoading(false);
+    }
+  }, [runId]);
+
+  const refreshRun = useCallback(async () => {
+    try {
+      const runRow = await fetchTrainingRun(runId);
+      const shouldFetchExecution = runRow.status === "RUNNING"
+        && Boolean(runRow.cloud_run_execution_name);
+      const shouldFetchServing = runRow.status === "STAGED"
+        || runRow.status === "PROMOTING";
+      const [selectedExecution, servingStatus] = await Promise.all([
+        shouldFetchExecution
+          ? fetchTrainingExecution(runRow.id).catch(() => null)
+          : null,
+        shouldFetchServing
+          ? fetchServingStatus().catch(() => null)
+          : null,
+      ]);
+
+      setRun(runRow);
+      setExecution(selectedExecution);
+      if (servingStatus) setServing(servingStatus);
+      setLastRefreshedAt(new Date());
+      setError(null);
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : "Run 상태를 갱신하지 못했습니다.");
     }
   }, [runId]);
 
@@ -151,17 +173,17 @@ export function ModelRunPage() {
     setNotice(null);
     try {
       const result = await executeTrainingRun(selectedRunId);
-      setOperationId(result.operation_id ?? "");
-      await load();
+      setTrainingOperationId(result.operation_id ?? "");
+      await refreshRun();
       setNotice("모델 학습 실행을 요청했습니다.");
     } catch (cause) {
-      await load();
+      await refreshRun();
       setError(cause instanceof Error ? cause.message : "학습 실행을 요청하지 못했습니다.");
     } finally {
       setIsBusy(false);
       setBusyActivity(null);
     }
-  }, [load]);
+  }, [refreshRun]);
 
   const requestModelReview = useCallback(async (selectedRunId: number) => {
     setIsModelReviewLoading(true);
@@ -181,25 +203,37 @@ export function ModelRunPage() {
   }, []);
 
   useEffect(() => {
-    void load(true);
-  }, [load]);
+    void loadPage(true);
+  }, [loadPage]);
+
+  useEffect(() => {
+    setDetails(null);
+    if (!run?.mlflow_run_id) return;
+
+    let ignoreResult = false;
+    void fetchModelDetails(run.id)
+      .then((modelDetails) => {
+        if (!ignoreResult) setDetails(modelDetails);
+      })
+      .catch(() => {
+        if (!ignoreResult) setDetails(null);
+      });
+    return () => {
+      ignoreResult = true;
+    };
+  }, [run?.id, run?.mlflow_run_id]);
+
+  useEffect(() => {
+    if (run?.id === productionRun?.id) setProductionDetails(details);
+  }, [details, productionRun?.id, run?.id]);
 
   useEffect(() => {
     setModelReview(null);
     setModelReviewError(null);
     setIsModelReviewLoading(false);
+    setTrainingOperationId("");
+    setPromotionOperationId("");
   }, [runId]);
-
-  useEffect(() => {
-    if (
-      run?.status !== "CANDIDATE"
-      || !details
-      || reviewRequestedRunId.current === run.id
-    ) return;
-
-    reviewRequestedRunId.current = run.id;
-    void requestModelReview(run.id);
-  }, [details, requestModelReview, run]);
 
   useEffect(() => {
     if (
@@ -221,10 +255,10 @@ export function ModelRunPage() {
     );
     if (!shouldRefresh) return;
     const timer = window.setInterval(() => {
-      if (document.visibilityState === "visible") void load();
+      if (document.visibilityState === "visible") void refreshRun();
     }, RUN_REFRESH_MS);
     return () => window.clearInterval(timer);
-  }, [isCandidatePreparing, load, run]);
+  }, [isCandidatePreparing, refreshRun, run]);
 
   useEffect(() => {
     setDisplayedTrainingPhase("connecting");
@@ -252,6 +286,7 @@ export function ModelRunPage() {
   const runAction = async (
     activity: ModelLoadingStatusProps,
     action: () => Promise<string>,
+    refresh: () => Promise<void> = refreshRun,
   ) => {
     setIsBusy(true);
     setBusyActivity(activity);
@@ -259,8 +294,9 @@ export function ModelRunPage() {
     setNotice(null);
     try {
       setNotice(await action());
-      await load();
+      await refresh();
     } catch (cause) {
+      await refresh();
       setError(cause instanceof Error ? cause.message : "요청을 처리하지 못했습니다.");
     } finally {
       setIsBusy(false);
@@ -292,8 +328,9 @@ export function ModelRunPage() {
     title: "후보 모델을 검증하고 있습니다",
   }, async () => {
     if (!run) return "";
+    setPromotionOperationId("");
     const result = await promoteModel(run.id);
-    setOperationId(result.operation_id ?? "");
+    setPromotionOperationId(result.operation_id ?? "");
     return "후보 예측을 검증하고 운영 트래픽 전환을 요청했습니다.";
   });
 
@@ -303,9 +340,9 @@ export function ModelRunPage() {
     title: "운영 모델을 확정하고 있습니다",
   }, async () => {
     if (!run) return "";
-    await completeDeployment(run.id, operationId);
+    await completeDeployment(run.id, promotionOperationId);
     return "새 모델을 운영 모델로 확정했습니다.";
-  });
+  }, () => loadPage());
 
   const reconcile = () => runAction({
     description: "Cloud Run 실행 결과와 저장된 Run 상태를 맞춥니다.",
@@ -347,8 +384,8 @@ export function ModelRunPage() {
           ? "실행 연결을 마쳤으며 학습 컨테이너가 시작되기를 기다리고 있습니다."
           : "모델 학습과 MLflow 등록이 진행 중입니다.";
   const executionSummary = run?.cloud_run_execution_name
-    ?? (operationId ? "Cloud Run 실행 생성 요청 완료" : "Cloud Run 실행 확인 중");
-  const executionRequestDetail = operationId ? `요청 ${operationId}` : null;
+    ?? (trainingOperationId ? "Cloud Run 실행 생성 요청 완료" : "Cloud Run 실행 확인 중");
+  const executionRequestDetail = trainingOperationId ? `요청 ${trainingOperationId}` : null;
   const trainingTaskDetail = execution
     ? [
       execution.running_count ? `실행 중 ${execution.running_count}개` : null,
@@ -361,18 +398,35 @@ export function ModelRunPage() {
       ? "승격 비추천"
       : isModelReviewLoading
         ? "판단 중…"
-        : modelReviewError
-          ? "판단 불가"
-          : run?.status === "CANDIDATE"
-            ? "판단 준비"
-            : isCurrentProduction
-              ? "운영 기준"
-              : "해당 없음";
+          : modelReviewError
+            ? "판단 불가"
+            : run?.status === "CANDIDATE"
+              ? "미실행"
+              : isCurrentProduction
+                ? "운영 기준"
+                : "해당 없음";
   const modelReviewTone = modelReview?.decision === "RECOMMENDED"
     ? "recommended"
     : modelReview?.decision === "NOT_RECOMMENDED"
       ? "not-recommended"
     : "pending";
+  const qualityGate = run?.status === "CANDIDATE"
+    ? details?.quality_gate
+    : undefined;
+  const qualityGateStatus = !qualityGate
+    ? null
+    : !qualityGate.configured
+      ? "설정 필요"
+      : qualityGate.passed
+        ? "기준 통과"
+        : "기준 미달";
+  const approvalBlockReason = !qualityGate
+    ? null
+    : !qualityGate.configured
+      ? "서버 품질 기준이 설정되지 않아 후보를 승인할 수 없습니다."
+      : !qualityGate.passed
+        ? "후보 지표가 서버 품질 기준에 미달해 승인할 수 없습니다."
+        : null;
 
   return (
     <ModelPageShell
@@ -437,6 +491,17 @@ export function ModelRunPage() {
                   </em>
                 )}
               </div>
+              {qualityGate && (
+                <div className={`model-quality-gate ${qualityGate.configured && qualityGate.passed ? "passed" : "blocked"}`}>
+                  <span>품질 기준</span>
+                  <strong>
+                    {qualityGate.configured
+                      ? `PR-AUC ≥ ${qualityGate.minimum_pr_auc.toFixed(4)} · Recall ≥ ${qualityGate.minimum_recall.toFixed(4)}`
+                      : "서버 기준값을 설정해야 합니다."}
+                  </strong>
+                  <em>{qualityGateStatus}</em>
+                </div>
+              )}
               <div aria-label="선택 모델과 운영 모델 성능 비교" className="model-comparison" role="table">
                 <div className="model-comparison-row model-comparison-header" role="row">
                   <span role="columnheader">성능 지표</span><span role="columnheader">선택 Run</span><span role="columnheader">운영 모델</span><span role="columnheader">차이</span>
@@ -489,20 +554,27 @@ export function ModelRunPage() {
                     ) : modelReview ? (
                       <p>{modelReview.summary}</p>
                     ) : (
-                      <div className="model-ai-review-error">
-                        <p>AI 판단을 불러오지 못했습니다. 성능 지표를 직접 확인하거나 다시 요청해 주세요.</p>
+                      <div className={`model-ai-review-action${modelReviewError ? " failed" : ""}`}>
+                        <p>
+                          {modelReviewError
+                            ? "AI 검토를 완료하지 못했습니다. 지표를 직접 검토하거나 다시 실행하세요."
+                            : "AI 검토는 자동으로 실행되지 않습니다. 성능 지표를 확인한 뒤 필요할 때 실행하세요."}
+                        </p>
+                        {modelReviewError && <small>{modelReviewError}</small>}
                         <button
+                          className="admin-button compact"
                           onClick={() => void requestModelReview(run.id)}
                           type="button"
                         >
-                          다시 판단
+                          {modelReviewError ? "AI 검토 다시 실행" : "AI 검토 실행"}
                         </button>
                       </div>
                     )}
                   </section>
                   <div className="run-action-buttons">
                     <button className="admin-button danger-button" disabled={isBusy} onClick={() => void decide("REJECT")} type="button">후보 거절</button>
-                    <button className="admin-button primary" disabled={isBusy} onClick={() => void decide("APPROVE")} type="button">후보 승인</button>
+                    <button className="admin-button primary" disabled={isBusy || Boolean(approvalBlockReason)} onClick={() => void decide("APPROVE")} type="button">후보 승인</button>
+                    {approvalBlockReason && <small className="run-approval-block-reason">{approvalBlockReason}</small>}
                   </div>
                 </>
               )}
@@ -515,7 +587,7 @@ export function ModelRunPage() {
                     <p>{isCandidatePreparing ? "준비 상태는 자동으로 확인합니다. 입력할 값은 없습니다." : "거래와 검증 데이터는 서버가 자동으로 선택합니다."}</p>
                   </div>
                   <button className="admin-button primary" disabled={isBusy || isCandidatePreparing} onClick={() => void promote()} type="button">
-                    {isCandidatePreparing ? "운영 반영 준비 중…" : "자동 검증 후 100% 전환"}
+                    {isCandidatePreparing ? "운영 반영 준비 중…" : "후보 검증 후 운영 전환"}
                   </button>
                 </div>
               )}

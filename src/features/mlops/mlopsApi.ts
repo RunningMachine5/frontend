@@ -65,7 +65,7 @@ export const prepareTrainingRun = (datasetId: number) =>
 export const executeTrainingRun = (runId: number) =>
   adminRequest<TrainingActionResult>(`/mlops/training/runs/${runId}/execute`, {
     method: "POST",
-    body: JSON.stringify({ min_pr_auc: 0, min_recall: 0 }),
+    body: JSON.stringify({}),
   });
 
 export const fetchModelDetails = (runId: number) =>
@@ -170,10 +170,10 @@ export const promoteModel = (runId: number) =>
   return result;
 });
 
-export const completeDeployment = (runId: number, operationId: string) =>
+export const completeDeployment = (runId: number, promotionOperationId: string) =>
   adminRequest<TrainingActionResult>(`/mlops/training/runs/${runId}/deployment/complete`, {
     method: "POST",
-    body: JSON.stringify({ operation_id: operationId || null }),
+    body: JSON.stringify({ operation_id: promotionOperationId || null }),
   }).then((result) => {
     clearModelVersionsCache();
     return result;

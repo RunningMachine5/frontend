@@ -238,6 +238,7 @@
 .run-detail-header dt{font-size:10px}.run-detail-header dd{font-size:12px}
 .run-workflow-rail .workflow-step strong{font-size:14px}.run-workflow-rail .workflow-step span{font-size:12px}
 .run-comparison-panel .model-comparison-row>strong{font-size:13px}.run-comparison-panel .model-comparison-row>strong small{font-size:10px}.run-comparison-panel .model-comparison-row>span,.run-comparison-panel .model-comparison-row>em{font-size:14px}.run-comparison-panel .model-comparison-header>span{font-size:11px}
+.model-quality-gate{margin:0 12px 8px;padding:8px 10px;border:1px solid var(--ops-line);border-radius:8px;display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:10px;background:var(--ops-surface-sunken)}.model-quality-gate span{color:var(--ops-text-muted);font-size:10px;font-weight:700}.model-quality-gate strong{min-width:0;font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.model-quality-gate em{font-size:11px;font-style:normal;font-weight:800;white-space:nowrap}.model-quality-gate.passed em{color:#75dfad}.model-quality-gate.blocked em{color:#ff939e}
 .run-action-panel h2{font-size:22px}.run-action-guide{font-size:13px}.run-error-message strong,.run-error-message span{font-size:12px}
 .run-detail-header dd.recommended{color:#48d192}.run-detail-header dd.not-recommended{color:#ff7d89}
 .recommendation.recommended{background:rgb(72 209 146 / 13%);color:#75dfad}.recommendation.not-recommended{background:rgb(255 125 137 / 13%);color:#ff939e}
@@ -245,9 +246,10 @@
 .model-ai-review::before{content:"";position:absolute;inset:0 auto 0 0;width:3px;background:var(--ops-focus)}
 .model-ai-review.recommended::before{background:#48d192}.model-ai-review.not-recommended::before{background:#ff7d89}
 .model-ai-review header{display:flex;align-items:center;justify-content:space-between;gap:12px}.model-ai-review header span{color:var(--ops-focus);font-size:12px;font-weight:800;letter-spacing:.08em}.model-ai-review header em{padding:5px 8px;border-radius:99px;background:var(--ops-focus-soft);color:#aebee9;font-size:11px;font-style:normal;font-weight:800;white-space:nowrap}.model-ai-review.recommended header em{background:rgb(72 209 146 / 13%);color:#75dfad}.model-ai-review.not-recommended header em{background:rgb(255 125 137 / 13%);color:#ff939e}
-.model-ai-review>p,.model-ai-review-error>p,.model-ai-review-loading>p{margin:0;color:var(--ops-text);font-size:13px;line-height:1.72;white-space:normal;word-break:keep-all;overflow-wrap:anywhere}
+.model-ai-review>p,.model-ai-review-action>p,.model-ai-review-loading>p{margin:0;color:var(--ops-text);font-size:13px;line-height:1.72;white-space:normal;word-break:keep-all;overflow-wrap:anywhere}
 .model-ai-review-loading{margin:auto 0;display:grid;grid-template-columns:10px minmax(0,1fr);align-items:center;gap:10px}.model-ai-review-loading i{width:9px;height:9px;border-radius:50%;background:var(--ops-focus);box-shadow:0 0 0 5px var(--ops-focus-soft);animation:model-ai-review-pulse 1s ease-in-out infinite alternate}
-.model-ai-review-error{margin:auto 0;display:grid;gap:12px}.model-ai-review-error button{justify-self:start;padding:0;border:0;background:transparent;color:var(--ops-focus);font-size:12px;font-weight:800}.model-ai-review-error button:focus-visible{outline:2px solid var(--ops-focus);outline-offset:3px}
+.model-ai-review-action{margin:auto 0;display:grid;gap:12px}.model-ai-review-action small{color:var(--ops-text-muted);font-size:10px;line-height:1.5}.model-ai-review-action.failed small{color:#ff939e}.model-ai-review-action .admin-button{justify-self:start}
+.run-approval-block-reason{grid-column:1/-1;color:#ff939e;font-size:10px;line-height:1.5;text-align:right}
 @keyframes model-ai-review-pulse{to{opacity:.35;transform:scale(.78)}}
 /* 큰 내부 박스를 없애 안내와 실행 버튼이 하나의 조치 영역으로 읽히게 한다. */
 .automatic-smoke-card{padding:16px 0 0;border:0;border-top:1px solid var(--ops-line);border-radius:0;background:transparent}
@@ -387,6 +389,9 @@
 :root[data-theme="light"] .model-ai-review.not-recommended::before{background:var(--ops-critical)}
 :root[data-theme="light"] .model-ai-review.recommended header em{background:rgb(46 107 75 / 10%);color:var(--ops-low)}
 :root[data-theme="light"] .model-ai-review.not-recommended header em{background:rgb(184 62 72 / 10%);color:var(--ops-critical)}
+:root[data-theme="light"] .model-quality-gate.passed em{color:var(--ops-low)}
+:root[data-theme="light"] .model-quality-gate.blocked em,
+:root[data-theme="light"] .run-approval-block-reason{color:var(--ops-critical)}
 :root[data-theme="light"] .verification-flow li.active>span,
 :root[data-theme="light"] .verification-flow li.active small,
 :root[data-theme="light"] .workflow-step.active small,
@@ -714,13 +719,17 @@
   .run-comparison-panel .model-comparison-row>span,
   .run-comparison-panel .model-comparison-row>em{font-size:18px}
   .run-comparison-panel .model-comparison-header>span{font-size:16px}
+  .model-quality-gate span,
+  .model-quality-gate strong,
+  .model-quality-gate em{font-size:14px}
   .run-action-guide{font-size:17px}
   .model-ai-review header span{font-size:16px}
   .model-ai-review header em{font-size:15px}
   .model-ai-review>p,
-  .model-ai-review-error>p,
+  .model-ai-review-action>p,
   .model-ai-review-loading>p{font-size:17px;line-height:1.65}
-  .model-ai-review-error button{font-size:15px}
+  .model-ai-review-action small{font-size:14px}
+  .run-approval-block-reason{font-size:14px}
   .run-error-message strong,
   .run-error-message span{font-size:15px}
   .automatic-smoke-card span{font-size:14px}
@@ -812,6 +821,7 @@
   .dataset-preview dl div:first-child{grid-column:1/-1}
   .model-ai-review{min-height:0;padding:15px}
   .model-ai-review header{align-items:flex-start;flex-direction:column}
+  .model-quality-gate{grid-template-columns:1fr}.model-quality-gate strong{white-space:normal}.model-quality-gate em{justify-self:start}
   .training-progress-phases{grid-template-columns:1fr 1fr}
 }
 

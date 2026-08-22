@@ -59,6 +59,15 @@ export type ModelDetails = {
   metrics: Record<string, number>;
   params: Record<string, string>;
   tags: Record<string, string>;
+  quality_gate?: {
+    configured: boolean;
+    minimum_pr_auc: number;
+    minimum_recall: number;
+    validation_pr_auc: number | null;
+    validation_recall: number | null;
+    validation_status: string | null;
+    passed: boolean;
+  };
 };
 
 export type ModelReview = {
