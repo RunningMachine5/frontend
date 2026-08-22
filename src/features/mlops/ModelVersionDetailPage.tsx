@@ -1,7 +1,7 @@
 // 한 모델의 학습 성능과 실제 처리 거래를 분리해 비교한다.
 
 import { useEffect, useMemo, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 
 import { AdminAlert } from "../admin/AdminAlert";
 import { ModelLoadingStatus } from "./components/ModelLoadingStatus";
@@ -17,6 +17,7 @@ import {
   fetchModelDetails,
   fetchModelTransactions,
   fetchModelVersions,
+  reactivateModel,
 } from "./mlopsApi";
 import type {
   ModelDetails,
@@ -35,6 +36,7 @@ function labelText(value: boolean | null) {
 }
 
 export function ModelVersionDetailPage() {
+  const navigate = useNavigate();
   const { runId: runIdParam } = useParams();
   const runId = Number(runIdParam);
   const [model, setModel] = useState<ModelVersionSummary | null>(null);
@@ -44,6 +46,7 @@ export function ModelVersionDetailPage() {
   const [page, setPage] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
   const [isTransactionsLoading, setIsTransactionsLoading] = useState(true);
+  const [isReactivating, setIsReactivating] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -97,10 +100,42 @@ export function ModelVersionDetailPage() {
     value: metric(details, ...item.keys),
   })), [details]);
 
+  const reactivate = async () => {
+    if (!model) return;
+    const confirmed = window.confirm(
+      `model v${model.model_version}을 운영 반영 후보로 다시 준비할까요?\n현재 운영 모델과 트래픽은 그대로 유지됩니다.`,
+    );
+    if (!confirmed) return;
+
+    setIsReactivating(true);
+    setError(null);
+    try {
+      await reactivateModel(model.training_run_id);
+      navigate(`/models/runs/${model.training_run_id}`);
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : "모델을 다시 준비하지 못했습니다.");
+      setIsReactivating(false);
+    }
+  };
+
   return (
     <ModelPageShell
       activeSection="versions"
-      actions={<Link className="admin-button" to="/models/versions">모델 목록으로</Link>}
+      actions={(
+        <>
+          {model?.status === "RETIRED" && (
+            <button
+              className="admin-button primary"
+              disabled={isReactivating}
+              onClick={() => void reactivate()}
+              type="button"
+            >
+              {isReactivating ? "준비 요청 중…" : "운영 반영 준비"}
+            </button>
+          )}
+          <Link className="admin-button" to="/models/versions">모델 목록으로</Link>
+        </>
+      )}
     >
       {error && <AdminAlert message={error} onDismiss={() => setError(null)} tone="error" />}
       {isLoading || !model || !details ? (
@@ -116,6 +151,11 @@ export function ModelVersionDetailPage() {
               <div>
                 <p className="admin-eyebrow">MODEL VERSION</p>
                 <h2>model v{model.model_version}</h2>
+                {model.status === "RETIRED" && (
+                  <p className="model-reactivate-note">
+                    현재 운영 모델은 유지하고, 검증용 0% 후보부터 다시 준비합니다.
+                  </p>
+                )}
               </div>
               <em className={`status ${model.status.toLowerCase()}`}>
                 {STATUS_LABELS[model.status] ?? model.status}

@@ -31,7 +31,8 @@ export type DatasetPeriodSummary = {
 
 export type TrainingStatus =
   | "REQUESTED" | "RUNNING" | "CANDIDATE" | "REJECTED"
-  | "STAGED" | "PROMOTING" | "PRODUCTION" | "FAILED" | "DEPLOYMENT_FAILED";
+  | "STAGED" | "PROMOTING" | "PRODUCTION" | "RETIRED"
+  | "FAILED" | "DEPLOYMENT_FAILED";
 
 export type TrainingRun = {
   id: number;
@@ -83,7 +84,7 @@ export type ModelVersionSummary = {
   training_run_id: number;
   model_name: string;
   model_version: string;
-  status: TrainingStatus | "RETIRED";
+  status: TrainingStatus;
   dataset_version_id: number;
   dataset_version: string;
   created_at: string;
