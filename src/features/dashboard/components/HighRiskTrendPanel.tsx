@@ -169,7 +169,7 @@ export function RealtimeRiskTrendChart({
   }, []);
 
   const width = Math.max(360, containerWidth);
-  const padding = { top: 18, right: 38, bottom: 22, left: 58 };
+  const padding = { top: 18, right: 48, bottom: 22, left: 88 };
   const innerInsetX = 18; // 좌우 끝 점과 뱃지가 Y축 눈금 텍스트와 겹치지 않으면서 가로폭 최대 확장
 
   const chartWidth = width - padding.left - padding.right;

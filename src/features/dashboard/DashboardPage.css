@@ -547,13 +547,13 @@
   .bar-val{font-size:12px}
 }
 
-/* 이상거래 감시의 카드 묶음은 여백 대신 구분선으로 나눠 한 화면의 정보 밀도를 높인다. */
+/* 이상거래 감시의 모든 카드 간격을 같은 8px로 맞춰 화면 리듬을 통일한다. */
 @media(min-width:1440px) and (min-height:760px){
-  .dashboard-content{gap:6px}
+  .dashboard-content{gap:8px}
 
   .metric-grid{
-    gap:4px;
-    margin:4px 0 6px;
+    gap:8px;
+    margin:0;
     overflow:visible;
     border:0;
     border-radius:0;
@@ -564,14 +564,14 @@
   }
 
   .dashboard-monitoring-grid{
-    gap:4px;
+    gap:8px;
     overflow:visible;
     border:0;
     border-radius:0;
   }
   .monitoring-top-row,
   .monitoring-bottom-row,
-  .bottom-right-col{gap:4px}
+  .bottom-right-col{gap:8px}
   .monitoring-top-row{height:39%}
   .monitoring-bottom-row{height:61%}
   .dashboard-monitoring-grid .panel{
@@ -588,6 +588,23 @@
   .monitoring-top-row>.priority-panel{justify-content:flex-start}
   .monitoring-top-row .trend-chart-wrap{margin-top:0}
   .monitoring-top-row .realtime-all-panel .trend-chart-wrap{margin-top:2px}
+}
+
+/* 1920 시연 화면에서는 제목 행과 설명 행의 간격만 줄여 차트 영역을 확보한다. */
+@media(min-width:1600px) and (min-height:760px){
+  .monitoring-top-row .panel-head{
+    align-items:center;
+    column-gap:12px;
+    row-gap:2px;
+    flex-wrap:wrap;
+    padding-bottom:6px;
+  }
+  .monitoring-top-row .panel-caption{
+    flex:0 0 100%;
+    margin-top:0;
+    line-height:1.15;
+  }
+  .realtime-all-panel>.panel-head{flex-wrap:wrap}
 }
 
 @media(min-width:1600px) and (min-height:900px){
