@@ -1,9 +1,10 @@
 // 한 모델의 학습 성능과 실제 처리 거래를 분리해 비교한다.
 
 import { useEffect, useMemo, useState } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 
 import { AdminAlert } from "../admin/AdminAlert";
+import { ModelLoadError } from "./components/ModelLoadError";
 import { ModelLoadingStatus } from "./components/ModelLoadingStatus";
 import { ModelPageShell } from "./components/ModelPageShell";
 import {
@@ -38,6 +39,7 @@ function labelText(value: boolean | null) {
 }
 
 export function ModelVersionDetailPage() {
+  const location = useLocation();
   const navigate = useNavigate();
   const { runId: runIdParam } = useParams();
   const runId = Number(runIdParam);
@@ -49,13 +51,21 @@ export function ModelVersionDetailPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isTransactionsLoading, setIsTransactionsLoading] = useState(true);
   const [isReactivating, setIsReactivating] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
+  const [transactionsError, setTransactionsError] = useState<string | null>(null);
+  const [loadAttempt, setLoadAttempt] = useState(0);
+  const [transactionsAttempt, setTransactionsAttempt] = useState(0);
+  const catalogSearch = (location.state as { catalogSearch?: string } | null)?.catalogSearch ?? "";
 
   useEffect(() => {
     let active = true;
     setIsLoading(true);
+    setLoadError(null);
+    setModel(null);
+    setDetails(null);
     void Promise.all([
-      fetchModelVersions(),
+      fetchModelVersions(loadAttempt > 0),
       fetchModelDetails(runId),
     ])
       .then(([models, modelDetails]) => {
@@ -64,21 +74,21 @@ export function ModelVersionDetailPage() {
         if (!selected) throw new Error("저장된 모델을 찾지 못했습니다.");
         setModel(selected);
         setDetails(modelDetails);
-        setError(null);
       })
       .catch((cause) => {
         if (!active) return;
-        setError(cause instanceof Error ? cause.message : "모델 정보를 불러오지 못했습니다.");
+        setLoadError(cause instanceof Error ? cause.message : "모델 정보를 불러오지 못했습니다.");
       })
       .finally(() => {
         if (active) setIsLoading(false);
       });
     return () => { active = false; };
-  }, [runId]);
+  }, [loadAttempt, runId]);
 
   useEffect(() => {
     let active = true;
     setIsTransactionsLoading(true);
+    setTransactionsError(null);
     void fetchModelTransactions(runId, labelFilter, page)
       .then((response) => {
         if (!active) return;
@@ -86,15 +96,13 @@ export function ModelVersionDetailPage() {
       })
       .catch((cause) => {
         if (!active) return;
-        setError(cause instanceof Error ? cause.message : "처리 거래를 불러오지 못했습니다.");
+        setTransactionsError(cause instanceof Error ? cause.message : "처리 거래를 불러오지 못했습니다.");
       })
       .finally(() => {
         if (active) setIsTransactionsLoading(false);
       });
     return () => { active = false; };
-  }, [labelFilter, page, runId]);
-
-  useEffect(() => setPage(1), [labelFilter]);
+  }, [labelFilter, page, runId, transactionsAttempt]);
 
   const pageCount = Math.max(1, Math.ceil((transactions?.total_count ?? 0) / (transactions?.page_size ?? 10)));
   const offlineMetrics = useMemo(() => COMPARISON_METRICS.map((item) => ({
@@ -112,12 +120,12 @@ export function ModelVersionDetailPage() {
     if (!confirmed) return;
 
     setIsReactivating(true);
-    setError(null);
+    setActionError(null);
     try {
       await reactivateModel(model.training_run_id);
       navigate(`/models/runs/${model.training_run_id}`);
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "모델을 다시 준비하지 못했습니다.");
+      setActionError(cause instanceof Error ? cause.message : "모델을 다시 준비하지 못했습니다.");
       setIsReactivating(false);
     }
   };
@@ -137,16 +145,23 @@ export function ModelVersionDetailPage() {
               {isReactivating ? "준비 요청 중…" : "운영 반영 준비"}
             </button>
           )}
-          <Link className="admin-button" to="/models/versions">모델 목록으로</Link>
+          <Link className="admin-button" to={`/models/versions${catalogSearch}`}>모델 목록으로</Link>
         </>
       )}
     >
-      {error && <AdminAlert message={error} onDismiss={() => setError(null)} tone="error" />}
-      {isLoading || !model || !details ? (
+      {actionError && <AdminAlert message={actionError} onDismiss={() => setActionError(null)} tone="error" />}
+      {isLoading ? (
         <ModelLoadingStatus
           description="학습 성능과 실제 처리 이력을 함께 확인하고 있습니다."
           label="MODEL DETAILS"
           title="모델 상세 정보를 불러오고 있습니다"
+        />
+      ) : loadError || !model || !details ? (
+        <ModelLoadError
+          description={loadError ?? "모델 정보를 확인할 수 없습니다."}
+          label="MODEL DETAILS"
+          onRetry={() => setLoadAttempt((current) => current + 1)}
+          title="모델 상세 정보를 불러오지 못했습니다"
         />
       ) : (
         <section className="model-version-detail">
@@ -168,8 +183,8 @@ export function ModelVersionDetailPage() {
             <dl>
               <div><dt>학습 Run</dt><dd>#{model.training_run_id}</dd></div>
               <div><dt>학습 데이터셋</dt><dd title={model.dataset_version}>{model.dataset_version}</dd></div>
-              <div><dt>등록 시각</dt><dd>{formatDate(model.created_at)}</dd></div>
-              <div><dt>실제 처리</dt><dd>{model.usage.processed_transaction_count > 0 ? `${numberFormat.format(model.usage.processed_transaction_count)}건` : "운영 이력 없음"}</dd></div>
+              <div><dt>학습 요청 시각</dt><dd>{formatDate(model.created_at)}</dd></div>
+              <div><dt>실제 처리</dt><dd>{model.usage.processed_transaction_count > 0 ? `${numberFormat.format(model.usage.processed_transaction_count)}건` : "처리 기록 없음"}</dd></div>
             </dl>
           </header>
 
@@ -212,7 +227,7 @@ export function ModelVersionDetailPage() {
                 <div><dt>평균 응답</dt><dd>{model.usage.average_latency_ms === null ? "—" : `${numberFormat.format(model.usage.average_latency_ms)}ms`}</dd></div>
               </dl>
               <p className="model-version-period">
-                처리 기간 · {model.usage.first_inference_at ? formatDate(model.usage.first_inference_at) : "이력 없음"}
+                처리 기간 · {model.usage.first_inference_at ? formatDate(model.usage.first_inference_at) : "기록 없음"}
                 {model.usage.latest_inference_at ? ` ~ ${formatDate(model.usage.latest_inference_at)}` : ""}
               </p>
             </article>
@@ -226,13 +241,40 @@ export function ModelVersionDetailPage() {
                 <small>담당자 판정이 있는 거래는 예측 결과와 나란히 비교합니다.</small>
               </div>
               <div aria-label="거래 라벨 필터" className="model-transaction-filters" role="group">
-                <button className={labelFilter === "ALL" ? "active" : undefined} onClick={() => setLabelFilter("ALL")} type="button">전체</button>
-                <button className={labelFilter === "LABELED" ? "active" : undefined} onClick={() => setLabelFilter("LABELED")} type="button">라벨 있음</button>
-                <button className={labelFilter === "MISMATCH" ? "active" : undefined} onClick={() => setLabelFilter("MISMATCH")} type="button">불일치만</button>
+                <button
+                  aria-pressed={labelFilter === "ALL"}
+                  className={labelFilter === "ALL" ? "active" : undefined}
+                  onClick={() => { setLabelFilter("ALL"); setPage(1); }}
+                  type="button"
+                >
+                  전체
+                </button>
+                <button
+                  aria-pressed={labelFilter === "LABELED"}
+                  className={labelFilter === "LABELED" ? "active" : undefined}
+                  onClick={() => { setLabelFilter("LABELED"); setPage(1); }}
+                  type="button"
+                >
+                  라벨 있음
+                </button>
+                <button
+                  aria-pressed={labelFilter === "MISMATCH"}
+                  className={labelFilter === "MISMATCH" ? "active" : undefined}
+                  onClick={() => { setLabelFilter("MISMATCH"); setPage(1); }}
+                  type="button"
+                >
+                  불일치만
+                </button>
               </div>
             </header>
             <div className={`model-transaction-table-wrap ${isTransactionsLoading ? "loading" : ""}`}>
-              <table className="model-transaction-table">
+              {transactionsError ? (
+                <div className="model-catalog-empty">
+                  <strong>처리 거래를 불러오지 못했습니다.</strong>
+                  <span>{transactionsError}</span>
+                  <button className="admin-button" onClick={() => setTransactionsAttempt((current) => current + 1)} type="button">다시 불러오기</button>
+                </div>
+              ) : <table className="model-transaction-table">
                 <thead>
                   <tr>
                     <th>거래 ID</th>
@@ -265,11 +307,11 @@ export function ModelVersionDetailPage() {
                     </tr>
                   ))}
                 </tbody>
-              </table>
-              {!isTransactionsLoading && transactions?.items.length === 0 && (
+              </table>}
+              {!transactionsError && !isTransactionsLoading && transactions?.items.length === 0 && (
                 <div className="model-catalog-empty">
-                  <strong>{model.usage.processed_transaction_count > 0 ? "조건에 맞는 거래가 없습니다." : "운영 이력이 없습니다."}</strong>
-                  <span>{model.usage.processed_transaction_count > 0 ? "다른 비교 조건을 선택해보세요." : "이 모델이 운영 요청을 처리하면 여기에 기록됩니다."}</span>
+                  <strong>{model.usage.processed_transaction_count > 0 ? "조건에 맞는 거래가 없습니다." : "처리 기록이 없습니다."}</strong>
+                  <span>{model.usage.processed_transaction_count > 0 ? "다른 비교 조건을 선택해보세요." : "이 모델이 추론 요청을 처리하면 여기에 기록됩니다."}</span>
                 </div>
               )}
             </div>

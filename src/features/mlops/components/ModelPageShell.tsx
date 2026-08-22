@@ -39,6 +39,7 @@ export function ModelPageShell({
         <nav aria-label="모델 관리 메뉴" className="model-section-nav">
           {sections.map((section) => (
             <Link
+              aria-current={section.id === activeSection ? "page" : undefined}
               className={section.id === activeSection ? "active" : undefined}
               key={section.id}
               to={section.to}

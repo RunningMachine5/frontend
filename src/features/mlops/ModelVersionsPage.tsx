@@ -1,9 +1,9 @@
 // 학습이 완료되어 MLflow에 등록된 모델을 운영·처리 이력과 함께 찾는다.
 
 import { useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 
-import { AdminAlert } from "../admin/AdminAlert";
+import { ModelLoadError } from "./components/ModelLoadError";
 import { ModelLoadingStatus } from "./components/ModelLoadingStatus";
 import { ModelPageShell } from "./components/ModelPageShell";
 import {
@@ -24,9 +24,23 @@ type CatalogSort = "LATEST" | "PROCESSED" | "AGREEMENT";
 const filters: { value: CatalogFilter; label: string }[] = [
   { value: "ALL", label: "전체" },
   { value: "OPERATED", label: "운영 이력 있음" },
-  { value: "PROCESSED", label: "처리 이력 있음" },
+  { value: "PROCESSED", label: "처리 기록 있음" },
   { value: "LABELED", label: "라벨 비교 가능" },
 ];
+
+function catalogSearchParams(
+  filter: CatalogFilter,
+  sort: CatalogSort,
+  search: string,
+  page: number,
+) {
+  const params = new URLSearchParams();
+  if (filter !== "ALL") params.set("filter", filter);
+  if (sort !== "LATEST") params.set("sort", sort);
+  if (search) params.set("search", search);
+  if (page > 1) params.set("page", String(page));
+  return params;
+}
 
 function matchesFilter(model: ModelVersionSummary, filter: CatalogFilter) {
   if (filter === "OPERATED") {
@@ -40,7 +54,7 @@ function matchesFilter(model: ModelVersionSummary, filter: CatalogFilter) {
 function usageText(model: ModelVersionSummary) {
   return model.usage.processed_transaction_count > 0
     ? `${numberFormat.format(model.usage.processed_transaction_count)}건`
-    : "운영 이력 없음";
+    : "처리 기록 없음";
 }
 
 function agreementText(model: ModelVersionSummary) {
@@ -57,33 +71,47 @@ function labelSampleText(model: ModelVersionSummary) {
 }
 
 export function ModelVersionsPage() {
+  const [urlParams, setUrlParams] = useSearchParams();
   const [models, setModels] = useState<ModelVersionSummary[]>([]);
-  const [filter, setFilter] = useState<CatalogFilter>("ALL");
-  const [sort, setSort] = useState<CatalogSort>("LATEST");
-  const [search, setSearch] = useState("");
-  const [page, setPage] = useState(1);
+  const [filter, setFilter] = useState<CatalogFilter>(() => {
+    const value = urlParams.get("filter");
+    return filters.some((item) => item.value === value) ? value as CatalogFilter : "ALL";
+  });
+  const [sort, setSort] = useState<CatalogSort>(() => {
+    const value = urlParams.get("sort");
+    return value === "PROCESSED" || value === "AGREEMENT" ? value : "LATEST";
+  });
+  const [search, setSearch] = useState(() => urlParams.get("search") ?? "");
+  const [page, setPage] = useState(() => {
+    const value = Number(urlParams.get("page"));
+    return Number.isInteger(value) && value > 0 ? value : 1;
+  });
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [loadAttempt, setLoadAttempt] = useState(0);
 
   useEffect(() => {
     let active = true;
-    void fetchModelVersions()
+    setIsLoading(true);
+    setLoadError(null);
+    void fetchModelVersions(loadAttempt > 0)
       .then((response) => {
         if (!active) return;
         setModels(response);
-        setError(null);
       })
       .catch((cause) => {
         if (!active) return;
-        setError(cause instanceof Error ? cause.message : "모델 목록을 불러오지 못했습니다.");
+        setLoadError(cause instanceof Error ? cause.message : "모델 목록을 불러오지 못했습니다.");
       })
       .finally(() => {
         if (active) setIsLoading(false);
       });
     return () => { active = false; };
-  }, []);
+  }, [loadAttempt]);
 
-  useEffect(() => setPage(1), [filter, search, sort]);
+  useEffect(() => {
+    setUrlParams(catalogSearchParams(filter, sort, search, page), { replace: true });
+  }, [filter, page, search, setUrlParams, sort]);
 
   const visibleModels = useMemo(() => {
     const keyword = search.trim().toLowerCase();
@@ -115,6 +143,9 @@ export function ModelVersionsPage() {
 
   const pageCount = Math.max(1, Math.ceil(visibleModels.length / PAGE_SIZE));
   const currentPage = Math.min(page, pageCount);
+  useEffect(() => {
+    if (page !== currentPage) setPage(currentPage);
+  }, [currentPage, page]);
   const pageModels = visibleModels.slice(
     (currentPage - 1) * PAGE_SIZE,
     currentPage * PAGE_SIZE,
@@ -125,15 +156,22 @@ export function ModelVersionsPage() {
     model.usage.processed_transaction_count > 0).length;
   const labeledCount = models.filter((model) =>
     model.usage.labeled_transaction_count > 0).length;
+  const catalogQuery = catalogSearchParams(filter, sort, search, currentPage).toString();
 
   return (
     <ModelPageShell activeSection="versions">
-      {error && <AdminAlert message={error} onDismiss={() => setError(null)} tone="error" />}
       {isLoading ? (
         <ModelLoadingStatus
           description="MLflow 등록 버전과 실제 거래 처리 이력을 연결하고 있습니다."
           label="MODEL CATALOG"
           title="저장된 모델을 불러오고 있습니다"
+        />
+      ) : loadError ? (
+        <ModelLoadError
+          description={loadError}
+          label="MODEL CATALOG"
+          onRetry={() => setLoadAttempt((current) => current + 1)}
+          title="저장된 모델을 불러오지 못했습니다"
         />
       ) : (
         <section className="model-catalog-workspace">
@@ -141,7 +179,7 @@ export function ModelVersionsPage() {
             <div>
               <p className="admin-eyebrow">MODEL CATALOG</p>
               <h2>저장된 모델</h2>
-              <p>학습된 모델의 성능과 실제 운영 이력을 찾아 비교합니다.</p>
+              <p>학습된 모델의 성능과 실제 처리 기록을 찾아 비교합니다.</p>
             </div>
             <dl>
               <div><dt>등록 모델</dt><dd>{numberFormat.format(models.length)}</dd></div>
@@ -159,7 +197,7 @@ export function ModelVersionsPage() {
                     aria-pressed={filter === item.value}
                     className={filter === item.value ? "active" : undefined}
                     key={item.value}
-                    onClick={() => setFilter(item.value)}
+                    onClick={() => { setFilter(item.value); setPage(1); }}
                     type="button"
                   >
                     {item.label}
@@ -170,15 +208,17 @@ export function ModelVersionsPage() {
                 <label>
                   <span>모델 검색</span>
                   <input
-                    onChange={(event) => setSearch(event.target.value)}
-                    placeholder="버전, Run, 데이터셋"
+                    autoComplete="off"
+                    name="model-search"
+                    onChange={(event) => { setSearch(event.target.value); setPage(1); }}
+                    placeholder="버전, Run, 데이터셋…"
                     type="search"
                     value={search}
                   />
                 </label>
                 <label>
                   <span>정렬</span>
-                  <select onChange={(event) => setSort(event.target.value as CatalogSort)} value={sort}>
+                  <select onChange={(event) => { setSort(event.target.value as CatalogSort); setPage(1); }} value={sort}>
                     <option value="LATEST">최신 모델순</option>
                     <option value="PROCESSED">처리 건수순</option>
                     <option value="AGREEMENT">라벨 일치율순</option>
@@ -224,7 +264,7 @@ export function ModelVersionsPage() {
                         <small>
                           {model.usage.latest_inference_at
                             ? `최근 ${formatDate(model.usage.latest_inference_at)}`
-                            : "운영 요청을 처리한 기록이 없습니다."}
+                            : "처리 기록이 없습니다."}
                         </small>
                       </td>
                       <td data-label="라벨 비교">
@@ -234,7 +274,11 @@ export function ModelVersionsPage() {
                         </small>
                       </td>
                       <td data-label="상세">
-                        <Link className="model-catalog-open" to={`/models/versions/${model.training_run_id}`}>
+                        <Link
+                          className="model-catalog-open"
+                          state={{ catalogSearch: catalogQuery ? `?${catalogQuery}` : "" }}
+                          to={`/models/versions/${model.training_run_id}`}
+                        >
                           열기 →
                         </Link>
                       </td>
