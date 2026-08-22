@@ -765,6 +765,38 @@
   .monitoring-detail-panel>a,
   .monitoring-detail-panel>p,
   .monitoring-detail-empty{font-size:13px}
+
+  /* 관리 화면의 밀도는 유지하면서 분석 화면과 비슷한 전체 크기로 맞춘다. */
+  .admin-page .app-page-header{min-height:76px;flex-basis:76px;padding-bottom:12px}
+  .admin-page .admin-button{min-height:40px;padding-right:16px;padding-left:16px}
+  .admin-page .admin-button.compact{min-height:36px;padding-right:13px;padding-left:13px}
+  .admin-panel{border-radius:14px}
+  .panel-title{padding:15px 17px}
+
+  .rule-section-nav,
+  .model-section-nav{height:48px;flex-basis:48px}
+  .rule-section-nav button,
+  .model-section-nav a{height:40px;padding-right:18px;padding-left:18px}
+  .model-section-content{margin-top:16px;gap:14px}
+
+  .rule-workspace,
+  .rule-verify-workspace{gap:10px}
+  .version-list{padding:10px;gap:8px}
+  .version-list button{padding:12px}
+  .rule-tabs{padding:9px 12px 0;gap:6px}
+  .rule-tabs button{min-height:34px;padding-right:13px;padding-left:13px}
+  .component-list{padding:10px;gap:8px;grid-auto-rows:minmax(150px,max-content)}
+  .component-row{padding:13px 15px 17px}
+
+  .workflow-rail{margin:14px 0}
+  .workflow-step{min-height:86px;padding:14px 16px}
+  .monitoring-service-rail{gap:10px}
+  .monitoring-service-rail button{min-height:96px;padding:15px 18px 14px}
+  .monitoring-summary-grid{gap:10px}
+  .monitoring-summary-grid article{padding:14px 16px}
+  .monitoring-chart-grid{gap:10px}
+  .monitoring-chart-panel,
+  .monitoring-detail-panel{padding:15px 17px}
 }
 
 @media(max-width:620px){
