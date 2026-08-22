@@ -683,4 +683,7 @@
     white-space:nowrap;
   }
   .channel-total-badge strong{font-size:14px}
+
+  /* 마지막 비교 행도 카드 테두리에 붙지 않도록 하단 여백을 유지한다. */
+  .agent-panel{padding-bottom:14px}
 }
