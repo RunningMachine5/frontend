@@ -86,8 +86,7 @@
 }
 
 .rule-tabs .rule-type-add-button {
-  min-height: 30px;
-  margin: 2px 0 4px 4px;
+  margin-left: 4px;
   border: 1px solid var(--ops-focus);
   border-radius: 7px;
   background: var(--ops-focus);
