@@ -1,4 +1,4 @@
-// EventSource로 SSE 수신 후 overview 재조회
+// 거래 SSE는 화면에 즉시 반영하고, 기존 알림은 전체 조회로 보정한다.
 
 import { useEffect, useState } from "react";
 
@@ -9,6 +9,13 @@ import {
     type DashOverviewParams,
 } from "./DashboardOverviewApi";
 import type { DashboardOverviewResponse, RecentTransaction } from "./dashboardOverviewTypes";
+import {
+    applyDashboardTransactionPatch,
+    parseDashboardTransactionPatch,
+    type DashboardTransactionPatch,
+    upsertRealtimeRiskRow,
+    upsertRecentTransaction,
+} from "./dashboardPatch";
 import { fetchQueueRows } from "../queue/queueApi";
 import type { CaseListItem } from "../queue/queueTypes";
 
@@ -36,6 +43,28 @@ export function useDashboardOverview(params: DashOverviewParams){
         let refreshTimer: number | null = null;
         let isRefreshRunning = false;
         let refreshPending = false;
+        let hasConnected = false;
+        const seenEventIds = new Set<string>();
+        const seenTransactionIds = new Set<number>();
+        const patchesDuringRefresh = new Map<number, DashboardTransactionPatch>();
+
+        function applyTransactionPatch(patch: DashboardTransactionPatch) {
+            const suspiciousCase = patch.suspicious_case;
+            setRecentTransactions((current) =>
+                upsertRecentTransaction(current, patch.transaction),
+            );
+            setData((current) =>
+                current
+                    ? applyDashboardTransactionPatch(current, patch)
+                    : current,
+            );
+
+            if (suspiciousCase) {
+                setRealtimeRiskRows((current) =>
+                    upsertRealtimeRiskRow(current, suspiciousCase),
+                );
+            }
+        }
 
         async function loadOverview(generateIfMissing = false){
             try {
@@ -53,9 +82,48 @@ export function useDashboardOverview(params: DashOverviewParams){
                     return;
                 }
 
-                setData(overview);
-                setRealtimeRiskRows(riskRows.items);
-                setRecentTransactions(recentTransactions);
+                const latestSnapshotTransactionId = recentTransactions.reduce(
+                    (latest, transaction) =>
+                        Math.max(latest, transaction.transaction_id),
+                    0,
+                );
+                const patchesMissingFromSnapshot = [
+                    ...patchesDuringRefresh.values(),
+                ].filter(
+                    (patch) =>
+                        patch.transaction.transaction_id >
+                        latestSnapshotTransactionId,
+                );
+
+                let nextOverview = overview;
+                let nextRiskRows = riskRows.items;
+                let nextRecentTransactions = recentTransactions;
+
+                for (const patch of patchesMissingFromSnapshot) {
+                    nextOverview = applyDashboardTransactionPatch(
+                        nextOverview,
+                        patch,
+                    );
+                    nextRecentTransactions = upsertRecentTransaction(
+                        nextRecentTransactions,
+                        patch.transaction,
+                    );
+                    if (patch.suspicious_case) {
+                        nextRiskRows = upsertRealtimeRiskRow(
+                            nextRiskRows,
+                            patch.suspicious_case,
+                        );
+                    }
+                }
+
+                for (const transaction of nextRecentTransactions) {
+                    seenTransactionIds.add(transaction.transaction_id);
+                    seenEventIds.add(`transaction:${transaction.transaction_id}`);
+                }
+
+                setData(nextOverview);
+                setRealtimeRiskRows(nextRiskRows);
+                setRecentTransactions(nextRecentTransactions);
                 setErrorMessage(null);
 
                 // 첫 조회에 해당 기간 요약이 없을 때만 한 번 생성한다.
@@ -63,12 +131,15 @@ export function useDashboardOverview(params: DashOverviewParams){
                     const insight = await generateDashboardInsight(params);
 
                     if (isActive) {
-                        setData({
-                            ...overview,
-                            agent_insight: insight,
-                        });
+                        setData((current) =>
+                            current
+                                ? { ...current, agent_insight: insight }
+                                : current,
+                        );
                     }
                 }
+
+                patchesDuringRefresh.clear();
             }catch(error){
                 if(isActive){
                     setErrorMessage(
@@ -113,11 +184,47 @@ export function useDashboardOverview(params: DashOverviewParams){
             );
         }
 
+        function handleDashboardUpdated(event: Event) {
+            if (!(event instanceof MessageEvent)) {
+                scheduleRefresh();
+                return;
+            }
+
+            const patch = parseDashboardTransactionPatch(event.data);
+            if (!patch) {
+                scheduleRefresh();
+                return;
+            }
+
+            const transactionId = patch.transaction.transaction_id;
+            if (
+                seenEventIds.has(patch.event_id) ||
+                seenTransactionIds.has(transactionId)
+            ) {
+                return;
+            }
+
+            seenEventIds.add(patch.event_id);
+            seenTransactionIds.add(transactionId);
+            if (isRefreshRunning) {
+                patchesDuringRefresh.set(transactionId, patch);
+            }
+            applyTransactionPatch(patch);
+        }
+
+        function handleOpen() {
+            if (hasConnected) {
+                scheduleRefresh();
+            }
+            hasConnected = true;
+        }
+
         // 화면 첫 진입 시 overview 조회
         void runRefresh(true);
 
         const eventSource = new EventSource("/api/dashboard/events");
-        eventSource.addEventListener("dashboard_updated", scheduleRefresh);
+        eventSource.addEventListener("dashboard_updated", handleDashboardUpdated);
+        eventSource.addEventListener("open", handleOpen);
 
         return () => {
             isActive = false;
