@@ -326,10 +326,7 @@
   .realtime-risk-panel .trend-stat-badge,
   .time-interval-toggle button{font-size:12px}
   .queue-table-column th{font-size:13px}
-  .queue-table-column td{font-size:14px}
-  .queue-dual-table-wrap{align-items:start;overflow-x:hidden;overflow-y:auto}
-  .queue-table-column{overflow:visible}
-  .queue-table-column th{position:sticky;top:0;z-index:1}
+  .queue-table-column td{height:33px;font-size:14px}
   .grade,
   .queue-detail,
   .queue-pagination span{font-size:13px}
