@@ -56,7 +56,7 @@
 
 /* 데스크톱에서는 표만 남은 높이를 사용하고, 페이지 자체는 한 화면에 고정한다. */
 @media(min-width:1440px) and (min-height:800px){
-  .queue-content{height:100vh;padding:20px 28px;display:flex;flex-direction:column;overflow:hidden}
+  .queue-content{height:100vh;padding:var(--ops-page-padding-wide);display:flex;flex-direction:column;overflow:hidden}
   .queue-header{min-height:60px;flex:0 0 60px;padding-bottom:8px}
   .queue-header h1{margin:3px 0;font-size:26px}
   .queue-filter{flex:0 0 auto;margin:8px 0 6px;padding:8px 14px}
@@ -99,7 +99,7 @@
 
 /* 룰·모델 관리처럼 중간 화면에서는 간격을 줄이고 헤더가 자연스럽게 줄바꿈된다. */
 @media(min-width:821px) and (max-width:1439px){
-  .queue-content{width:100%;padding:24px}
+  .queue-content{width:100%;padding:var(--ops-page-padding-desktop)}
   .queue-header{min-width:0;min-height:88px;align-items:center;padding-bottom:14px}
   .queue-filter{gap:10px;margin:14px 0 10px;padding:14px}
   .queue-panel{padding:15px}

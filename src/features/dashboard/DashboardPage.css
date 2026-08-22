@@ -142,7 +142,7 @@
 
 /* 1. 데스크톱 와이드 (1440px 이상, 1080p 전체화면) - 스크롤 없이 한 화면에 완벽 핏 & 가독성 높은 폰트 */
 @media(min-width:1440px) and (min-height:760px){
-  .dashboard-content{height:100vh;position:relative;padding:14px 22px;display:flex;flex-direction:column;gap:8px;overflow:hidden}
+  .dashboard-content{height:100vh;position:relative;padding:var(--ops-page-padding-wide);display:flex;flex-direction:column;gap:8px;overflow:hidden}
   .dashboard-header{min-height:48px;padding-bottom:4px;border-bottom:1px solid #3c3c48;display:flex;justify-content:space-between;align-items:center}
   .dashboard-header h1{font-size:25px}
   .eyebrow{font-size:13px}
@@ -232,7 +232,7 @@
 
 /* 2. 일반 데스크톱 / 랩탑 (1081px ~ 1439px) */
 @media(min-width:1081px) and (max-width:1439px){
-  .dashboard-content{width:100%;min-height:100vh;height:auto;padding:20px 24px 40px;overflow-y:auto}
+  .dashboard-content{width:100%;min-height:100vh;height:auto;padding:var(--ops-page-padding-desktop);overflow-y:auto}
   .dashboard-header{min-height:70px;align-items:center}
   .metric-grid{gap:10px;margin:12px 0 14px}
   .metric-card{min-height:92px;padding:12px 14px}

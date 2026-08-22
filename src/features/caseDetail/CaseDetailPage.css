@@ -1229,7 +1229,7 @@
 @media(min-width:1440px){
   .case-content{
     max-width:none;
-    padding:16px 22px 26px;
+    padding:var(--ops-page-padding-wide);
     gap:10px;
     background:
       radial-gradient(circle at 94% 5%,rgb(121 98 140 / 10%),transparent 28%),
@@ -1543,7 +1543,7 @@
 
 /* 크롬 상단 UI가 있는 1920 화면에서는 정보량은 유지하고 세로 간격만 조밀하게 맞춘다. */
 @media(min-width:1600px) and (min-height:760px) and (max-height:1039px){
-  .case-content{gap:8px;padding:12px 18px 14px}
+  .case-content{gap:8px;padding:12px 22px 18px}
   .j-profile-header{min-height:58px;gap:12px;padding:7px 14px}
   .j-workflow-cards{gap:8px}
   .j-workflow-card{min-height:108px;gap:3px;padding:9px 12px}

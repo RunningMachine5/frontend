@@ -78,7 +78,7 @@
  * 데이터가 길어질 수 있는 목록만 각 패널 안에서 스크롤한다.
  */
 @media(min-width:1440px) and (min-height:700px){
-  .admin-page{height:100vh;min-height:0;box-sizing:border-box;padding:20px 28px;display:flex;flex-direction:column;overflow:hidden}
+  .admin-page{height:100vh;min-height:0;box-sizing:border-box;padding:var(--ops-page-padding-wide);display:flex;flex-direction:column;overflow:hidden}
   .panel-title small{font-size:12px;line-height:1.4}
   .admin-actions{padding-top:0}
   .admin-button{min-height:38px;padding:0 15px;font-size:13px}
@@ -124,7 +124,11 @@
 }
 
 @media(max-width:1280px){
-  .admin-page{padding:28px 26px 44px}.rule-workspace{grid-template-columns:180px minmax(430px,1fr)}.rule-edit-workspace{grid-template-columns:180px minmax(0,1fr)}.rule-verify-workspace{grid-template-columns:1fr}.verify-actions{grid-template-columns:repeat(4,1fr)}.verification-summary-grid{grid-template-columns:repeat(5,minmax(0,1fr))}.verification-summary-grid>div.summary-primary{grid-column:auto;display:block}.verification-summary-grid .summary-primary dd{margin:6px 0 4px;font-size:17px}
+  .admin-page{padding:var(--ops-page-padding-desktop)}.rule-workspace{grid-template-columns:180px minmax(430px,1fr)}.rule-edit-workspace{grid-template-columns:180px minmax(0,1fr)}.rule-verify-workspace{grid-template-columns:1fr}.verify-actions{grid-template-columns:repeat(4,1fr)}.verification-summary-grid{grid-template-columns:repeat(5,minmax(0,1fr))}.verification-summary-grid>div.summary-primary{grid-column:auto;display:block}.verification-summary-grid .summary-primary dd{margin:6px 0 4px;font-size:17px}
+}
+
+@media(min-width:1281px) and (max-width:1439px){
+  .admin-page{padding:var(--ops-page-padding-desktop)}
 }
 
 @media(max-width:960px){

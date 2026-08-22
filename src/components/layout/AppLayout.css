@@ -1,4 +1,7 @@
 .app-layout{
+    --ops-page-padding-desktop:20px 24px 40px;
+    --ops-page-padding-wide:16px 22px 22px;
+    --ops-panel-radius:14px;
     display:flex;
     min-height:100vh;
     background:#101319;
@@ -153,6 +156,11 @@
 
 @media(prefers-reduced-motion:reduce){
   .ops-loading-skeleton::after{animation:none}
+}
+
+/* 관리·분석 화면의 제목 영역 높이를 맞춰 페이지 전환 시 기준선이 흔들리지 않게 한다. */
+@media(min-width:1180px){
+    .app-layout .app-page-header{min-height:76px;flex-basis:76px;padding-bottom:12px}
 }
 
 @media(max-width:820px){

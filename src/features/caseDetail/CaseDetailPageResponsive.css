@@ -9,7 +9,7 @@
 .j-meta-highlight { overflow-wrap: anywhere; }
 
 @media (max-width: 1440px) {
-  .case-content { width: 100%; max-width: none; padding: 20px 18px 32px; }
+  .case-content { width: 100%; max-width: none; padding: var(--ops-page-padding-desktop); }
   .j-dashboard-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }

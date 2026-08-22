@@ -50,3 +50,9 @@
 .case-analysis-nav a:hover{background:var(--ops-surface);color:var(--ops-text)}
 .case-analysis-nav a.active{box-shadow:inset 0 -2px var(--ops-focus);background:var(--ops-focus-soft);color:var(--ops-text)}
 .case-analysis-nav a:focus-visible{outline-color:var(--ops-focus)}
+
+/* 관리 화면과 같은 크기의 탭을 사용해 업무 화면 사이 전환 감각을 통일한다. */
+@media(min-width:1180px){
+  .case-analysis-nav{height:48px;flex-basis:48px}
+  .case-analysis-nav a{height:40px;padding:0 18px;font-size:16px}
+}
