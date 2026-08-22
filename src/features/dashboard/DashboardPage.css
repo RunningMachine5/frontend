@@ -576,6 +576,15 @@
     border:1px solid var(--ops-line);
     border-radius:4px;
   }
+  .realtime-all-meta{
+    flex-direction:row;
+    align-items:center;
+    flex-wrap:nowrap;
+  }
+  .realtime-all-panel>.panel-head{flex-wrap:wrap}
+  .realtime-all-panel>.panel-head>.panel-caption{flex:0 0 100%}
+  .monitoring-top-row>.priority-panel{justify-content:flex-start}
+  .monitoring-top-row .trend-chart-wrap{margin-top:0}
 }
 
 @media(min-width:1600px) and (min-height:900px){

@@ -21,10 +21,7 @@ export function AllTransactionTrendPanel({
   return (
     <article className="panel priority-panel realtime-all-panel">
       <div className="panel-head">
-        <div>
-          <h2>실시간 전체 거래 반영 현황</h2>
-          <p className="panel-caption">정상·사기 의심 거래를 서버 수신 시각 기준으로 함께 표시합니다.</p>
-        </div>
+        <h2>실시간 전체 거래 반영 현황</h2>
         <div className="realtime-all-meta">
           <div className="time-interval-toggle" role="group" aria-label="시간 단위 선택">
             <button
@@ -52,6 +49,7 @@ export function AllTransactionTrendPanel({
             의심 <strong className="score-text">{suspiciousCount}건</strong>
           </span>
         </div>
+        <p className="panel-caption">정상·사기 의심 거래를 서버 수신 시각 기준으로 함께 표시합니다.</p>
       </div>
 
       {items.length > 0 ? (
