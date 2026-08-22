@@ -518,3 +518,29 @@
 
 /* SSE 수신 후 실제 데이터를 다시 읽었을 때만 짧게 강조한다. */
 .live-green-dot{animation:none}
+
+/* 1920 시연 화면에서 차트 안의 최소 글자를 읽을 수 있는 크기로 맞춘다. */
+@media(min-width:1600px) and (min-height:900px){
+  .metric-card small,
+  .risk-panel footer,
+  .agent-summary-head span,
+  .agent-graph-legend,
+  .growth-tag,
+  .increase-count-tag,
+  .amount-tag,
+  .bar-sub-row,
+  .channel-stat-row,
+  .channel-ratio,
+  .channel-count,
+  .channel-amount{font-size:12px}
+  .chart-axis,
+  .amount-axis,
+  .score-axis,
+  .bar-date-label,
+  .bar-period-tag{font-size:11px}
+  .chart-value,
+  .chart-amount-label,
+  .bar-count-label,
+  .bar-amount-label,
+  .bar-val{font-size:12px}
+}

@@ -292,3 +292,30 @@
 :root[data-theme="light"] .realtime-risk-panel .trend-stat-badge strong.score-text{color:var(--ops-critical)}
 :root[data-theme="light"] .queue-filter-actions button:last-child{border-color:var(--ops-focus);background:var(--ops-focus);color:#fff}
 :root[data-theme="light"] .queue-pagination button:disabled{border-color:var(--ops-disabled-line);background:var(--ops-disabled-bg);color:var(--ops-disabled-text);opacity:1}
+
+/* 1920 시연 화면에서는 한 화면 구성을 유지하면서 표와 보조 문구를 한 단계 키운다. */
+@media(min-width:1600px) and (min-height:900px){
+  .queue-header p,
+  .queue-panel-head p,
+  .queue-filter label,
+  .queue-risk-grade-filter legend,
+  .queue-summary span,
+  .queue-panel-head>span{font-size:13px}
+  .queue-header span,
+  .queue-panel-sub-desc,
+  .queue-filter input,
+  .queue-filter-actions button,
+  .queue-pagination button{font-size:14px}
+  .queue-summary strong{font-size:20px}
+  .queue-panel-head h2{font-size:19px}
+  .realtime-risk-panel .trend-panel-meta,
+  .realtime-risk-panel .live-status-tag,
+  .realtime-risk-panel .trend-series-label,
+  .realtime-risk-panel .trend-stat-badge,
+  .time-interval-toggle button{font-size:12px}
+  .queue-table-column th{font-size:13px}
+  .queue-table-column td{font-size:14px}
+  .grade,
+  .queue-detail,
+  .queue-pagination span{font-size:13px}
+}
