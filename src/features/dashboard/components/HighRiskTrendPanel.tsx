@@ -281,10 +281,22 @@ export function RealtimeRiskTrendChart({
                 y1={y}
                 y2={y}
               />
-              <text className="chart-axis amount-axis" textAnchor="end" x={padding.left - 10} y={y + 4}>
+              <text
+                className="chart-axis amount-axis"
+                dominantBaseline="middle"
+                textAnchor="middle"
+                x={padding.left / 2}
+                y={y}
+              >
                 {formatCompactMoney(leftAmountVal)}
               </text>
-              <text className="chart-axis score-axis" textAnchor="start" x={width - padding.right + 10} y={y + 4}>
+              <text
+                className="chart-axis score-axis"
+                dominantBaseline="middle"
+                textAnchor="middle"
+                x={width - padding.right / 2}
+                y={y}
+              >
                 {rightScoreVal}점
               </text>
             </g>
