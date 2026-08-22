@@ -1,7 +1,7 @@
 // 고객 대응 챗봇 화면 (/chat/:chatSessionId).
 // 흐름은 PRD 2.2~2.6, 화면 골격은 디자인 원본 Chat.dc.html 의 390x844 카드다.
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import { useParams } from "react-router-dom";
 
 import { chatSizes } from "./chatbotSizes";
@@ -27,22 +27,25 @@ function ChatbotSession({ chatSessionId }: { chatSessionId: string }) {
     const {
         phase,
         status,
+        conversationPhase,
+        inputMode,
+        questionId,
+        quickReplies,
         isOlder,
-        fraudType,
         bubbles,
+        uiEvent,
         verifyBusy,
         verifyError,
         isTyping,
+        turnBusy,
         turnError,
         verify,
-        selectAction,
+        selectQuickReply,
         sendAnswer,
+        dismissUiEvent,
     } = useChatSession(chatSessionId);
 
     const scrollRef = useRef<HTMLDivElement>(null);
-
-    // 헤더 알림 버튼으로 여는 사기 유형 안내 팝업.
-    const [alertOpen, setAlertOpen] = useState(false);
 
     // 고령자 세션이면 글씨·여백·버튼을 한 단계 키운다(PRD 2.2 의 is_older).
     // 인증 전에는 is_older 를 모르므로 본인인증 화면은 기본 크기 그대로다.
@@ -86,19 +89,16 @@ function ChatbotSession({ chatSessionId }: { chatSessionId: string }) {
 
     return (
         <ChatFrame>
-            <ChatHeader
-                sizes={sizes}
-                fraudType={fraudType}
-                onOpenAlert={() => setAlertOpen(true)}
-            />
+            <ChatHeader sizes={sizes} />
 
             <MessageList
                 scrollRef={scrollRef}
                 bubbles={bubbles}
                 isTyping={isTyping}
-                // 버튼은 최초 알림 직후에만 받는다. 누르는 순간 SUBMITTING 이 되어 사라진다.
-                showActions={status === "URL_SENT"}
-                onSelectAction={selectAction}
+                questionId={inputMode === "QUICK_REPLY" ? questionId : null}
+                quickReplies={quickReplies}
+                turnBusy={turnBusy}
+                onSelectQuickReply={selectQuickReply}
                 sizes={sizes}
             />
 
@@ -110,15 +110,18 @@ function ChatbotSession({ chatSessionId }: { chatSessionId: string }) {
 
             <ChatComposer
                 status={status}
-                isTyping={isTyping}
+                conversationPhase={conversationPhase}
+                inputMode={inputMode}
+                turnBusy={turnBusy}
                 onSend={sendAnswer}
                 sizes={sizes}
             />
 
-            {alertOpen && fraudType && (
+            {uiEvent && (
                 <FraudAlertModal
-                    fraudType={fraudType}
-                    onClose={() => setAlertOpen(false)}
+                    fraudType={uiEvent.confirmed_fraud_type}
+                    message={uiEvent.message}
+                    onClose={dismissUiEvent}
                 />
             )}
         </ChatFrame>

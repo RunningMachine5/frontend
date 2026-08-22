@@ -24,7 +24,7 @@ PRD 2.2~2.6의 **고객 화면 전체 흐름**이다.
 | 2.2 채팅 접속 및 본인인증 | 출생연도 4자리 입력 게이트 → 인증 성공 전환 화면 → 챗봇 화면 |
 | 2.3 최초 알림 메시지와 버튼 | 최초 알림 말풍선 + 버튼 3종, 이때 입력창 비활성화 |
 | 2.4 정보 수집 | 고객 답변 전송, 재질문·다음 질문 안내를 챗봇 말풍선으로 출력 |
-| 2.5 RAG 대응 가이드 | 턴 응답으로 내려온 안내 본문을 그대로 말풍선에 출력 |
+| 2.5 RAG 대응 가이드 | SSE 누적 스냅샷을 임시 말풍선에 즉시 출력 |
 | 2.6 사기 정황 채점 | 화면 표시 없음 — 백엔드 내부 집계다 |
 
 ### 1.2 이번 작업에서 빼는 것
@@ -38,21 +38,41 @@ PRD 2.2~2.6의 **고객 화면 전체 흐름**이다.
 
 ## 2. 백엔드 계약
 
-`backend/app/api/chat.py`의 고객 경로 4개만 쓴다. 응답은 전부 공통 봉투
-`ApiResponse<T>`(`success`/`data`/`error`)이며, 대시보드가 이미 쓰는 것과 같은 형태다.
+`backend/app/api/chat.py`의 고객 경로 4개만 쓴다. 고객 답변 성공 응답만 SSE이고 나머지는
+공통 봉투 `ApiResponse<T>`(`success`/`data`/`error`)다. 고객 답변도 404·409·422처럼 스트림
+시작 전에 끝나는 오류는 같은 JSON 오류 봉투를 유지한다.
 
 | 호출 시점 | 메서드 · 경로 | 응답 |
 | --- | --- | --- |
 | 첫 진입(인증) | `POST /chat/{id}/verify` | `ChatSessionDetailResponse` — 상태 + **전체 이력** |
 | 새로고침·재접속 | `GET /chat/{id}` | `ChatSessionDetailResponse` |
 | 버튼 3종 | `POST /chat/{id}/actions` | `ChatTurnResponse` — **이번 턴 메시지만** |
-| 고객 답변 | `POST /chat/{id}/messages` | `ChatTurnResponse` |
+| 고객 답변 | `POST /chat/{id}/messages` | `text/event-stream` — 스냅샷 + `ChatTurnResponse` 완료 이벤트 |
 
 두 응답 형태의 차이가 화면 로직을 가른다.
 
 - `ChatSessionDetailResponse.messages`는 `ChatMessageResponse[]`(누적 이력)라 **덮어쓴다.**
-- `ChatTurnResponse.messages`는 `string[]`(그 턴의 챗봇 발화)라 **뒤에 덧붙인다.**
+- 버튼의 `ChatTurnResponse.messages`와 메시지 SSE 완료 이벤트의 `messages`는
+  `string[]`(그 턴의 챗봇 발화)다.
 - 고객이 방금 보낸 말은 턴 응답에 들어오지 않는다. 화면이 낙관적으로 먼저 붙인다.
+
+고객 답변은 POST 본문이 필요하므로 `EventSource`를 사용하지 않는다. `fetch()` 응답의
+`ReadableStream`을 읽고, 네트워크 청크 사이에 잘릴 수 있는 `\n\n` 경계를 버퍼로 복원한 뒤
+`event:`와 `data:`를 파싱한다.
+
+```text
+event: chat_turn_started
+data: {"chat_session_id":"CHAT-..."}
+
+event: chat_message_snapshot
+data: {"message_index":0,"message_text":"■ 의심스러운 링크\n공식"}
+
+event: chat_turn_completed
+data: {"chat_session_id":"CHAT-...","status":"IN_PROGRESS","question_step":2,"messages":["최종 가이드","다음 질문"]}
+```
+
+`chat_message_snapshot.message_text`는 델타가 아니라 현재까지 누적된 전체 본문이다.
+`chat_turn_error`가 오거나 완료 전에 연결이 끊기면 실패로 처리한다.
 
 오류 처리:
 
@@ -209,15 +229,17 @@ PRD 2.3은 「챗봇 상담 / 상담사 연결 / 종료」로 부른다. 라벨�
 
 ### 4.1 답변 전송 한 턴
 
-`POST /chat/{id}/messages`는 평가·분해·검색·생성 LLM을 거치므로 응답이 느리다.
-원본의 타이핑 인디케이터를 **실제 대기 표시**로 쓴다.
+`POST /chat/{id}/messages`는 평가·분해·검색·생성 LLM을 거치므로 응답이 느리다. 생성 중인
+가이드는 도착 즉시 보여주되 턴 자체는 완료 이벤트까지 실행 중이다.
 
 1. 입력값을 고객 말풍선으로 즉시 추가하고 입력창을 비운다(낙관적).
-2. 타이핑 인디케이터를 켜고 입력을 잠근다.
-3. 응답의 `messages`를 순서대로 챗봇 말풍선에 붙이고, `status`·`question_step`을 갱신한다.
-4. 실패하면 인디케이터를 끄고 오류 배너를 띄운다. **고객 말풍선은 지우지 않는다** —
-   백엔드가 이미 저장했을 수 있고, 지우면 고객이 같은 말을 두 번 하게 된다.
-   복구는 `GET /chat/{id}` 재조회다.
+2. 타이핑 인디케이터와 턴 실행 잠금을 켠다.
+3. 첫 `chat_message_snapshot`에서 타이핑 점을 숨기고 임시 챗봇 말풍선을 만든다. 이후
+   스냅샷마다 그 말풍선의 텍스트 전체를 교체한다. 입력은 계속 잠겨 있다.
+4. `chat_turn_completed`에서 임시 말풍선을 `messages[0]`으로 확정하고 다음 질문 등
+   `messages[1:]`를 뒤에 붙인 뒤 `status`·`question_step`을 갱신하고 입력 잠금을 푼다.
+5. 실패하면 임시 챗봇 말풍선만 제거하고 오류 배너를 띄운 뒤 `GET /chat/{id}`로 재조회한다.
+   **낙관적으로 추가한 고객 말풍선은 유지한다.**
 
 메시지가 늘어날 때마다 스크롤을 맨 아래로 내린다(원본 `scrollToBottom`).
 
@@ -238,7 +260,7 @@ src/
 ├─ assets/chatbot/                (복사) 햄주임 + 사기 유형 아이콘 4종
 └─ features/chatbot/
    ├─ chatbotTypes.ts             app/dto/chatbot.py 대응 타입
-   ├─ chatbotApi.ts               verify / get / actions / messages + ApiResponse 언랩
+   ├─ chatbotApi.ts               JSON API + POST ReadableStream SSE 파서
    ├─ chatbotSizes.ts             is_older 세션의 크기 표
    ├─ chatbotColors.ts            토큰에 없는 강조색(#FFCC46)
    ├─ useChatSession.ts           상태·이력·턴 실행·오류를 쥔 훅

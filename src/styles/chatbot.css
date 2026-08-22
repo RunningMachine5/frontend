@@ -35,12 +35,6 @@ html:has(.chatbot-page)::-webkit-scrollbar,
   100% { transform: scale(1); opacity: 1; }
 }
 
-/* 사기 유형이 잡힌 헤더 알림 버튼의 빨간 점 */
-@keyframes alertPulse {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(239, 90, 90, 0.45); }
-  50% { box-shadow: 0 0 0 6px rgba(239, 90, 90, 0); }
-}
-
 /* 알림 모달 오버레이 */
 @keyframes fadeIn {
   0% { opacity: 0; }
