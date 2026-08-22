@@ -7,6 +7,8 @@ import type {
   InferencePerformance,
   ModelDetails,
   ModelReview,
+  ModelTransactionPage,
+  ModelVersionSummary,
   PlatformMonitoring,
   PlatformStatus,
   ServingStatus,
@@ -17,6 +19,10 @@ import type {
   TrainingReconcileResult,
   TrainingRun,
 } from "./mlopsTypes";
+
+const MODEL_VERSIONS_CACHE_MS = 60_000;
+let modelVersionsCache: { value: ModelVersionSummary[]; updatedAt: number } | null = null;
+let modelVersionsRequest: Promise<ModelVersionSummary[]> | null = null;
 
 export const fetchDatasets = () =>
   adminRequest<DatasetVersion[]>("/mlops/datasets");
@@ -70,6 +76,42 @@ export const fetchModelReview = (runId: number) =>
     method: "POST",
   });
 
+// 모델별 거래 통계 집계는 무거워서 세 모델 화면이 같은 60초 결과를 공유한다.
+export async function fetchModelVersions(force = false) {
+  if (
+    !force
+    && modelVersionsCache
+    && Date.now() - modelVersionsCache.updatedAt < MODEL_VERSIONS_CACHE_MS
+  ) {
+    return modelVersionsCache.value;
+  }
+  if (modelVersionsRequest) return modelVersionsRequest;
+
+  modelVersionsRequest = adminRequest<ModelVersionSummary[]>("/mlops/models")
+    .then((value) => {
+      modelVersionsCache = { value, updatedAt: Date.now() };
+      return value;
+    });
+  try {
+    return await modelVersionsRequest;
+  } finally {
+    modelVersionsRequest = null;
+  }
+}
+
+function clearModelVersionsCache() {
+  modelVersionsCache = null;
+}
+
+export const fetchModelTransactions = (
+  runId: number,
+  labelFilter: "ALL" | "LABELED" | "MISMATCH",
+  page: number,
+  pageSize = 10,
+) => adminRequest<ModelTransactionPage>(
+  `/mlops/models/${runId}/transactions?label_filter=${labelFilter}&page=${page}&page_size=${pageSize}`,
+);
+
 export const decideModel = (
   runId: number,
   decision: "APPROVE" | "REJECT",
@@ -77,7 +119,18 @@ export const decideModel = (
 ) => adminRequest<TrainingActionResult>(`/mlops/training/runs/${runId}/decision`, {
   method: "POST",
   body: JSON.stringify({ decision, reason: reason || null, restage: false }),
+}).then((result) => {
+  clearModelVersionsCache();
+  return result;
 });
+
+export const reactivateModel = (runId: number) =>
+  adminRequest<TrainingActionResult>(`/mlops/training/runs/${runId}/reactivate`, {
+    method: "POST",
+  }).then((result) => {
+    clearModelVersionsCache();
+    return result;
+  });
 
 export const fetchServingStatus = () =>
   adminRequest<ServingStatus>("/mlops/serving/status");
@@ -112,10 +165,16 @@ export const promoteModel = (runId: number) =>
   adminRequest<TrainingActionResult>("/mlops/serving/promotions", {
   method: "POST",
   body: JSON.stringify({ training_run_id: runId }),
+}).then((result) => {
+  clearModelVersionsCache();
+  return result;
 });
 
 export const completeDeployment = (runId: number, operationId: string) =>
   adminRequest<TrainingActionResult>(`/mlops/training/runs/${runId}/deployment/complete`, {
     method: "POST",
     body: JSON.stringify({ operation_id: operationId || null }),
+  }).then((result) => {
+    clearModelVersionsCache();
+    return result;
   });

@@ -1,6 +1,11 @@
 // 모델 운영 화면들이 함께 사용하는 상태 이름과 표시 형식을 모은다.
 
-import type { ModelDetails, ServingStatus, TrainingRun } from "./mlopsTypes";
+import type {
+  ModelDetails,
+  ModelUsageSummary,
+  ServingStatus,
+  TrainingRun,
+} from "./mlopsTypes";
 
 export const STATUS_LABELS: Record<string, string> = {
   REQUESTED: "요청됨",
@@ -15,7 +20,7 @@ export const STATUS_LABELS: Record<string, string> = {
   DEPLOYMENT_FAILED: "운영 반영 실패",
 };
 
-export type TrainingDisplayStatus = TrainingRun["status"] | "RETIRED";
+export type TrainingDisplayStatus = TrainingRun["status"];
 
 // 학습 이력 API는 최신 Run부터 반환하므로 첫 PRODUCTION을 현재 운영 Run으로 본다.
 export function findCurrentProductionRun(runs: TrainingRun[]) {
@@ -66,6 +71,18 @@ export const COMPARISON_METRICS = [
   { label: "Precision", keys: ["validation_precision"], lowerIsBetter: false },
   { label: "FPR", keys: ["validation_fpr"], lowerIsBetter: true },
 ] as const;
+
+// 30건 미만은 성능 판정 기준이 아니라 화면에서 참고용 표본으로 표시한다.
+export const MIN_MODEL_LABEL_SAMPLE = 30;
+
+export function labelCoveragePercent(usage: ModelUsageSummary) {
+  if (usage.processed_transaction_count === 0) return null;
+  return usage.labeled_transaction_count / usage.processed_transaction_count * 100;
+}
+
+export function hasEnoughLabelSample(usage: ModelUsageSummary) {
+  return usage.labeled_transaction_count >= MIN_MODEL_LABEL_SAMPLE;
+}
 
 export function formatDate(value: string | null) {
   if (!value) return "—";
@@ -160,7 +177,8 @@ export function actionGuide(
     case "PROMOTING": return "검증을 통과해 운영 트래픽을 전환하고 있습니다. 완료되면 운영 모델을 확정하세요.";
     case "PRODUCTION": return isCurrentProduction
       ? "새 모델이 현재 거래를 처리하고 있습니다."
-      : "이전에 운영했던 모델입니다. 현재 운영 모델과 성능만 비교할 수 있습니다.";
+      : "이전에 운영했던 모델입니다. 모델 상세에서 운영 반영을 다시 준비할 수 있습니다.";
+    case "RETIRED": return "이전에 운영했던 모델입니다. 모델 상세에서 운영 반영을 다시 준비할 수 있습니다.";
     case "REJECTED": return "거절된 후보입니다. 다시 사용하려면 새 학습을 실행하세요.";
     case "REQUESTED": return "모델 학습 실행을 준비하고 있습니다.";
     case "RUNNING": return "모델 학습이 끝나면 성능 지표와 AI 판단을 확인할 수 있습니다.";
@@ -180,7 +198,7 @@ export function workflowForRun(
   candidateReady = true,
   isCurrentProduction = true,
 ): WorkflowStep[] {
-  const reviewed = ["STAGED", "PROMOTING", "PRODUCTION", "DEPLOYMENT_FAILED"].includes(run.status);
+  const reviewed = ["STAGED", "PROMOTING", "PRODUCTION", "RETIRED", "DEPLOYMENT_FAILED"].includes(run.status);
   return [
     {
       label: "모델 학습",
@@ -206,12 +224,12 @@ export function workflowForRun(
         ? (candidateReady ? "반영 가능" : "준비 중")
         : run.status === "PROMOTING"
           ? `${trafficPercent}% 반영 중`
-          : run.status === "PRODUCTION"
-            ? isCurrentProduction ? "운영 중" : "이전 운영"
+          : ["PRODUCTION", "RETIRED"].includes(run.status)
+            ? run.status === "PRODUCTION" && isCurrentProduction ? "운영 중" : "이전 운영"
             : run.status === "DEPLOYMENT_FAILED" ? "다시 확인" : "대기",
       state: ["STAGED", "PROMOTING"].includes(run.status)
         ? "active"
-        : run.status === "PRODUCTION" ? "complete"
+        : ["PRODUCTION", "RETIRED"].includes(run.status) ? "complete"
           : run.status === "DEPLOYMENT_FAILED" ? "error" : "pending",
     },
   ];

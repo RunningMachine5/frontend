@@ -7,7 +7,7 @@ import { AppLayout } from "../../../components/layout/AppLayout";
 import { PageHeading } from "../../../components/layout/PageHeading";
 import "../../admin/AdminWorkspace.css";
 
-type ModelSection = "overview" | "labeling" | "training";
+type ModelSection = "overview" | "labeling" | "training" | "versions";
 
 type ModelPageShellProps = {
   activeSection: ModelSection;
@@ -19,6 +19,7 @@ const sections: { id: ModelSection; label: string; to: string }[] = [
   { id: "overview", label: "운영 현황", to: "/models" },
   { id: "labeling", label: "거래 라벨링", to: "/models/labeling" },
   { id: "training", label: "학습 · 배포", to: "/models/training" },
+  { id: "versions", label: "모델 버전", to: "/models/versions" },
 ];
 
 export function ModelPageShell({

@@ -16,6 +16,8 @@ import { ModelManagementPage } from "./features/mlops/ModelManagementPage";
 import { ModelMonitoringPage } from "./features/mlops/ModelMonitoringPage";
 import { ModelRunPage } from "./features/mlops/ModelRunPage";
 import { ModelTrainingPage } from "./features/mlops/ModelTrainingPage";
+import { ModelVersionDetailPage } from "./features/mlops/ModelVersionDetailPage";
+import { ModelVersionsPage } from "./features/mlops/ModelVersionsPage";
 import { TransactionLabelingPage } from "./features/mlops/TransactionLabelingPage";
 import { QueuePage } from "./features/queue/QueuePage";
 import { RuleManagementPage } from "./features/rules/RuleManagementPage";
@@ -45,6 +47,8 @@ export function App() {
       <Route path="/models" element={<ModelManagementPage />} />
       <Route path="/models/labeling" element={<TransactionLabelingPage />} />
       <Route path="/models/training" element={<ModelTrainingPage />} />
+      <Route path="/models/versions" element={<ModelVersionsPage />} />
+      <Route path="/models/versions/:runId" element={<ModelVersionDetailPage />} />
       <Route path="/models/runs/:runId" element={<ModelRunPage />} />
       <Route path="/models/monitoring" element={<ModelMonitoringPage />} />
       <Route path="*" element={<Navigate to="/" replace />} />

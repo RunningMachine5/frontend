@@ -31,7 +31,8 @@ export type DatasetPeriodSummary = {
 
 export type TrainingStatus =
   | "REQUESTED" | "RUNNING" | "CANDIDATE" | "REJECTED"
-  | "STAGED" | "PROMOTING" | "PRODUCTION" | "FAILED" | "DEPLOYMENT_FAILED";
+  | "STAGED" | "PROMOTING" | "PRODUCTION" | "RETIRED"
+  | "FAILED" | "DEPLOYMENT_FAILED";
 
 export type TrainingRun = {
   id: number;
@@ -64,6 +65,48 @@ export type ModelReview = {
   source: "AI";
   decision: "RECOMMENDED" | "NOT_RECOMMENDED";
   summary: string;
+};
+
+export type ModelUsageSummary = {
+  processed_transaction_count: number;
+  fraud_prediction_count: number;
+  labeled_transaction_count: number;
+  matching_label_count: number;
+  false_positive_count: number;
+  false_negative_count: number;
+  label_agreement_percent: number | null;
+  average_latency_ms: number | null;
+  first_inference_at: string | null;
+  latest_inference_at: string | null;
+};
+
+export type ModelVersionSummary = {
+  training_run_id: number;
+  model_name: string;
+  model_version: string;
+  status: TrainingStatus;
+  dataset_version_id: number;
+  dataset_version: string;
+  created_at: string;
+  usage: ModelUsageSummary;
+};
+
+export type ModelTransaction = {
+  transaction_id: number;
+  transaction_datetime: string;
+  transaction_amount: number;
+  channel: string;
+  predict_result: boolean;
+  predict_proba: number;
+  confirmed_is_fraud: boolean | null;
+  label_matches: boolean | null;
+};
+
+export type ModelTransactionPage = {
+  items: ModelTransaction[];
+  page: number;
+  page_size: number;
+  total_count: number;
 };
 
 export type ServingStatus = {

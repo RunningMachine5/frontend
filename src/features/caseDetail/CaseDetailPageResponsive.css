@@ -33,8 +33,6 @@
   .j-dashboard-grid { grid-template-columns: 1fr; }
   .case-hero { grid-template-columns: 1fr; }
   .case-header { align-items: flex-start; }
-  .case-header .case-wing-rail { width: 100%; display: grid; grid-template-columns: 1fr 1fr; }
-  .case-header .case-wing-tab { width: 100%; }
   .case-wing-drawer { top: 30px; bottom: 16px; }
 }
 
