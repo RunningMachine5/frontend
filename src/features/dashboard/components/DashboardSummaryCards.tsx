@@ -10,7 +10,7 @@ export function DashboardSummaryCards({ summary }: { summary: DashboardOverviewS
       note: "HIGH 이상 즉시 확인",
       href: "#queue?risk_grades=VERY_HIGH,HIGH",
     },
-    { tone: "brand", label: "전체 거래", value: `${formatNumber(summary.total_transaction_count)}건`, note: "선택 기간 전체 거래" },
+    { tone: "brand-tone", label: "전체 거래", value: `${formatNumber(summary.total_transaction_count)}건`, note: "선택 기간 전체 거래" },
     {
       tone: "green",
       label: "처리 완료 사건 / 사기 의심 전체 거래",
@@ -18,7 +18,7 @@ export function DashboardSummaryCards({ summary }: { summary: DashboardOverviewS
       note: "처리 완료 / 현재 의심 거래",
       href: "#queue",
     },
-    { tone: "brand", label: "의심 거래 금액", value: formatCompactMoney(summary.suspicious_amount), note: "잠재 피해 노출액" },
+    { tone: "brand-tone", label: "의심 거래 금액", value: formatCompactMoney(summary.suspicious_amount), note: "잠재 피해 노출액" },
   ];
 
   return <section className="metric-grid">
