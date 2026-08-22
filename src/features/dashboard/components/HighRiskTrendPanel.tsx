@@ -140,8 +140,9 @@ export function RealtimeRiskTrendChart({
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [containerWidth, setContainerWidth] = useState(800);
+  const [containerHeight, setContainerHeight] = useState(height);
 
-  // 부모 박스의 크기 변화를 실시간으로 감지하여 유동적으로 너비 업데이트
+  // 카드 안에서 실제로 확보된 크기만큼 차트를 그려 불필요한 위아래 여백을 남기지 않는다.
   useEffect(() => {
     const el = containerRef.current;
     if (!el) return;
@@ -151,15 +152,21 @@ export function RealtimeRiskTrendChart({
       if (rect.width > 0) {
         setContainerWidth(Math.round(rect.width));
       }
+      if (rect.height > 0) {
+        setContainerHeight(Math.round(rect.height));
+      }
     };
 
     handleResize();
 
     const resizeObserver = new ResizeObserver((entries) => {
       for (const entry of entries) {
-        const width = entry.contentRect.width;
+        const { width, height: observedHeight } = entry.contentRect;
         if (width > 0) {
           setContainerWidth(Math.round(width));
+        }
+        if (observedHeight > 0) {
+          setContainerHeight(Math.round(observedHeight));
         }
       }
     });
@@ -169,11 +176,12 @@ export function RealtimeRiskTrendChart({
   }, []);
 
   const width = Math.max(360, containerWidth);
-  const padding = { top: 18, right: 38, bottom: 22, left: 58 };
+  const renderHeight = Math.max(140, containerHeight);
+  const padding = { top: 18, right: 48, bottom: 22, left: 88 };
   const innerInsetX = 18; // 좌우 끝 점과 뱃지가 Y축 눈금 텍스트와 겹치지 않으면서 가로폭 최대 확장
 
   const chartWidth = width - padding.left - padding.right;
-  const chartHeight = height - padding.top - padding.bottom;
+  const chartHeight = renderHeight - padding.top - padding.bottom;
   const plotWidth = Math.max(10, chartWidth - innerInsetX * 2);
   const plotStartX = padding.left + innerInsetX;
 
@@ -214,13 +222,14 @@ export function RealtimeRiskTrendChart({
   const activeItem = hoveredIndex !== null ? items[hoveredIndex] : null;
   const activeScoreCoord = hoveredIndex !== null ? scoreCoords[hoveredIndex] : null;
   const activeGradeStyle = activeItem ? getRiskGradeStyle(activeItem.score) : null;
+  const showTooltipBelow = activeScoreCoord ? activeScoreCoord.y < renderHeight / 2 : false;
 
   return (
     <div className="trend-chart-wrap realtime-risk-chart-wrap" ref={containerRef}>
       <svg
         aria-label="실시간 위험 거래 금액 및 위험 점수 모니터링 차트"
         className="trend-chart"
-        viewBox={`0 0 ${width} ${height}`}
+        viewBox={`0 0 ${width} ${renderHeight}`}
         role="img"
         onMouseLeave={() => setHoveredIndex(null)}
       >
@@ -281,10 +290,22 @@ export function RealtimeRiskTrendChart({
                 y1={y}
                 y2={y}
               />
-              <text className="chart-axis amount-axis" textAnchor="end" x={padding.left - 10} y={y + 4}>
+              <text
+                className="chart-axis amount-axis"
+                dominantBaseline="middle"
+                textAnchor="middle"
+                x={padding.left / 2}
+                y={y}
+              >
                 {formatCompactMoney(leftAmountVal)}
               </text>
-              <text className="chart-axis score-axis" textAnchor="start" x={width - padding.right + 10} y={y + 4}>
+              <text
+                className="chart-axis score-axis"
+                dominantBaseline="middle"
+                textAnchor="middle"
+                x={width - padding.right / 2}
+                y={y}
+              >
                 {rightScoreVal}점
               </text>
             </g>
@@ -444,7 +465,7 @@ export function RealtimeRiskTrendChart({
                   fontWeight={isLatest || isHovered ? "700" : "400"}
                   textAnchor="middle"
                   x={x}
-                  y={height - 8}
+                  y={renderHeight - 8}
                 >
                   {item.timeLabel}
                 </text>
@@ -457,10 +478,12 @@ export function RealtimeRiskTrendChart({
       {/* 스마트 플로팅 툴팁 카드 (위험 등급 뱃지 & 색상 반영) */}
       {activeItem && activeScoreCoord && activeGradeStyle && (
         <div
-          className="chart-floating-tooltip"
+          className={`chart-floating-tooltip ${showTooltipBelow ? "tooltip-below" : "tooltip-above"}`}
           style={{
-            left: `${activeScoreCoord.x}px`,
-            top: `${Math.max(10, activeScoreCoord.y - 32)}px`,
+            left: `clamp(130px, ${activeScoreCoord.x}px, calc(100% - 130px))`,
+            top: showTooltipBelow
+              ? `min(${activeScoreCoord.y + 12}px, calc(100% - 124px))`
+              : `${activeScoreCoord.y - 12}px`,
             borderColor: activeGradeStyle.mainColor,
           }}
         >
@@ -506,9 +529,8 @@ export function HighRiskTrendPanel({
   return (
     <article className="panel priority-panel realtime-risk-panel">
       <div className="panel-head">
-        <h2>실시간 사기 의심 거래 반영 현황</h2>
-        <div className="trend-panel-meta realtime-trend-meta">
-          {/* 초 단위 / 분 단위 선택 토글 */}
+        <div className="trend-title-controls">
+          <h2>실시간 사기 의심 거래 반영 현황</h2>
           <div className="time-interval-toggle" role="group" aria-label="시간 단위 선택">
             <button
               type="button"
@@ -525,7 +547,9 @@ export function HighRiskTrendPanel({
               분 단위
             </button>
           </div>
+        </div>
 
+        <div className="trend-panel-meta realtime-trend-meta">
           <span className="live-status-tag">
             <i aria-hidden="true" className="live-green-dot" />
             실시간 감시

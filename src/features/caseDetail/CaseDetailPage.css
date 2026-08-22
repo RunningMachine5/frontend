@@ -1229,7 +1229,7 @@
 @media(min-width:1440px){
   .case-content{
     max-width:none;
-    padding:16px 22px 26px;
+    padding:var(--ops-page-padding-wide);
     gap:10px;
     background:
       radial-gradient(circle at 94% 5%,rgb(121 98 140 / 10%),transparent 28%),
@@ -1299,7 +1299,7 @@
 
 /* 상세 화면은 판정, 근거, 다음 조치의 의미만 색으로 구분한다. */
 .case-content{background:var(--ops-canvas);color:var(--ops-text)}
-.j-profile-header,.j-card{border-color:var(--ops-line);border-radius:4px;background:var(--ops-surface);box-shadow:none}
+.j-profile-header,.j-card{border-color:var(--ops-line);border-radius:var(--ops-panel-radius);background:var(--ops-surface);box-shadow:none}
 .j-card-header{border-color:var(--ops-line);background:var(--ops-surface-raised)}
 .j-title-wrap h2,.j-meta-value,.j-score-number,.j-signal-val,.j-kv-value,.j-step-content strong,.j-prog-val,.j-drawer-header h2,.j-bubble-text{color:var(--ops-text)}
 .j-section-tag,.j-meta-label{color:var(--ops-text-muted);letter-spacing:.07em}
@@ -1431,6 +1431,12 @@
 :root[data-theme="light"] .j-btn-primary{border-color:var(--ops-focus);background:var(--ops-focus);color:#fff}
 :root[data-theme="light"] .j-btn-primary:hover:not(:disabled){background:var(--ops-focus)}
 :root[data-theme="light"] .j-btn-primary:disabled{border-color:var(--ops-disabled-line);background:var(--ops-disabled-bg);color:var(--ops-disabled-text);opacity:1}
+:root[data-theme="light"] .j-guide-action-details header span{
+  border:1px solid var(--ops-focus);
+  background:var(--ops-focus-soft);
+  color:var(--ops-focus);
+  font-weight:800;
+}
 
 /* 사건을 열자마자 현재 처리 위치를 알 수 있도록 세 단계로 표시한다. */
 .j-workflow-progress{display:flex;align-items:center;gap:18px;padding:12px 16px;border:1px solid var(--ops-line);border-radius:3px;background:var(--ops-surface)}.j-workflow-label{flex:0 0 auto;color:var(--ops-text-muted);font-size:11px;font-weight:700}.j-workflow-progress ol{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));width:100%;margin:0;padding:0;list-style:none}.j-workflow-progress li{position:relative;display:flex;align-items:center;gap:8px;min-width:0;color:var(--ops-text-muted);font-size:12px}.j-workflow-progress li:not(:last-child)::after{position:absolute;top:50%;right:0;width:22%;height:1px;background:var(--ops-line-strong);content:""}.j-workflow-progress li>span{position:relative;z-index:1;display:grid;flex:0 0 22px;width:22px;height:22px;place-items:center;border:1px solid var(--ops-line-strong);border-radius:50%;background:var(--ops-surface-sunken);font-size:11px;font-weight:700}.j-workflow-progress li.done,.j-workflow-progress li.current{color:var(--ops-text)}.j-workflow-progress li.done>span{border-color:var(--ops-low);background:var(--ops-low);color:#fff}.j-workflow-progress li.current>span{border-color:var(--ops-focus);background:var(--ops-focus-soft);color:#c7d2ef}.j-workflow-progress li.done::after{background:var(--ops-low)}
@@ -1441,5 +1447,144 @@
 
 /* 모델 관리 화면처럼 현재 사건의 업무 단계를 먼저 선택하고, 필요한 정보만 본다. */
 .j-workflow-cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}.j-workflow-card{display:grid;min-height:142px;gap:5px;padding:14px 16px;border:1px solid var(--ops-line);border-radius:4px;background:var(--ops-surface);color:var(--ops-text);font:inherit;text-align:left;cursor:pointer}.j-workflow-card:hover{border-color:var(--ops-line-strong);background:var(--ops-surface-raised)}.j-workflow-card:focus-visible{outline:2px solid var(--ops-focus);outline-offset:2px}.j-workflow-card.active{border-color:var(--ops-focus);background:var(--ops-focus-soft)}.j-workflow-code{color:#8fa9f1;font-size:11px;font-weight:800;letter-spacing:.08em}.j-workflow-card>strong{font-size:17px;line-height:1.3}.j-workflow-description{max-width:46ch;color:var(--ops-text-muted);font-size:12px;line-height:1.45}.j-workflow-footer{display:flex;align-items:flex-end;justify-content:space-between;gap:10px;margin-top:auto}.j-workflow-footer em{font-size:12px;font-style:normal;font-weight:700}.j-workflow-footer small{color:var(--ops-text-muted);font-size:11px;text-align:right}.j-workflow-card.done .j-workflow-footer em{color:var(--ops-low)}.j-workflow-card.current .j-workflow-footer em{color:#b9c9f4}.j-workflow-card.pending .j-workflow-footer em{color:var(--ops-text-muted)}.j-stage-workspace{display:grid;gap:10px}.j-stage-workspace-header{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;padding:12px 14px;border:1px solid var(--ops-line);border-left:3px solid var(--ops-focus);background:var(--ops-surface)}.j-stage-workspace-header span{color:#8fa9f1;font-size:11px;font-weight:800;letter-spacing:.08em}.j-stage-workspace-header h2{margin:3px 0 0;color:var(--ops-text);font-size:17px}.j-stage-workspace-header p{margin:4px 0 0;color:var(--ops-text-muted);font-size:12px}.j-stage-workspace-header>strong{color:var(--ops-text-muted);font-size:11px;white-space:nowrap}.j-stage-grid.stage-1 .j-stage-guide,.j-stage-grid.stage-1 .j-stage-decision{display:none}.j-stage-grid.stage-2 .j-stage-check,.j-stage-grid.stage-2 .j-stage-decision:not(.j-stage-guide){display:none}.j-stage-grid.stage-3 .j-stage-check,.j-stage-grid.stage-3 .j-stage-guide:not(.j-stage-decision){display:none}
-@media(min-width:1440px){.j-stage-grid.stage-1{grid-template-columns:minmax(0,1.12fr) minmax(340px,.88fr);grid-template-areas:"verdict evidence" "signals device"}.j-stage-grid.stage-2{grid-template-columns:minmax(0,1.2fr) minmax(330px,.8fr);grid-template-areas:"guide history"}.j-stage-grid.stage-3{grid-template-columns:minmax(0,1.2fr) minmax(330px,.8fr);grid-template-areas:"action history"}.j-stage-grid .j-history-card{grid-area:history;grid-column:auto}}
+@media(min-width:1440px){.j-stage-grid.stage-1{grid-template-columns:minmax(0,1.12fr) minmax(340px,.88fr);grid-template-areas:"verdict evidence" "signals device"}.j-stage-grid.stage-2{grid-template-columns:minmax(0,1.2fr) minmax(330px,.8fr);grid-template-areas:"guide history"}.j-stage-grid.stage-3{grid-template-columns:minmax(0,1.2fr) minmax(330px,.8fr);grid-template-areas:"action history"}.j-stage-grid .j-history-card{height:auto;grid-area:history;grid-column:auto;align-self:start}}
 @media(max-width:900px){.j-workflow-cards{grid-template-columns:1fr}.j-workflow-card{min-height:116px}.j-stage-workspace-header{align-items:flex-start;flex-direction:column;gap:5px}.j-stage-grid.stage-1,.j-stage-grid.stage-2,.j-stage-grid.stage-3{grid-template-columns:1fr;grid-template-areas:none}.j-stage-grid .j-card{grid-area:auto}.j-workflow-footer small{text-align:left}}
+
+/* 1920 시연 화면에서는 모델·룰 관리와 같은 크기 단계로 상세 정보를 읽기 쉽게 한다. */
+@media(min-width:1600px) and (min-height:1040px){
+  .j-section-tag,
+  .j-meta-label,
+  .j-meta-sub,
+  .j-card-badge,
+  .j-risk-grade-sub,
+  .j-verdict-tag-label,
+  .j-similar-icon,
+  .j-similar-label,
+  .j-similar-score,
+  .j-similar-case-id,
+  .j-signal-lbl,
+  .j-amount-lbl,
+  .j-channel-chip,
+  .j-kv-label,
+  .j-step-num,
+  .j-step-content p,
+  .j-required-badge,
+  .j-prog-val,
+  .j-evidence-row,
+  .j-chip,
+  .j-field-label,
+  .j-feedback-msg,
+  .j-chat-type-card h3,
+  .j-type-chip,
+  .j-timeline-head,
+  .j-bubble-sender,
+  .j-bubble-time,
+  .j-empty-desc,
+  .j-workflow-label,
+  .j-workflow-progress li>span,
+  .j-activity-list time,
+  .j-workflow-code,
+  .j-workflow-footer small,
+  .j-stage-workspace-header span,
+  .j-stage-workspace-header>strong,
+  .j-guide-overview span,
+  .j-guide-action-reason,
+  .j-guide-detail-columns ol,
+  .j-guide-detail-columns ul,
+  .j-guide-checklist-modal ul,
+  .j-guide-action-details header span,
+  .j-guide-action-details header em{font-size:14px}
+
+  .j-status-pill,
+  .j-status-label,
+  .j-callout-text,
+  .j-similar-reason,
+  .j-similar-highlight,
+  .j-signal-val,
+  .j-kv-value,
+  .j-step-content strong,
+  .j-check-item,
+  .j-btn-detail-toggle,
+  .j-table,
+  .j-prog-name,
+  .j-evidence-desc,
+  .j-seg-btn,
+  .j-input,
+  .j-textarea,
+  .j-fraud-type-options button,
+  .j-btn-primary,
+  .j-btn-chat-trigger,
+  .j-bubble-text,
+  .j-workflow-progress li,
+  .j-activity-list strong,
+  .j-activity-list span,
+  .j-workflow-description,
+  .j-workflow-footer em,
+  .j-stage-workspace-header p,
+  .j-guide-overview p,
+  .j-guide-action-details header strong,
+  .j-guide-detail-columns h3,
+  .j-guide-checklist-modal h3{font-size:15px}
+
+  .j-meta-value,
+  .j-meta-highlight,
+  .j-status-val,
+  .j-status-score{font-size:17px}
+
+  .j-title-wrap h2,
+  .j-workflow-card>strong,
+  .j-stage-workspace-header h2{font-size:18px}
+
+  .j-guide-modal h2{font-size:20px}
+
+  .j-score-number{font-size:46px}
+  .j-amount-val{font-size:28px}
+}
+
+/* 크롬 상단 UI가 있는 1920 화면에서는 정보량은 유지하고 세로 간격만 조밀하게 맞춘다. */
+@media(min-width:1600px) and (min-height:760px) and (max-height:1039px){
+  .case-content{gap:8px;padding:12px 22px 18px}
+  .j-profile-header{min-height:58px;gap:12px;padding:7px 14px}
+  .j-workflow-cards{gap:8px}
+  .j-workflow-card{min-height:108px;gap:3px;padding:9px 12px}
+  .j-workflow-description{line-height:1.3}
+  .j-stage-workspace,.j-stage-grid{gap:8px}
+  .j-stage-workspace{min-height:0;flex:0 0 auto}
+  .j-card-header{min-height:48px;padding:7px 12px}
+  .j-card-body{gap:7px;padding:9px 12px}
+  .j-amount-banner{padding:8px 12px}
+  .j-key-value-grid{gap:6px 12px}
+  .j-signal-box{padding:6px 10px}
+}
+
+/* 브라우저 높이가 낮을 때 처리 카드가 남은 화면 높이까지 늘어나지 않게 한다. */
+@media(min-width:1440px) and (max-height:1039px){
+  .case-content{padding-top:8px;padding-bottom:18px}
+  .j-stage-grid.stage-2,
+  .j-stage-grid.stage-3{align-content:start}
+  .j-stage-grid.stage-2 .j-card,
+  .j-stage-grid.stage-3 .j-card{height:auto;align-self:start}
+}
+
+/* 상세 데이터를 기다리는 동안 실제 카드 위치에 관리 화면과 같은 모션을 보여준다. */
+.case-loading-view{display:flex;min-height:0;flex:1;flex-direction:column;gap:10px}
+.case-loading-profile{min-height:66px}
+.case-loading-profile .ops-loading-block{width:72%;height:16px}
+.case-loading-workflow{display:grid;min-height:142px;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.case-loading-workflow .ops-loading-block{height:100%;border:1px solid var(--ops-line);background:var(--ops-surface)}
+.case-loading-grid{display:grid;min-height:0;flex:1;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.case-loading-card{min-height:260px;padding:16px;gap:11px}
+.case-loading-card>.ops-loading-block{width:36%;height:14px}
+.case-loading-card>.ops-loading-block:nth-child(2){width:56%;height:9px}
+.case-loading-card>.ops-loading-block.body{width:100%;min-height:120px;flex:1;background:repeating-linear-gradient(0deg,#272730 0,#272730 1px,transparent 1px,transparent 34px)}
+:root[data-theme="light"] .case-loading-workflow .ops-loading-block,
+:root[data-theme="light"] .case-loading-card>.ops-loading-block{background:var(--ops-line)}
+:root[data-theme="light"] .case-loading-card>.ops-loading-block.body{background:repeating-linear-gradient(0deg,var(--ops-line) 0,var(--ops-line) 1px,transparent 1px,transparent 34px)}
+
+@media(max-width:900px){
+  .case-loading-profile{grid-template-columns:1fr}
+  .case-loading-profile .ops-loading-block:not(:first-child){display:none}
+  .case-loading-workflow,.case-loading-grid{grid-template-columns:1fr}
+  .case-loading-workflow{min-height:348px}
+  .case-loading-card{min-height:220px}
+}

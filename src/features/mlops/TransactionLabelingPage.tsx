@@ -74,7 +74,6 @@ export function TransactionLabelingPage() {
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
-  const [notice, setNotice] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const load = useCallback(async (nextSelectedId?: number) => {
@@ -139,11 +138,7 @@ export function TransactionLabelingPage() {
 
   const moveToNext = () => {
     const nextId = nextTransactionId();
-    setNotice(null);
-    if (nextId === undefined) {
-      setNotice("현재 목록에서 다음 거래가 없습니다.");
-      return;
-    }
+    if (nextId === undefined) return;
     setSelectedId(nextId);
   };
 
@@ -152,13 +147,9 @@ export function TransactionLabelingPage() {
     const transaction = selected;
     const nextId = nextTransactionId();
     setIsSaving(true);
-    setNotice(null);
     setError(null);
     try {
       await saveTransactionLabel(transaction.transaction_id, confirmedIsFraud);
-      setNotice(
-        `TX-${transaction.transaction_id}을 ${confirmedIsFraud ? "사기" : "정상"} 거래로 확정했습니다.`,
-      );
       // 저장이 성공한 뒤에만 다음 거래로 이동한다.
       await load(nextId);
     } catch (cause) {
@@ -172,11 +163,9 @@ export function TransactionLabelingPage() {
     if (!selected || selected.confirmed_is_fraud === null) return;
     const transaction = selected;
     setIsSaving(true);
-    setNotice(null);
     setError(null);
     try {
       await clearTransactionLabel(transaction.transaction_id);
-      setNotice(`TX-${transaction.transaction_id}을 미판정 상태로 되돌렸습니다.`);
       await load();
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "거래 판정을 지우지 못했습니다.");
@@ -195,7 +184,6 @@ export function TransactionLabelingPage() {
   const changeLabelStatus = (next: TransactionLabelStatus) => {
     setLabelStatus(next);
     setPage(1);
-    setNotice(null);
   };
 
   return (
@@ -213,7 +201,6 @@ export function TransactionLabelingPage() {
       )}
     >
       {error && <div className="admin-alert error" role="alert">{error}</div>}
-      {notice && <div className="admin-alert success" role="status">{notice}</div>}
 
       {isLoading && !isSaving && (
         <ModelLoadingStatus
@@ -395,7 +382,7 @@ export function TransactionLabelingPage() {
                 >
                   사기 확정
                 </button>
-                <button className="label-action later" disabled={isSaving} onClick={moveToNext} type="button">
+                <button className="label-action later" disabled={isSaving || !data || data.items.length < 2} onClick={moveToNext} type="button">
                   다음에 확인
                 </button>
                 <button

@@ -269,6 +269,44 @@ function CaseActivityHistory({
   );
 }
 
+function CaseDetailLoadingSkeleton() {
+  return (
+    <CaseAnalysisPageShell
+      activeSection="detail"
+      contentClassName="case-content"
+      headerClassName="case-header"
+    >
+      <main
+        aria-busy="true"
+        aria-label="사건 상세 정보를 불러오는 중"
+        className="case-loading-view"
+      >
+        <section className="j-profile-header case-loading-profile ops-loading-skeleton">
+          {Array.from({ length: 5 }, (_, index) => (
+            <i aria-hidden="true" className="ops-loading-block" key={index} />
+          ))}
+        </section>
+
+        <section className="case-loading-workflow ops-loading-skeleton">
+          {Array.from({ length: 3 }, (_, index) => (
+            <i aria-hidden="true" className="ops-loading-block" key={index} />
+          ))}
+        </section>
+
+        <section className="case-loading-grid">
+          {Array.from({ length: 3 }, (_, index) => (
+            <article className="j-card case-loading-card ops-loading-skeleton" key={index}>
+              <i aria-hidden="true" className="ops-loading-block" />
+              <i aria-hidden="true" className="ops-loading-block" />
+              <i aria-hidden="true" className="ops-loading-block body" />
+            </article>
+          ))}
+        </section>
+      </main>
+    </CaseAnalysisPageShell>
+  );
+}
+
 export function CaseDetailPage() {
   const transactionId = useMemo(getTransactionId, []);
   const {
@@ -322,7 +360,7 @@ export function CaseDetailPage() {
   if (transactionId === null) {
     return <CaseAnalysisPageShell activeSection="detail" contentClassName="case-content" headerClassName="case-header"><main className="case-state">거래 탐색 탭에서 분석할 거래를 먼저 선택해주세요.</main></CaseAnalysisPageShell>;
   }
-  if (isLoading) return <CaseAnalysisPageShell activeSection="detail" contentClassName="case-content" headerClassName="case-header"><main className="case-state">사건 상세 정보를 불러오는 중...</main></CaseAnalysisPageShell>;
+  if (isLoading) return <CaseDetailLoadingSkeleton />;
   if (errorMessage || !detail) {
     return <CaseAnalysisPageShell activeSection="detail" contentClassName="case-content" headerClassName="case-header"><main className="case-state">오류: {errorMessage ?? "표시할 사건 데이터가 없습니다."}</main></CaseAnalysisPageShell>;
   }

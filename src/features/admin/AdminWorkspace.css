@@ -40,7 +40,7 @@
 .admin-alert.success{border:1px solid #285d48;background:#17261f;color:#8ee0b7}
 .positive{color:#48d192!important}.accent{color:var(--ops-focus)!important}.danger{color:#ff7d89!important}
 
-.admin-panel{min-width:0;border:1px solid var(--ops-line);border-radius:13px;background:var(--ops-surface);overflow:hidden}
+.admin-panel{min-width:0;border:1px solid var(--ops-line);border-radius:var(--ops-panel-radius);background:var(--ops-surface);overflow:hidden}
 .panel-title{padding:19px;border-bottom:1px solid var(--ops-line)}.panel-title h2{margin:0;font-size:17px;line-height:1.45}.panel-title.split{display:flex;align-items:flex-start;justify-content:space-between;gap:14px}
 
 /* 모델 관리와 같은 얇은 내부 메뉴로 작업영역을 전환한다. */
@@ -78,7 +78,7 @@
  * 데이터가 길어질 수 있는 목록만 각 패널 안에서 스크롤한다.
  */
 @media(min-width:1440px) and (min-height:700px){
-  .admin-page{height:100vh;min-height:0;box-sizing:border-box;padding:20px 28px;display:flex;flex-direction:column;overflow:hidden}
+  .admin-page{height:100vh;min-height:0;box-sizing:border-box;padding:var(--ops-page-padding-wide);display:flex;flex-direction:column;overflow:hidden}
   .panel-title small{font-size:12px;line-height:1.4}
   .admin-actions{padding-top:0}
   .admin-button{min-height:38px;padding:0 15px;font-size:13px}
@@ -124,7 +124,11 @@
 }
 
 @media(max-width:1280px){
-  .admin-page{padding:28px 26px 44px}.rule-workspace{grid-template-columns:180px minmax(430px,1fr)}.rule-edit-workspace{grid-template-columns:180px minmax(0,1fr)}.rule-verify-workspace{grid-template-columns:1fr}.verify-actions{grid-template-columns:repeat(4,1fr)}.verification-summary-grid{grid-template-columns:repeat(5,minmax(0,1fr))}.verification-summary-grid>div.summary-primary{grid-column:auto;display:block}.verification-summary-grid .summary-primary dd{margin:6px 0 4px;font-size:17px}
+  .admin-page{padding:var(--ops-page-padding-desktop)}.rule-workspace{grid-template-columns:180px minmax(430px,1fr)}.rule-edit-workspace{grid-template-columns:180px minmax(0,1fr)}.rule-verify-workspace{grid-template-columns:1fr}.verify-actions{grid-template-columns:repeat(4,1fr)}.verification-summary-grid{grid-template-columns:repeat(5,minmax(0,1fr))}.verification-summary-grid>div.summary-primary{grid-column:auto;display:block}.verification-summary-grid .summary-primary dd{margin:6px 0 4px;font-size:17px}
+}
+
+@media(min-width:1281px) and (max-width:1439px){
+  .admin-page{padding:var(--ops-page-padding-desktop)}
 }
 
 @media(max-width:960px){
@@ -516,14 +520,16 @@
   .labeling-status-strip{grid-template-columns:1fr}.labeling-status-strip button{border-right:0;border-bottom:1px solid var(--ops-line)}.labeling-status-strip button:last-child{border-bottom:0}.labeling-filters{grid-template-columns:1fr}.labeling-action-row{grid-template-columns:1fr 1fr}.label-action{min-height:46px}.labeling-detail-header{align-items:flex-start;flex-direction:column}.labeling-detail-grid,.signal-section ul{grid-template-columns:1fr 1fr}.labeling-decision-band{grid-template-columns:1fr}.labeling-decision-band>div{border-right:0;border-bottom:1px solid var(--ops-line)}.labeling-decision-band>div:last-child{border-bottom:0}
 }
 
-/*
- * 화면 배율이 적용된 1920 환경도 포함하도록 1440 CSS px부터 글자를 키운다.
- * 이상거래 분석의 12px 보조 정보보다 모델 관리의 판단 정보는 한 단계 크게 표시한다.
- * 카드 구조나 색은 그대로 두고 룰·모델 관리 화면의 글자 위계만 맞춘다.
- */
+/* 넓은 화면에서만 사용하는 검증 2열 배치는 기존 기준을 유지한다. */
 @media(min-width:1440px){
   .rule-verify-workspace{grid-template-columns:minmax(500px,.9fr) minmax(700px,1.25fr)}
+}
 
+/*
+ * 1920 화면에 Windows 배율이 적용되면 브라우저 폭은 약 1280 CSS px로 줄어든다.
+ * 관리 화면의 글자와 조작 요소만 확대하고, 좁은 폭용 카드 배치는 그대로 유지한다.
+ */
+@media(min-width:1180px){
   .rule-admin-page .admin-header>div>p:last-child,
   .model-section-page .admin-header>div>p:last-child{font-size:16px;line-height:1.5}
   .rule-admin-page .admin-eyebrow{font-size:13px}
@@ -765,6 +771,38 @@
   .monitoring-detail-panel>a,
   .monitoring-detail-panel>p,
   .monitoring-detail-empty{font-size:13px}
+
+  /* 관리 화면의 밀도는 유지하면서 분석 화면과 비슷한 전체 크기로 맞춘다. */
+  .admin-page .app-page-header{min-height:76px;flex-basis:76px;padding-bottom:12px}
+  .admin-page .admin-button{min-height:40px;padding-right:16px;padding-left:16px}
+  .admin-page .admin-button.compact{min-height:36px;padding-right:13px;padding-left:13px}
+  .admin-panel{border-radius:var(--ops-panel-radius)}
+  .panel-title{padding:15px 17px}
+
+  .rule-section-nav,
+  .model-section-nav{height:48px;flex-basis:48px}
+  .rule-section-nav button,
+  .model-section-nav a{height:40px;padding-right:18px;padding-left:18px}
+  .model-section-content{margin-top:16px;gap:14px}
+
+  .rule-workspace,
+  .rule-verify-workspace{gap:10px}
+  .version-list{padding:10px;gap:8px}
+  .version-list button{padding:12px}
+  .rule-tabs{padding:9px 12px 0;gap:6px}
+  .rule-tabs button{min-height:34px;padding-right:13px;padding-left:13px}
+  .component-list{padding:10px;gap:8px;grid-auto-rows:minmax(178px,max-content)}
+  .component-row{padding:14px 16px 22px}
+
+  .workflow-rail{margin:14px 0}
+  .workflow-step{min-height:86px;padding:14px 16px}
+  .monitoring-service-rail{gap:10px}
+  .monitoring-service-rail button{min-height:96px;padding:15px 18px 14px}
+  .monitoring-summary-grid{gap:10px}
+  .monitoring-summary-grid article{padding:14px 16px}
+  .monitoring-chart-grid{gap:10px}
+  .monitoring-chart-panel,
+  .monitoring-detail-panel{padding:15px 17px}
 }
 
 @media(max-width:620px){
@@ -821,3 +859,6 @@
   .model-catalog-pagination{align-items:flex-start;flex-direction:column}
   .model-catalog-pagination>div{width:100%;justify-content:space-between}
 }
+
+/* 업무 영역을 구분하는 선은 브랜드 색으로 통일한다. */
+.model-summary-grid>a:nth-child(n) .model-summary-primary{border-left-color:var(--ops-focus)}

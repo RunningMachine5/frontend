@@ -40,16 +40,30 @@
 @keyframes live-pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(1.2)}}
 @keyframes live-ring-pulse{0%{r:6px;opacity:.8}100%{r:14px;opacity:0}}
 .queue-table-panel{padding-bottom:12px;display:flex;flex-direction:column}.queue-dual-table-wrap{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:12px}.queue-table-column{min-width:0;overflow-x:auto}.queue-table-column table{width:100%;border-collapse:collapse;font-size:13px}.queue-table-column th{padding:9px 6px;color:#a9a6b4;background:#282832;text-align:left;white-space:nowrap;font-size:12px}.queue-table-column td{padding:9px 6px;border-top:1px solid #343440;color:#d9d6e0;white-space:nowrap;font-size:13px}.grade{font-size:12px;font-weight:800}.grade.very_high{color:#ee737a}.grade.high{color:#f5ad50}.grade.medium{color:#ad90ff}.grade.empty{color:#858292}.queue-detail{padding:4px 8px;border:1px solid #66506d;border-radius:5px;color:#e6c9e9;text-decoration:none;font-size:12px;white-space:nowrap}.queue-empty{padding:30px;text-align:center;color:#9895a6}.queue-pagination{display:flex;justify-content:center;align-items:center;gap:12px;padding-top:14px}.queue-pagination span{min-width:62px;color:#c4c0ce;font-size:12px;text-align:center}.queue-pagination button:disabled{cursor:not-allowed;opacity:.4}.queue-state{display:grid;min-height:360px;place-items:center;color:#c4c0ce}
+
+/* 조회 중에도 그래프와 표의 자리를 유지하고 관리 화면과 같은 로딩 흐름을 보여준다. */
+.queue-summary .ops-loading-block{width:72px;height:16px;margin-top:5px}
+.queue-loading-panel{display:flex;min-height:0;flex-direction:column;gap:9px}
+.queue-loading-panel>.ops-loading-block{width:28%;height:13px}
+.queue-loading-panel>.ops-loading-block:nth-child(2){width:46%;height:8px}
+.queue-loading-panel>.ops-loading-block.chart{width:100%;min-height:110px;flex:1;margin-top:5px;background:repeating-linear-gradient(0deg,#272730 0,#272730 1px,transparent 1px,transparent 30px)}
+.queue-loading-table>div{min-height:0;flex:1;margin-top:5px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:repeat(7,minmax(18px,1fr));gap:1px 14px}
+.queue-loading-table>div .ops-loading-block{width:100%;height:auto;border-radius:0;background:#252530}
+:root[data-theme="light"] .queue-loading-panel>.ops-loading-block,
+:root[data-theme="light"] .queue-loading-table>div .ops-loading-block{background:var(--ops-line)}
+:root[data-theme="light"] .queue-loading-panel>.ops-loading-block.chart{background:repeating-linear-gradient(0deg,var(--ops-line) 0,var(--ops-line) 1px,transparent 1px,transparent 30px)}
 @media(max-width:1250px){.queue-filter{grid-template-columns:1fr 1fr}.queue-filter-actions{grid-column:1/-1;justify-content:flex-end}}@media(max-width:1050px){.queue-summary{grid-template-columns:1fr 1fr}.queue-summary div:nth-child(2){border-right:0}.queue-summary div:nth-child(-n+2){border-bottom:1px solid #353541}}@media(max-width:700px){.queue-content{padding:20px}.queue-header{display:grid;gap:12px}.queue-filter{grid-template-columns:1fr}.queue-filter-actions{grid-column:auto}.queue-summary{grid-template-columns:1fr}.queue-summary div{border-right:0;border-bottom:1px solid #353541}.queue-summary div:last-child{border-bottom:0}.scatter-time-axis span:nth-child(2){display:none}}
 
 /* 데스크톱에서는 표만 남은 높이를 사용하고, 페이지 자체는 한 화면에 고정한다. */
 @media(min-width:1440px) and (min-height:800px){
-  .queue-content{height:100vh;padding:20px 28px;display:flex;flex-direction:column;overflow:hidden}
+  .queue-content{height:100vh;padding:var(--ops-page-padding-wide);display:flex;flex-direction:column;overflow:hidden}
   .queue-header{min-height:60px;flex:0 0 60px;padding-bottom:8px}
   .queue-header h1{margin:3px 0;font-size:26px}
   .queue-filter{flex:0 0 auto;margin:8px 0 6px;padding:8px 14px}
-  .queue-summary{min-height:56px;flex:0 0 56px;margin-bottom:8px}
-  .queue-summary div{padding:8px 16px}
+  .queue-summary{grid-template-rows:minmax(0,1fr);min-height:56px;flex:0 0 56px;margin-bottom:8px}
+  .queue-summary div{display:flex;min-height:0;flex-direction:column;justify-content:center;padding:4px 16px}
+  .queue-summary span{line-height:1.1}
+  .queue-summary strong{margin-top:2px;line-height:1.05}
   .queue-panel{min-height:0;padding:12px 16px;width:100%}
   .scatter-panel{min-height:280px;flex:0 0 280px;margin-bottom:6px}
   .realtime-risk-panel .trend-chart-wrap{width:100%;height:205px;margin-top:2px}
@@ -80,11 +94,12 @@
   .grade{font-size:12px}
   .queue-pagination{flex:0 0 auto;padding-top:4px}
   .queue-pagination span{font-size:13px}
+  .queue-loading-trend{min-height:290px}
 }
 
 /* 룰·모델 관리처럼 중간 화면에서는 간격을 줄이고 헤더가 자연스럽게 줄바꿈된다. */
 @media(min-width:821px) and (max-width:1439px){
-  .queue-content{width:100%;padding:24px}
+  .queue-content{width:100%;padding:var(--ops-page-padding-desktop)}
   .queue-header{min-width:0;min-height:88px;align-items:center;padding-bottom:14px}
   .queue-filter{gap:10px;margin:14px 0 10px;padding:14px}
   .queue-panel{padding:15px}
@@ -198,6 +213,7 @@
   .queue-mobile-detail{min-height:38px;border:1px solid #754d7d;border-radius:8px;display:flex;align-items:center;justify-content:center;background:#322438;color:#f1d7f3;font-size:12px;font-weight:700;text-decoration:none}
   .queue-mobile-detail:focus-visible{outline:2px solid #ce62d5;outline-offset:2px}
   .queue-empty{padding:22px 10px}
+  .queue-loading-table>div{grid-template-columns:1fr;grid-template-rows:repeat(7,34px)}
 }
 
 /* 처리 목록은 표의 행과 상태가 가장 먼저 보이는 중립 콘솔로 표현한다. */
@@ -207,7 +223,7 @@
 .queue-header h1,.queue-panel-head h2{color:var(--ops-text)}
 .queue-header span,.queue-panel-sub-desc,.queue-panel-head>span{color:var(--ops-text-muted)}
 .queue-live{border:1px solid rgb(93 159 126 / 30%);border-radius:3px;background:rgb(93 159 126 / 12%);color:#8bc4a7}
-.queue-filter,.queue-summary,.queue-panel{border-color:var(--ops-line);border-radius:4px;background:var(--ops-surface);box-shadow:none}
+.queue-filter,.queue-summary,.queue-panel{border-color:var(--ops-line);border-radius:var(--ops-panel-radius);background:var(--ops-surface);box-shadow:none}
 .queue-filter label,.queue-summary span{color:var(--ops-text-muted)}
 .queue-filter input{border-color:var(--ops-line);border-radius:3px;background:var(--ops-surface-sunken);color:var(--ops-text)}
 .queue-filter input:hover{border-color:var(--ops-line-strong)}
@@ -292,3 +308,58 @@
 :root[data-theme="light"] .realtime-risk-panel .trend-stat-badge strong.score-text{color:var(--ops-critical)}
 :root[data-theme="light"] .queue-filter-actions button:last-child{border-color:var(--ops-focus);background:var(--ops-focus);color:#fff}
 :root[data-theme="light"] .queue-pagination button:disabled{border-color:var(--ops-disabled-line);background:var(--ops-disabled-bg);color:var(--ops-disabled-text);opacity:1}
+
+/* 1920 시연 화면에서는 한 화면 구성을 유지하면서 표와 보조 문구를 한 단계 키운다. */
+@media(min-width:1600px) and (min-height:900px){
+  .queue-filter{
+    grid-template-columns:minmax(120px,.72fr) minmax(160px,.95fr) minmax(275px,1.25fr) minmax(200px,1fr) minmax(205px,1fr) minmax(205px,1fr) auto;
+    column-gap:10px;
+  }
+  .queue-filter-actions{align-self:end;flex-wrap:nowrap}
+  .queue-filter-actions button{
+    min-width:70px;
+    height:42px;
+    padding:0 16px;
+    font-weight:700;
+    white-space:nowrap;
+  }
+  .queue-header p,
+  .queue-panel-head p,
+  .queue-filter label,
+  .queue-risk-grade-filter legend,
+  .queue-summary span,
+  .queue-panel-head>span{font-size:13px}
+  .queue-header span,
+  .queue-panel-sub-desc,
+  .queue-filter input,
+  .queue-filter-actions button,
+  .queue-pagination button{font-size:14px}
+  .queue-summary strong{font-size:20px}
+  .queue-panel-head h2{font-size:19px}
+  .realtime-risk-panel .trend-panel-meta,
+  .realtime-risk-panel .live-status-tag,
+  .realtime-risk-panel .trend-series-label,
+  .realtime-risk-panel .trend-stat-badge,
+  .time-interval-toggle button{font-size:12px}
+  .queue-table-column th{font-size:13px}
+  .queue-table-column td{height:33px;font-size:14px}
+  .grade,
+  .queue-detail,
+  .queue-pagination span{font-size:13px}
+
+  .time-interval-toggle{padding:1px}
+  .time-interval-toggle button{
+    min-width:52px;
+    height:26px;
+    padding:0 8px;
+    font-size:12px;
+  }
+  .realtime-risk-panel .trend-panel-meta,
+  .realtime-risk-panel .live-status-tag,
+  .realtime-risk-panel .trend-series-label,
+  .realtime-risk-panel .trend-stat-badge{
+    font-size:13px;
+  }
+  .realtime-risk-panel .live-status-tag,
+  .realtime-risk-panel .trend-stat-badge{padding:5px 9px}
+}
