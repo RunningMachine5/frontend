@@ -222,6 +222,7 @@ export function RealtimeRiskTrendChart({
   const activeItem = hoveredIndex !== null ? items[hoveredIndex] : null;
   const activeScoreCoord = hoveredIndex !== null ? scoreCoords[hoveredIndex] : null;
   const activeGradeStyle = activeItem ? getRiskGradeStyle(activeItem.score) : null;
+  const showTooltipBelow = activeScoreCoord ? activeScoreCoord.y < renderHeight / 2 : false;
 
   return (
     <div className="trend-chart-wrap realtime-risk-chart-wrap" ref={containerRef}>
@@ -477,10 +478,12 @@ export function RealtimeRiskTrendChart({
       {/* 스마트 플로팅 툴팁 카드 (위험 등급 뱃지 & 색상 반영) */}
       {activeItem && activeScoreCoord && activeGradeStyle && (
         <div
-          className="chart-floating-tooltip"
+          className={`chart-floating-tooltip ${showTooltipBelow ? "tooltip-below" : "tooltip-above"}`}
           style={{
-            left: `${activeScoreCoord.x}px`,
-            top: `${Math.max(10, activeScoreCoord.y - 32)}px`,
+            left: `clamp(130px, ${activeScoreCoord.x}px, calc(100% - 130px))`,
+            top: showTooltipBelow
+              ? `min(${activeScoreCoord.y + 12}px, calc(100% - 124px))`
+              : `${activeScoreCoord.y - 12}px`,
             borderColor: activeGradeStyle.mainColor,
           }}
         >
