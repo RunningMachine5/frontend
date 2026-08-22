@@ -241,9 +241,30 @@ export function ModelVersionDetailPage() {
                 <small>담당자 판정이 있는 거래는 예측 결과와 나란히 비교합니다.</small>
               </div>
               <div aria-label="거래 라벨 필터" className="model-transaction-filters" role="group">
-                <button className={labelFilter === "ALL" ? "active" : undefined} onClick={() => { setLabelFilter("ALL"); setPage(1); }} type="button">전체</button>
-                <button className={labelFilter === "LABELED" ? "active" : undefined} onClick={() => { setLabelFilter("LABELED"); setPage(1); }} type="button">라벨 있음</button>
-                <button className={labelFilter === "MISMATCH" ? "active" : undefined} onClick={() => { setLabelFilter("MISMATCH"); setPage(1); }} type="button">불일치만</button>
+                <button
+                  aria-pressed={labelFilter === "ALL"}
+                  className={labelFilter === "ALL" ? "active" : undefined}
+                  onClick={() => { setLabelFilter("ALL"); setPage(1); }}
+                  type="button"
+                >
+                  전체
+                </button>
+                <button
+                  aria-pressed={labelFilter === "LABELED"}
+                  className={labelFilter === "LABELED" ? "active" : undefined}
+                  onClick={() => { setLabelFilter("LABELED"); setPage(1); }}
+                  type="button"
+                >
+                  라벨 있음
+                </button>
+                <button
+                  aria-pressed={labelFilter === "MISMATCH"}
+                  className={labelFilter === "MISMATCH" ? "active" : undefined}
+                  onClick={() => { setLabelFilter("MISMATCH"); setPage(1); }}
+                  type="button"
+                >
+                  불일치만
+                </button>
               </div>
             </header>
             <div className={`model-transaction-table-wrap ${isTransactionsLoading ? "loading" : ""}`}>
