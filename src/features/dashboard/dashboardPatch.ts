@@ -12,6 +12,7 @@ export type DashboardTransactionPatch = {
   channel: string;
   date_label: string;
   rule_analysis_completed: boolean;
+  overview_suspicious: boolean;
   suspicious_case: CaseListItem | null;
 };
 
@@ -71,6 +72,7 @@ export function parseDashboardTransactionPatch(eventData: string) {
       typeof patch.channel !== "string" ||
       typeof patch.date_label !== "string" ||
       typeof patch.rule_analysis_completed !== "boolean" ||
+      typeof patch.overview_suspicious !== "boolean" ||
       !(patch.suspicious_case === null || isCaseListItem(patch.suspicious_case)) ||
       patch.event_id !== `transaction:${patch.transaction.transaction_id}`
     ) {
@@ -151,7 +153,9 @@ export function applyDashboardTransactionPatch(
 ) {
   if (!isInPeriod(patch.transaction, overview.period)) return overview;
 
-  const suspiciousCase = patch.suspicious_case;
+  const suspiciousCase = patch.overview_suspicious
+    ? patch.suspicious_case
+    : null;
   const amount = suspiciousCase ? Math.abs(suspiciousCase.transaction_amount) : 0;
   const riskGrade = suspiciousCase?.risk_grade ?? null;
   const isPriority = riskGrade === "VERY_HIGH" || riskGrade === "HIGH";

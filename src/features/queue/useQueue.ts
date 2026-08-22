@@ -18,7 +18,6 @@ export function useQueue(filters: QueueSearchFilters, pageSize: number) {
     let refreshTimer: number | null = null;
     let isRefreshRunning = false;
     let refreshPending = false;
-    let hasConnected = false;
 
     async function loadQueue(showLoading: boolean) {
       if (showLoading) setIsLoading(true);
@@ -90,8 +89,8 @@ export function useQueue(filters: QueueSearchFilters, pageSize: number) {
     }
 
     function handleOpen() {
-      if (hasConnected) scheduleRefresh();
-      hasConnected = true;
+      // 최초 연결 직전 누락과 재연결 중 누락을 모두 DB 조회로 맞춘다.
+      scheduleRefresh();
     }
 
     void runRefresh(true);

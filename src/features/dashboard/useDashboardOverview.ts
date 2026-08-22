@@ -12,7 +12,6 @@ import type { DashboardOverviewResponse, RecentTransaction } from "./dashboardOv
 import {
     applyDashboardTransactionPatch,
     parseDashboardTransactionPatch,
-    type DashboardTransactionPatch,
     upsertRealtimeRiskRow,
     upsertRecentTransaction,
 } from "./dashboardPatch";
@@ -43,28 +42,9 @@ export function useDashboardOverview(params: DashOverviewParams){
         let refreshTimer: number | null = null;
         let isRefreshRunning = false;
         let refreshPending = false;
-        let hasConnected = false;
+        let hasSnapshot = false;
         const seenEventIds = new Set<string>();
         const seenTransactionIds = new Set<number>();
-        const patchesDuringRefresh = new Map<number, DashboardTransactionPatch>();
-
-        function applyTransactionPatch(patch: DashboardTransactionPatch) {
-            const suspiciousCase = patch.suspicious_case;
-            setRecentTransactions((current) =>
-                upsertRecentTransaction(current, patch.transaction),
-            );
-            setData((current) =>
-                current
-                    ? applyDashboardTransactionPatch(current, patch)
-                    : current,
-            );
-
-            if (suspiciousCase) {
-                setRealtimeRiskRows((current) =>
-                    upsertRealtimeRiskRow(current, suspiciousCase),
-                );
-            }
-        }
 
         async function loadOverview(generateIfMissing = false){
             try {
@@ -82,49 +62,16 @@ export function useDashboardOverview(params: DashOverviewParams){
                     return;
                 }
 
-                const latestSnapshotTransactionId = recentTransactions.reduce(
-                    (latest, transaction) =>
-                        Math.max(latest, transaction.transaction_id),
-                    0,
-                );
-                const patchesMissingFromSnapshot = [
-                    ...patchesDuringRefresh.values(),
-                ].filter(
-                    (patch) =>
-                        patch.transaction.transaction_id >
-                        latestSnapshotTransactionId,
-                );
-
-                let nextOverview = overview;
-                let nextRiskRows = riskRows.items;
-                let nextRecentTransactions = recentTransactions;
-
-                for (const patch of patchesMissingFromSnapshot) {
-                    nextOverview = applyDashboardTransactionPatch(
-                        nextOverview,
-                        patch,
-                    );
-                    nextRecentTransactions = upsertRecentTransaction(
-                        nextRecentTransactions,
-                        patch.transaction,
-                    );
-                    if (patch.suspicious_case) {
-                        nextRiskRows = upsertRealtimeRiskRow(
-                            nextRiskRows,
-                            patch.suspicious_case,
-                        );
-                    }
-                }
-
-                for (const transaction of nextRecentTransactions) {
+                for (const transaction of recentTransactions) {
                     seenTransactionIds.add(transaction.transaction_id);
                     seenEventIds.add(`transaction:${transaction.transaction_id}`);
                 }
 
-                setData(nextOverview);
-                setRealtimeRiskRows(nextRiskRows);
-                setRecentTransactions(nextRecentTransactions);
+                setData(overview);
+                setRealtimeRiskRows(riskRows.items);
+                setRecentTransactions(recentTransactions);
                 setErrorMessage(null);
+                hasSnapshot = true;
 
                 // 첫 조회에 해당 기간 요약이 없을 때만 한 번 생성한다.
                 if (generateIfMissing && overview.agent_insight === null) {
@@ -138,8 +85,6 @@ export function useDashboardOverview(params: DashOverviewParams){
                         );
                     }
                 }
-
-                patchesDuringRefresh.clear();
             }catch(error){
                 if(isActive){
                     setErrorMessage(
@@ -196,6 +141,13 @@ export function useDashboardOverview(params: DashOverviewParams){
                 return;
             }
 
+            // 조회와 부분 갱신이 겹치면 응답 순서에 따라 화면이 과거 값으로
+            // 돌아갈 수 있으므로, 실행·예약된 조회가 끝난 뒤 DB 값으로 보정한다.
+            if (!hasSnapshot || isRefreshRunning || refreshTimer !== null) {
+                scheduleRefresh();
+                return;
+            }
+
             const transactionId = patch.transaction.transaction_id;
             if (
                 seenEventIds.has(patch.event_id) ||
@@ -206,17 +158,25 @@ export function useDashboardOverview(params: DashOverviewParams){
 
             seenEventIds.add(patch.event_id);
             seenTransactionIds.add(transactionId);
-            if (isRefreshRunning) {
-                patchesDuringRefresh.set(transactionId, patch);
+            const suspiciousCase = patch.suspicious_case;
+            setRecentTransactions((current) =>
+                upsertRecentTransaction(current, patch.transaction),
+            );
+            setData((current) =>
+                current
+                    ? applyDashboardTransactionPatch(current, patch)
+                    : current,
+            );
+            if (suspiciousCase) {
+                setRealtimeRiskRows((current) =>
+                    upsertRealtimeRiskRow(current, suspiciousCase),
+                );
             }
-            applyTransactionPatch(patch);
         }
 
         function handleOpen() {
-            if (hasConnected) {
-                scheduleRefresh();
-            }
-            hasConnected = true;
+            // 최초 연결 직전 누락과 재연결 중 누락을 모두 DB 조회로 맞춘다.
+            scheduleRefresh();
         }
 
         // 화면 첫 진입 시 overview 조회
