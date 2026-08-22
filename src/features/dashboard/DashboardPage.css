@@ -550,37 +550,31 @@
   .dashboard-content{gap:6px}
 
   .metric-grid{
-    gap:0;
+    gap:4px;
     margin:4px 0 6px;
-    overflow:hidden;
-    border:1px solid var(--ops-line);
-    border-radius:4px;
-  }
-  .metric-card{
+    overflow:visible;
     border:0;
-    border-right:1px solid var(--ops-line);
     border-radius:0;
   }
-  .metric-card:last-child{border-right:0}
-
-  .dashboard-monitoring-grid{
-    gap:0;
-    overflow:hidden;
+  .metric-card{
     border:1px solid var(--ops-line);
     border-radius:4px;
+  }
+
+  .dashboard-monitoring-grid{
+    gap:4px;
+    overflow:visible;
+    border:0;
+    border-radius:0;
   }
   .monitoring-top-row,
   .monitoring-bottom-row,
-  .bottom-right-col{gap:0}
+  .bottom-right-col{gap:4px}
   .monitoring-top-row{height:39%}
   .monitoring-bottom-row{height:61%}
-  .monitoring-bottom-row{border-top:1px solid var(--ops-line)}
-  .monitoring-top-row>.panel:first-child,
-  .monitoring-bottom-row>.panel:first-child{border-right:1px solid var(--ops-line)}
-  .bottom-right-col>.panel+.panel{border-top:1px solid var(--ops-line)}
   .dashboard-monitoring-grid .panel{
-    border:0;
-    border-radius:0;
+    border:1px solid var(--ops-line);
+    border-radius:4px;
   }
 }
 
