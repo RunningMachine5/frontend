@@ -366,11 +366,17 @@ export function TransactionLabelingPage() {
                   <strong className={labelClass(selected.confirmed_is_fraud)}>
                     {labelText(selected.confirmed_is_fraud)}
                   </strong>
-                  <small>{selected.labeled_at ? `${formatDateTime(selected.labeled_at)} 저장` : "아직 학습 라벨이 없습니다."}</small>
+                  <small aria-live="polite">
+                    {isSaving
+                      ? "판정 결과 저장 중…"
+                      : selected.labeled_at
+                        ? `${formatDateTime(selected.labeled_at)} 저장`
+                        : "아직 학습 라벨이 없습니다."}
+                  </small>
                 </div>
               </section>
 
-              <section className="labeling-action-row">
+              <section aria-busy={isSaving} className="labeling-action-row">
                 <button
                   aria-pressed={selected.confirmed_is_fraud === false}
                   className="label-action normal"
