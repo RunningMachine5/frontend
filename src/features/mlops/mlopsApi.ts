@@ -7,6 +7,8 @@ import type {
   InferencePerformance,
   ModelDetails,
   ModelReview,
+  ModelTransactionPage,
+  ModelVersionSummary,
   PlatformMonitoring,
   PlatformStatus,
   ServingStatus,
@@ -69,6 +71,18 @@ export const fetchModelReview = (runId: number) =>
   adminRequest<ModelReview>(`/mlops/training/runs/${runId}/ai-review`, {
     method: "POST",
   });
+
+export const fetchModelVersions = () =>
+  adminRequest<ModelVersionSummary[]>("/mlops/models");
+
+export const fetchModelTransactions = (
+  runId: number,
+  labelFilter: "ALL" | "LABELED" | "MISMATCH",
+  page: number,
+  pageSize = 10,
+) => adminRequest<ModelTransactionPage>(
+  `/mlops/models/${runId}/transactions?label_filter=${labelFilter}&page=${page}&page_size=${pageSize}`,
+);
 
 export const decideModel = (
   runId: number,

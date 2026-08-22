@@ -20,6 +20,7 @@ import {
   fetchDatasets,
   fetchInferencePerformance,
   fetchModelDetails,
+  fetchModelVersions,
   fetchServingStatus,
   fetchTrainingRuns,
 } from "./mlopsApi";
@@ -28,6 +29,7 @@ import type {
   DatasetVersion,
   InferencePerformance,
   ModelDetails,
+  ModelVersionSummary,
   ServingStatus,
   TrainingRun,
 } from "./mlopsTypes";
@@ -36,7 +38,7 @@ import type { TransactionLabelQueueSummary } from "./transactionLabelingTypes";
 const OVERVIEW_REFRESH_MS = 15_000;
 const numberFormat = new Intl.NumberFormat("ko-KR");
 const rateFormat = new Intl.NumberFormat("ko-KR", { maximumFractionDigits: 1 });
-const ACTION_RUNS_PER_PAGE = 10;
+const ACTION_RUNS_LIMIT = 4;
 
 interface ModelOverviewSnapshot {
   datasets: DatasetVersion[];
@@ -44,6 +46,7 @@ interface ModelOverviewSnapshot {
   serving: ServingStatus | null;
   labelSummary: TransactionLabelQueueSummary | null;
   inference: InferencePerformance | null;
+  models: ModelVersionSummary[];
   updatedAt: Date;
 }
 
@@ -76,13 +79,15 @@ async function fetchOverview(force = false) {
       pageSize: 1,
     }).then((response) => response.summary).catch(() => null),
     fetchInferencePerformance().catch(() => null),
-  ]).then(([datasets, runs, serving, labelSummary, inference]) => {
+    fetchModelVersions().catch(() => []),
+  ]).then(([datasets, runs, serving, labelSummary, inference, models]) => {
     overviewCache = {
       datasets,
       runs,
       serving,
       labelSummary,
       inference,
+      models,
       updatedAt: new Date(),
     };
     return overviewCache;
@@ -137,7 +142,7 @@ function ModelOverviewSkeleton() {
           {Array.from({ length: 5 }, (_, index) => <i key={index} />)}
         </aside>
         <section className="model-summary-grid">
-          {Array.from({ length: 2 }, (_, index) => (
+          {Array.from({ length: 3 }, (_, index) => (
             <article className="model-overview-skeleton-card model-overview-skeleton-summary" key={index}>
               <i /><i /><i /><i />
             </article>
@@ -153,7 +158,6 @@ export function ModelManagementPage() {
   const [productionDetails, setProductionDetails] = useState<ModelDetails | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(() => overview === null);
   const [isDetailsLoading, setIsDetailsLoading] = useState(false);
-  const [actionPage, setActionPage] = useState(1);
   const [error, setError] = useState<string | null>(null);
 
   const loadOverview = useCallback(async (force = false) => {
@@ -195,6 +199,7 @@ export function ModelManagementPage() {
   const serving = overview?.serving ?? null;
   const labelSummary = overview?.labelSummary ?? null;
   const inference = overview?.inference ?? null;
+  const models = overview?.models ?? [];
   const updatedAt = overview?.updatedAt ?? null;
   const productionRun = findCurrentProductionRun(runs);
 
@@ -216,12 +221,8 @@ export function ModelManagementPage() {
   const latestDataset = datasets[0] ?? null;
   const latestRun = runs[0] ?? null;
   const actionRuns = runs.filter((run) => ACTION_REQUIRED_STATUSES.has(run.status));
-  const actionPageCount = Math.max(1, Math.ceil(actionRuns.length / ACTION_RUNS_PER_PAGE));
-  const currentActionPage = Math.min(actionPage, actionPageCount);
-  const visibleActionRuns = actionRuns.slice(
-    (currentActionPage - 1) * ACTION_RUNS_PER_PAGE,
-    currentActionPage * ACTION_RUNS_PER_PAGE,
-  );
+  const visibleActionRuns = actionRuns.slice(0, ACTION_RUNS_LIMIT);
+  const recentModels = models.slice(0, 3);
   const trafficPercent = latestRevisionTraffic(serving);
   const inferenceRatePerMinute = inference && inference.window_minutes > 0
     ? inference.inference_count / inference.window_minutes
@@ -347,14 +348,11 @@ export function ModelManagementPage() {
             ))}
           </div>
           <footer className="model-action-footer">
-            <Link className="inbox-footer-link" to="/models/training">학습·배포 이력 전체 보기</Link>
-            {actionRuns.length > ACTION_RUNS_PER_PAGE && (
-              <nav aria-label="조치가 필요한 학습 페이지" className="model-action-pagination">
-                <button disabled={currentActionPage === 1} onClick={() => setActionPage(currentActionPage - 1)} type="button">이전</button>
-                <span><strong>{currentActionPage}</strong> / {actionPageCount}</span>
-                <button disabled={currentActionPage === actionPageCount} onClick={() => setActionPage(currentActionPage + 1)} type="button">다음</button>
-              </nav>
-            )}
+            <Link className="inbox-footer-link" to="/models/training">
+              {actionRuns.length > ACTION_RUNS_LIMIT
+                ? `나머지 ${numberFormat.format(actionRuns.length - ACTION_RUNS_LIMIT)}건 전체 보기 →`
+                : "학습·배포 이력 전체 보기 →"}
+            </Link>
           </footer>
         </aside>
 
@@ -420,6 +418,43 @@ export function ModelManagementPage() {
               <strong>{productionRun ? `Run #${productionRun.id}` : latestDatasetLabelCount === null ? "—" : `${numberFormat.format(latestDatasetLabelCount)} 라벨`}</strong>
             </li>
           </ol>
+        </Link>
+        <Link to="/models/versions">
+          <header>
+            <div className="model-summary-heading">
+              <b aria-hidden="true">03</b>
+              <div><small>MODEL VERSIONS</small><h3>모델 버전</h3></div>
+            </div>
+            <em>목록 열기 →</em>
+          </header>
+          <div className="model-summary-primary">
+            <span>저장된 학습 모델</span>
+            <strong>{numberFormat.format(models.length)}<small>개</small></strong>
+            <p>학습 성능과 실제 운영 이력을 모델별로 확인합니다.</p>
+          </div>
+          <ul className="model-summary-details model-version-summary-list">
+            {recentModels.length === 0 ? (
+              <li>
+                <i className="accent" />
+                <div><span>등록된 모델 없음</span><small>학습이 완료되면 모델이 표시됩니다.</small></div>
+                <strong>—</strong>
+              </li>
+            ) : recentModels.map((model) => (
+              <li key={model.training_run_id}>
+                <i className={model.status === "PRODUCTION" ? "positive" : "accent"} />
+                <div>
+                  <span>model v{model.model_version} · Run #{model.training_run_id}</span>
+                  <small>{STATUS_LABELS[model.status] ?? model.status}</small>
+                </div>
+                <strong>
+                  {model.usage.processed_transaction_count > 0
+                    ? numberFormat.format(model.usage.processed_transaction_count)
+                    : "이력 없음"}
+                  {model.usage.processed_transaction_count > 0 && <small>건</small>}
+                </strong>
+              </li>
+            ))}
+          </ul>
         </Link>
         </section>
         </section>
