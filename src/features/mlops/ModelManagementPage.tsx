@@ -432,7 +432,7 @@ export function ModelManagementPage() {
             <strong>{numberFormat.format(models.length)}<small>개</small></strong>
             <p>학습 성능과 실제 운영 이력을 모델별로 확인합니다.</p>
           </div>
-          <ul className="model-summary-details model-version-summary-list">
+          <ul className="model-summary-details">
             {recentModels.length === 0 ? (
               <li>
                 <i className="accent" />

@@ -10,7 +10,6 @@
 .dashboard-monitoring-grid>.priority-panel{grid-area:trend}
 .dashboard-monitoring-grid>.risk-panel{grid-area:risk}
 .dashboard-monitoring-grid>.agent-panel{grid-area:agent}
-.dashboard-monitoring-grid>.left-panels{grid-area:supporting;grid-template-columns:repeat(2,minmax(0,1fr))}
 .metric-card-head{display:flex;align-items:center;justify-content:space-between;gap:10px}
 .metric-card-head>span{color:#9ca1b0;font-size:13px;font-weight:500}
 .metric-card-head small{min-width:0;margin:0;justify-content:flex-end;gap:7px;text-align:right}
@@ -64,9 +63,6 @@
 .grade-legend-mini{display:inline-flex;align-items:center;gap:7px;background:#181822;padding:3px 8px;border-radius:8px;border:1px solid #3c3c48;font-size:10px;color:#9ca1b0;margin-right:2px}
 .grade-legend-item{display:inline-flex;align-items:center;gap:4px}
 .grade-legend-item i{width:6px;height:6px;border-radius:50%;display:inline-block}
-.suspicious-amount{display:flex;align-items:baseline;gap:8px;white-space:nowrap}
-.suspicious-amount span{color:#9ca1b0;font-size:12px;font-weight:600}
-.suspicious-amount strong{color:#f1f1f7;font-size:22px;line-height:1}
 .suspicious-count-tag{color:#9ca1b0;font-size:13px;font-weight:500;margin-left:2px}
 .mini-bars-7days{height:105px;clear:both;padding:4px 6px 0;border-bottom:1px solid #3c3c48;display:flex;justify-content:space-around;align-items:flex-end;gap:6px}
 .mini-bar-col-7days{height:100%;flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:space-between;font-size:10px;color:#9ca1b0;cursor:pointer;transition:transform .2s ease}
@@ -150,7 +146,6 @@
   .dashboard-header{min-height:48px;padding-bottom:4px;border-bottom:1px solid #3c3c48;display:flex;justify-content:space-between;align-items:center}
   .dashboard-header h1{font-size:25px}
   .eyebrow{font-size:13px}
-  .header-actions{padding-top:0}
   .refresh-error{position:absolute;z-index:2;top:54px;right:22px;margin:0;padding:4px 8px;border-radius:6px;background:#392027;font-size:13px}
   .metric-grid{margin:0;gap:8px;grid-template-columns:repeat(5,minmax(0,1fr))}
   .metric-card{min-height:72px;padding:8px 14px}
@@ -239,7 +234,6 @@
 @media(min-width:1081px) and (max-width:1439px){
   .dashboard-content{width:100%;min-height:100vh;height:auto;padding:20px 24px 40px;overflow-y:auto}
   .dashboard-header{min-height:70px;align-items:center}
-  .header-actions{padding-top:0}
   .metric-grid{gap:10px;margin:12px 0 14px}
   .metric-card{min-height:92px;padding:12px 14px}
   .metric-card>strong{font-size:22px}
@@ -252,8 +246,6 @@
   .risk-row{grid-template-columns:85px minmax(70px,1fr) 110px;gap:8px}
   .agent-row{grid-template-columns:minmax(140px,.7fr) minmax(80px,1fr) 28px;gap:10px}
   .realtime-trend-meta{flex-wrap:wrap;justify-content:flex-end;gap:6px}
-  .suspicious-panel .panel-head{flex-wrap:wrap}
-  .suspicious-panel-meta{width:100%;flex-wrap:wrap;justify-content:flex-start}
 }
 
 /* 3. 태블릿 및 좁은 화면 (1080px 이하) - 1열 스택 정렬로 깨짐 방지 */
@@ -389,15 +381,6 @@
   .panel-head h2,.agent-panel-head h2{letter-spacing:-.02em}
   .trend-chart-wrap{height:236px}
   .mini-bars-7days{height:174px}
-  .suspicious-panel .panel-head{gap:6px}
-  .suspicious-panel .panel-head>div:first-child{min-width:0}
-  .suspicious-panel .panel-head h2,
-  .suspicious-panel .panel-caption{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  .suspicious-panel-meta{flex:0 0 auto;flex-wrap:nowrap;gap:6px}
-  .suspicious-amount{gap:5px}
-  .suspicious-amount strong{font-size:20px}
-  .suspicious-amount span{font-size:11px}
-  .suspicious-count-tag{font-size:12px}
   .agent-summary{background:#130f1b;border-color:#30283b}
   .agent-row{min-height:34px}
   .solar-arc-chart-wrap{height:142px}
@@ -503,24 +486,16 @@
   .channel-stat-list-bottom{gap:2px}
 }
 
-:root[data-theme="light"] .live-pill,
 :root[data-theme="light"] .agent-summary strong,
 :root[data-theme="light"] .agent-refresh-btn{color:var(--ops-focus)}
-:root[data-theme="light"] .chart-amount-label,
-:root[data-theme="light"] .bar-amount-label,
 :root[data-theme="light"] .tooltip-amount{color:var(--ops-focus);fill:var(--ops-focus)}
 :root[data-theme="light"] .agent-comparative-row:hover{background:var(--ops-surface-sunken)}
 :root[data-theme="light"] .status-badge,
 :root[data-theme="light"] .live-status-tag{color:var(--ops-low)}
 :root[data-theme="light"] .chart-floating-tooltip{background:var(--ops-surface);box-shadow:0 8px 24px rgb(39 36 42 / 16%)}
 :root[data-theme="light"] .tooltip-action{color:var(--ops-focus)}
-:root[data-theme="light"] .suspicious-amount span,
-:root[data-theme="light"] .suspicious-count-tag,
-:root[data-theme="light"] .mini-bar-col-7days,
-:root[data-theme="light"] .bar-count-label span,
 :root[data-theme="light"] .bar-period-tag,
 :root[data-theme="light"] .amount-tag{color:var(--ops-text-muted)}
-:root[data-theme="light"] .suspicious-amount strong,
 :root[data-theme="light"] .bar-val{color:var(--ops-text)}
 :root[data-theme="light"] .bar-val.prev-val{color:var(--ops-text-muted)}
 :root[data-theme="light"] .increase-count-tag{color:var(--ops-high)}

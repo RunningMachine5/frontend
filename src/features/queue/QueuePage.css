@@ -71,11 +71,6 @@
   .queue-panel-head h2{font-size:18px}
 
   .scatter-panel{min-height:290px;flex:0 0 290px;margin-bottom:6px}
-  .queue-scatter{margin-top:6px}
-  .scatter-scale,.scatter-plot{height:195px}
-  .scatter-scale span{height:65px}
-  .scatter-plot{background:repeating-linear-gradient(to bottom,transparent 0,transparent 64px,#343440 65px)}
-  .scatter-scale,.scatter-time-axis{font-size:12px}
 
   .queue-table-panel{flex:1;display:flex;flex-direction:column;padding-bottom:6px;overflow:hidden}
   .queue-dual-table-wrap{min-height:0;flex:1;margin-top:6px;overflow:auto;scrollbar-gutter:stable}

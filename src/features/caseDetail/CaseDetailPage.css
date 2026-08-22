@@ -1412,7 +1412,6 @@
 :root[data-theme="light"] .j-channel-chip,
 :root[data-theme="light"] .j-bubble-sender,
 :root[data-theme="light"] .j-type-score{color:var(--ops-focus)}
-:root[data-theme="light"] .j-agent-badge,
 :root[data-theme="light"] .j-card-badge.success,
 :root[data-theme="light"] .j-similar-score,
 :root[data-theme="light"] .j-amount-val{color:var(--ops-low)}
