@@ -330,4 +330,20 @@
   .grade,
   .queue-detail,
   .queue-pagination span{font-size:13px}
+
+  .time-interval-toggle{padding:1px}
+  .time-interval-toggle button{
+    min-width:52px;
+    height:26px;
+    padding:0 8px;
+    font-size:12px;
+  }
+  .realtime-risk-panel .trend-panel-meta,
+  .realtime-risk-panel .live-status-tag,
+  .realtime-risk-panel .trend-series-label,
+  .realtime-risk-panel .trend-stat-badge{
+    font-size:13px;
+  }
+  .realtime-risk-panel .live-status-tag,
+  .realtime-risk-panel .trend-stat-badge{padding:5px 9px}
 }

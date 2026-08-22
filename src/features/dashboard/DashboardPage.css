@@ -632,3 +632,26 @@
   .bar-amount-label,
   .bar-val{font-size:13px}
 }
+
+/* 시간 선택은 작게, 현재 상태와 판단 근거는 한 단계 크게 보여 준다. */
+@media(min-width:1600px) and (min-height:760px){
+  .monitoring-top-row .time-interval-toggle{padding:1px}
+  .monitoring-top-row .time-interval-toggle button{
+    min-height:26px;
+    padding:2px 7px;
+    font-size:11.5px;
+  }
+  .monitoring-top-row .live-status-tag,
+  .monitoring-top-row .trend-series-label,
+  .monitoring-top-row .trend-stat-badge{
+    font-size:13px;
+  }
+  .monitoring-top-row .live-status-tag,
+  .monitoring-top-row .trend-stat-badge{padding:5px 9px}
+  .agent-refresh-btn,
+  .agent-panel-head .status-badge{
+    min-height:30px;
+    padding:6px 11px;
+    font-size:13px;
+  }
+}

@@ -140,8 +140,9 @@ export function RealtimeRiskTrendChart({
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [containerWidth, setContainerWidth] = useState(800);
+  const [containerHeight, setContainerHeight] = useState(height);
 
-  // 부모 박스의 크기 변화를 실시간으로 감지하여 유동적으로 너비 업데이트
+  // 카드 안에서 실제로 확보된 크기만큼 차트를 그려 불필요한 위아래 여백을 남기지 않는다.
   useEffect(() => {
     const el = containerRef.current;
     if (!el) return;
@@ -151,15 +152,21 @@ export function RealtimeRiskTrendChart({
       if (rect.width > 0) {
         setContainerWidth(Math.round(rect.width));
       }
+      if (rect.height > 0) {
+        setContainerHeight(Math.round(rect.height));
+      }
     };
 
     handleResize();
 
     const resizeObserver = new ResizeObserver((entries) => {
       for (const entry of entries) {
-        const width = entry.contentRect.width;
+        const { width, height: observedHeight } = entry.contentRect;
         if (width > 0) {
           setContainerWidth(Math.round(width));
+        }
+        if (observedHeight > 0) {
+          setContainerHeight(Math.round(observedHeight));
         }
       }
     });
@@ -169,11 +176,12 @@ export function RealtimeRiskTrendChart({
   }, []);
 
   const width = Math.max(360, containerWidth);
+  const renderHeight = Math.max(140, containerHeight);
   const padding = { top: 18, right: 48, bottom: 22, left: 88 };
   const innerInsetX = 18; // 좌우 끝 점과 뱃지가 Y축 눈금 텍스트와 겹치지 않으면서 가로폭 최대 확장
 
   const chartWidth = width - padding.left - padding.right;
-  const chartHeight = height - padding.top - padding.bottom;
+  const chartHeight = renderHeight - padding.top - padding.bottom;
   const plotWidth = Math.max(10, chartWidth - innerInsetX * 2);
   const plotStartX = padding.left + innerInsetX;
 
@@ -220,7 +228,7 @@ export function RealtimeRiskTrendChart({
       <svg
         aria-label="실시간 위험 거래 금액 및 위험 점수 모니터링 차트"
         className="trend-chart"
-        viewBox={`0 0 ${width} ${height}`}
+        viewBox={`0 0 ${width} ${renderHeight}`}
         role="img"
         onMouseLeave={() => setHoveredIndex(null)}
       >
@@ -456,7 +464,7 @@ export function RealtimeRiskTrendChart({
                   fontWeight={isLatest || isHovered ? "700" : "400"}
                   textAnchor="middle"
                   x={x}
-                  y={height - 8}
+                  y={renderHeight - 8}
                 >
                   {item.timeLabel}
                 </text>
