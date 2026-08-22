@@ -215,13 +215,11 @@ export function TransactionLabelingPage() {
       {error && <div className="admin-alert error" role="alert">{error}</div>}
       {notice && <div className="admin-alert success" role="status">{notice}</div>}
 
-      {(isLoading || isSaving) && (
+      {isLoading && !isSaving && (
         <ModelLoadingStatus
-          description={isSaving
-            ? "판정 결과를 저장한 뒤 거래 목록과 라벨 집계를 다시 맞춥니다."
-            : "선택한 조건의 거래 목록과 라벨 현황을 함께 조회합니다."}
-          label={isSaving ? "LABEL UPDATE" : "REVIEW QUEUE"}
-          title={isSaving ? "담당자 판정을 저장하고 있습니다" : "라벨링 거래를 불러오고 있습니다"}
+          description="선택한 조건의 거래 목록과 라벨 현황을 함께 조회합니다."
+          label="REVIEW QUEUE"
+          title="라벨링 거래를 불러오고 있습니다"
         />
       )}
 
@@ -368,11 +366,17 @@ export function TransactionLabelingPage() {
                   <strong className={labelClass(selected.confirmed_is_fraud)}>
                     {labelText(selected.confirmed_is_fraud)}
                   </strong>
-                  <small>{selected.labeled_at ? `${formatDateTime(selected.labeled_at)} 저장` : "아직 학습 라벨이 없습니다."}</small>
+                  <small aria-live="polite">
+                    {isSaving
+                      ? "판정 결과 저장 중…"
+                      : selected.labeled_at
+                        ? `${formatDateTime(selected.labeled_at)} 저장`
+                        : "아직 학습 라벨이 없습니다."}
+                  </small>
                 </div>
               </section>
 
-              <section className="labeling-action-row">
+              <section aria-busy={isSaving} className="labeling-action-row">
                 <button
                   aria-pressed={selected.confirmed_is_fraud === false}
                   className="label-action normal"
