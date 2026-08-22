@@ -1,7 +1,7 @@
 // 학습이 완료되어 MLflow에 등록된 모델을 운영·처리 이력과 함께 찾는다.
 
 import { useEffect, useMemo, useState } from "react";
-import { Link, useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 
 import { ModelLoadError } from "./components/ModelLoadError";
 import { ModelLoadingStatus } from "./components/ModelLoadingStatus";
@@ -71,6 +71,7 @@ function labelSampleText(model: ModelVersionSummary) {
 }
 
 export function ModelVersionsPage() {
+  const navigate = useNavigate();
   const [urlParams, setUrlParams] = useSearchParams();
   const [models, setModels] = useState<ModelVersionSummary[]>([]);
   const [filter, setFilter] = useState<CatalogFilter>(() => {
@@ -157,6 +158,11 @@ export function ModelVersionsPage() {
   const labeledCount = models.filter((model) =>
     model.usage.labeled_transaction_count > 0).length;
   const catalogQuery = catalogSearchParams(filter, sort, search, currentPage).toString();
+  const openModel = (trainingRunId: number) => {
+    navigate(`/models/versions/${trainingRunId}`, {
+      state: { catalogSearch: catalogQuery ? `?${catalogQuery}` : "" },
+    });
+  };
 
   return (
     <ModelPageShell activeSection="versions">
@@ -241,7 +247,20 @@ export function ModelVersionsPage() {
                 </thead>
                 <tbody>
                   {pageModels.map((model) => (
-                    <tr key={model.training_run_id}>
+                    <tr
+                      aria-label={`model v${model.model_version} 상세 보기`}
+                      className="model-catalog-row"
+                      key={model.training_run_id}
+                      onClick={() => openModel(model.training_run_id)}
+                      onKeyDown={(event) => {
+                        if (event.target !== event.currentTarget) return;
+                        if (event.key === "Enter" || event.key === " ") {
+                          event.preventDefault();
+                          openModel(model.training_run_id);
+                        }
+                      }}
+                      tabIndex={0}
+                    >
                       <td data-label="모델 버전">
                         <div className="model-version-name">
                           <strong>model v{model.model_version}</strong>
@@ -274,13 +293,9 @@ export function ModelVersionsPage() {
                         </small>
                       </td>
                       <td data-label="상세">
-                        <Link
-                          className="model-catalog-open"
-                          state={{ catalogSearch: catalogQuery ? `?${catalogQuery}` : "" }}
-                          to={`/models/versions/${model.training_run_id}`}
-                        >
+                        <span aria-hidden="true" className="model-catalog-open">
                           열기 →
-                        </Link>
+                        </span>
                       </td>
                     </tr>
                   ))}
