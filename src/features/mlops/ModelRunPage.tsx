@@ -410,23 +410,19 @@ export function ModelRunPage() {
     : modelReview?.decision === "NOT_RECOMMENDED"
       ? "not-recommended"
     : "pending";
-  const qualityGate = run?.status === "CANDIDATE"
-    ? details?.quality_gate
+  const qualityGate = run?.status === "CANDIDATE" && details?.quality_gate?.configured
+    ? details.quality_gate
     : undefined;
   const qualityGateStatus = !qualityGate
     ? null
-    : !qualityGate.configured
-      ? "설정 필요"
-      : qualityGate.passed
-        ? "기준 통과"
-        : "기준 미달";
+    : qualityGate.passed
+      ? "기준 통과"
+      : "기준 미달";
   const approvalBlockReason = !qualityGate
     ? null
-    : !qualityGate.configured
-      ? "서버 품질 기준이 설정되지 않아 후보를 승인할 수 없습니다."
-      : !qualityGate.passed
-        ? "후보 지표가 서버 품질 기준에 미달해 승인할 수 없습니다."
-        : null;
+    : !qualityGate.passed
+      ? "후보 지표가 서버 품질 기준에 미달해 승인할 수 없습니다."
+      : null;
 
   return (
     <ModelPageShell
@@ -492,12 +488,10 @@ export function ModelRunPage() {
                 )}
               </div>
               {qualityGate && (
-                <div className={`model-quality-gate ${qualityGate.configured && qualityGate.passed ? "passed" : "blocked"}`}>
+                <div className={`model-quality-gate ${qualityGate.passed ? "passed" : "blocked"}`}>
                   <span>품질 기준</span>
                   <strong>
-                    {qualityGate.configured
-                      ? `PR-AUC ≥ ${qualityGate.minimum_pr_auc.toFixed(4)} · Recall ≥ ${qualityGate.minimum_recall.toFixed(4)}`
-                      : "서버 기준값을 설정해야 합니다."}
+                    PR-AUC ≥ {qualityGate.minimum_pr_auc.toFixed(4)} · Recall ≥ {qualityGate.minimum_recall.toFixed(4)}
                   </strong>
                   <em>{qualityGateStatus}</em>
                 </div>
