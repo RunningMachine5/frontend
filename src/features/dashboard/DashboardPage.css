@@ -544,3 +544,68 @@
   .bar-amount-label,
   .bar-val{font-size:12px}
 }
+
+/* 이상거래 감시의 카드 묶음은 여백 대신 구분선으로 나눠 한 화면의 정보 밀도를 높인다. */
+@media(min-width:1440px) and (min-height:760px){
+  .dashboard-content{gap:6px}
+
+  .metric-grid{
+    gap:0;
+    margin:4px 0 6px;
+    overflow:hidden;
+    border:1px solid var(--ops-line);
+    border-radius:4px;
+  }
+  .metric-card{
+    border:0;
+    border-right:1px solid var(--ops-line);
+    border-radius:0;
+  }
+  .metric-card:last-child{border-right:0}
+
+  .dashboard-monitoring-grid{
+    gap:0;
+    overflow:hidden;
+    border:1px solid var(--ops-line);
+    border-radius:4px;
+  }
+  .monitoring-top-row,
+  .monitoring-bottom-row,
+  .bottom-right-col{gap:0}
+  .monitoring-top-row{height:39%}
+  .monitoring-bottom-row{height:61%}
+  .monitoring-bottom-row{border-top:1px solid var(--ops-line)}
+  .monitoring-top-row>.panel:first-child,
+  .monitoring-bottom-row>.panel:first-child{border-right:1px solid var(--ops-line)}
+  .bottom-right-col>.panel+.panel{border-top:1px solid var(--ops-line)}
+  .dashboard-monitoring-grid .panel{
+    border:0;
+    border-radius:0;
+  }
+}
+
+@media(min-width:1600px) and (min-height:900px){
+  .panel-caption,
+  .metric-card small,
+  .risk-panel footer,
+  .agent-summary-head span,
+  .agent-graph-legend,
+  .growth-tag,
+  .increase-count-tag,
+  .amount-tag,
+  .bar-sub-row,
+  .channel-stat-row,
+  .channel-ratio,
+  .channel-count,
+  .channel-amount{font-size:13px}
+  .chart-axis,
+  .amount-axis,
+  .score-axis,
+  .bar-date-label,
+  .bar-period-tag{font-size:12px}
+  .chart-value,
+  .chart-amount-label,
+  .bar-count-label,
+  .bar-amount-label,
+  .bar-val{font-size:13px}
+}
