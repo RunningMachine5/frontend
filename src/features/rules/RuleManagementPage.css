@@ -86,15 +86,62 @@
 }
 
 .rule-tabs .rule-type-add-button {
-  border: 1px dashed var(--ops-line-strong);
-  border-bottom: 0;
-  background: transparent;
-  color: var(--ops-focus);
+  margin-left: 4px;
+  border: 1px solid var(--ops-focus);
+  border-radius: 7px;
+  background: var(--ops-focus);
+  color: #fff;
+  font-weight: 800;
+  box-shadow: 0 5px 14px rgb(111 143 230 / 18%);
+  transition: filter .16s ease, box-shadow .16s ease, transform .16s ease;
+}
+
+.rule-tabs .rule-type-add-button > span {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: rgb(255 255 255 / 18%);
+  font-size: 13px;
+  line-height: 1;
 }
 
 .rule-tabs .rule-type-add-button:hover:not(:disabled) {
   border-color: var(--ops-focus);
-  background: var(--ops-focus-soft);
+  background: var(--ops-focus);
+  box-shadow: 0 6px 18px rgb(111 143 230 / 28%);
+  filter: brightness(1.08);
+}
+
+.rule-tabs .rule-type-add-button:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.rule-tabs .rule-type-add-button:disabled {
+  border-color: var(--ops-line-strong);
+  background: var(--ops-surface-sunken);
+  color: var(--ops-text-subtle);
+  box-shadow: none;
+}
+
+:root[data-theme="light"] .rule-tabs .rule-type-add-button {
+  border-color: var(--ops-focus);
+  background: var(--ops-focus);
+  color: #fff;
+}
+
+:root[data-theme="light"] .rule-tabs .rule-type-add-button:disabled {
+  border-color: var(--ops-disabled-line);
+  background: var(--ops-disabled-bg);
+  color: var(--ops-disabled-text);
+  box-shadow: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rule-tabs .rule-type-add-button {
+    transition: none;
+  }
 }
 
 .rule-type-empty {
