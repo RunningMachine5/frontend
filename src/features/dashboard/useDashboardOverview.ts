@@ -44,6 +44,7 @@ export function useDashboardOverview(params: DashOverviewParams){
         let isRefreshRunning = false;
         let refreshPending = false;
         let hasSnapshot = false;
+        let hasConnected = false;
         const seenEventIds = new Set<string>();
         const seenTransactionIds = new Set<number>();
 
@@ -179,8 +180,9 @@ export function useDashboardOverview(params: DashOverviewParams){
         }
 
         function handleOpen() {
-            // 최초 연결 직전 누락과 재연결 중 누락을 모두 DB 조회로 맞춘다.
-            scheduleRefresh();
+            // 최초 연결은 첫 조회가 담당하고, 실제 재연결 때만 누락 구간을 맞춘다.
+            if (hasConnected) scheduleRefresh();
+            hasConnected = true;
         }
 
         // 화면 첫 진입 시 overview 조회
