@@ -219,6 +219,25 @@ function CaseTableSection({
   </div>;
 }
 
+function QueueLoadingWorkspace() {
+  return (
+    <section aria-busy="true" aria-label="이상거래 목록을 불러오는 중" className="queue-workspace-grid queue-loading-workspace">
+      <section className="queue-panel queue-loading-panel queue-loading-trend ops-loading-skeleton">
+        <i className="ops-loading-block" />
+        <i className="ops-loading-block" />
+        <i className="ops-loading-block chart" />
+      </section>
+      <section className="queue-panel queue-loading-panel queue-loading-table ops-loading-skeleton">
+        <i className="ops-loading-block" />
+        <i className="ops-loading-block" />
+        <div>
+          {Array.from({ length: 14 }, (_, index) => <i className="ops-loading-block" key={index} />)}
+        </div>
+      </section>
+    </section>
+  );
+}
+
 export function QueuePage() {
   const [draftFilters, setDraftFilters] = useState(getInitialFilters);
   const [filters, setFilters] = useState<QueueSearchFilters>(() => ({ ...getInitialFilters(), page: 1 }));
@@ -301,8 +320,13 @@ export function QueuePage() {
       <label>종료 시각<input onChange={(event) => setDraftFilters((current) => ({ ...current, periodEnd: event.target.value }))} step="1" type="datetime-local" value={draftFilters.periodEnd} /></label>
       <div className="queue-filter-actions"><button type="button" onClick={resetSearch}>초기화</button><button type="submit">검색</button></div>
     </form>
-    <section className="queue-summary"><div><span>검색 결과</span><strong>{totalCount.toLocaleString()}건</strong></div><div><span>현재 페이지</span><strong>{rows.length}건</strong></div><div><span>현재 페이지 HIGH 이상</span><strong>{highCount}건</strong></div><div><span>현재 페이지 거래 금액</span><strong>{pageAmount.toLocaleString()}원</strong></div></section>
-    {isLoading ? <div className="queue-state">처리 목록을 불러오는 중...</div> : errorMessage ? <div className="queue-state">오류: {errorMessage}</div> : <>
+    <section className={`queue-summary ${isLoading ? "ops-loading-skeleton" : ""}`}>
+      <div><span>검색 결과</span>{isLoading ? <i className="ops-loading-block" /> : <strong>{totalCount.toLocaleString()}건</strong>}</div>
+      <div><span>현재 페이지</span>{isLoading ? <i className="ops-loading-block" /> : <strong>{rows.length}건</strong>}</div>
+      <div><span>현재 페이지 HIGH 이상</span>{isLoading ? <i className="ops-loading-block" /> : <strong>{highCount}건</strong>}</div>
+      <div><span>현재 페이지 거래 금액</span>{isLoading ? <i className="ops-loading-block" /> : <strong>{pageAmount.toLocaleString()}원</strong>}</div>
+    </section>
+    {isLoading ? <QueueLoadingWorkspace /> : errorMessage ? <div className="queue-state">오류: {errorMessage}</div> : <>
       <section className="queue-workspace-grid">
         <QueueRealtimeTrendSection rows={trendRows.length > 0 ? trendRows : rows} />
         <section className="queue-panel queue-table-panel">

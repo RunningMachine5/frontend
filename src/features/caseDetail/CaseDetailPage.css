@@ -1540,3 +1540,26 @@
   .j-score-number{font-size:46px}
   .j-amount-val{font-size:28px}
 }
+
+/* 상세 데이터를 기다리는 동안 실제 카드 위치에 관리 화면과 같은 모션을 보여준다. */
+.case-loading-view{display:flex;min-height:0;flex:1;flex-direction:column;gap:10px}
+.case-loading-profile{min-height:66px}
+.case-loading-profile .ops-loading-block{width:72%;height:16px}
+.case-loading-workflow{display:grid;min-height:142px;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.case-loading-workflow .ops-loading-block{height:100%;border:1px solid var(--ops-line);background:var(--ops-surface)}
+.case-loading-grid{display:grid;min-height:0;flex:1;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.case-loading-card{min-height:260px;padding:16px;gap:11px}
+.case-loading-card>.ops-loading-block{width:36%;height:14px}
+.case-loading-card>.ops-loading-block:nth-child(2){width:56%;height:9px}
+.case-loading-card>.ops-loading-block.body{width:100%;min-height:120px;flex:1;background:repeating-linear-gradient(0deg,#272730 0,#272730 1px,transparent 1px,transparent 34px)}
+:root[data-theme="light"] .case-loading-workflow .ops-loading-block,
+:root[data-theme="light"] .case-loading-card>.ops-loading-block{background:var(--ops-line)}
+:root[data-theme="light"] .case-loading-card>.ops-loading-block.body{background:repeating-linear-gradient(0deg,var(--ops-line) 0,var(--ops-line) 1px,transparent 1px,transparent 34px)}
+
+@media(max-width:900px){
+  .case-loading-profile{grid-template-columns:1fr}
+  .case-loading-profile .ops-loading-block:not(:first-child){display:none}
+  .case-loading-workflow,.case-loading-grid{grid-template-columns:1fr}
+  .case-loading-workflow{min-height:348px}
+  .case-loading-card{min-height:220px}
+}

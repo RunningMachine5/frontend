@@ -112,6 +112,60 @@ function LiveTransactionAlerts({ transactions }: { transactions: RecentTransacti
   );
 }
 
+function DashboardLoadingSkeleton() {
+  return (
+    <AppLayout activeNav="dashboard">
+      <div aria-busy="true" aria-label="이상거래 감시 데이터를 불러오는 중" className="dashboard-content dashboard-loading" id="main">
+        <header className="app-page-header dashboard-header">
+          <PageHeading eyebrow="FRAUD MONITORING" title="이상거래 감시" />
+          <span className="dashboard-loading-header ops-loading-block" />
+        </header>
+
+        <section className="metric-grid">
+          {Array.from({ length: 4 }, (_, index) => (
+            <article className="metric-card dashboard-loading-metric ops-loading-skeleton" key={index}>
+              <i className="ops-loading-block" />
+              <i className="ops-loading-block" />
+              <i className="ops-loading-block" />
+            </article>
+          ))}
+        </section>
+
+        <section className="dashboard-monitoring-grid dashboard-loading-grid">
+          <div className="monitoring-top-row">
+            <article className="panel dashboard-loading-panel ops-loading-skeleton">
+              <i className="ops-loading-block" />
+              <i className="ops-loading-block" />
+              <i className="ops-loading-block chart" />
+            </article>
+            <article className="panel dashboard-loading-panel ops-loading-skeleton">
+              <i className="ops-loading-block" />
+              <i className="ops-loading-block" />
+              <i className="ops-loading-block chart" />
+            </article>
+          </div>
+          <div className="monitoring-bottom-row">
+            <article className="panel dashboard-loading-panel ops-loading-skeleton">
+              <i className="ops-loading-block" />
+              <i className="ops-loading-block" />
+              <i className="ops-loading-block rows" />
+            </article>
+            <div className="bottom-right-col">
+              {Array.from({ length: 2 }, (_, index) => (
+                <article className="panel dashboard-loading-panel ops-loading-skeleton" key={index}>
+                  <i className="ops-loading-block" />
+                  <i className="ops-loading-block" />
+                  <i className="ops-loading-block chart" />
+                </article>
+              ))}
+            </div>
+          </div>
+        </section>
+      </div>
+    </AppLayout>
+  );
+}
+
 export function DashboardPage() {
   const [period, setPeriod] = useState(CURRENT_PERIOD);
   const {
@@ -144,7 +198,7 @@ export function DashboardPage() {
     }
   };
 
-  if (isLoading && !data) return <main className="dashboard-state">대시보드를 불러오는 중...</main>;
+  if (isLoading && !data) return <DashboardLoadingSkeleton />;
   if (errorMessage && !data) return <main className="dashboard-state">오류: {errorMessage}</main>;
   if (!data) return <main className="dashboard-state">표시할 데이터가 없습니다.</main>;
 

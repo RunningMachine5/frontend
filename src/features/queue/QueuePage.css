@@ -40,6 +40,18 @@
 @keyframes live-pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(1.2)}}
 @keyframes live-ring-pulse{0%{r:6px;opacity:.8}100%{r:14px;opacity:0}}
 .queue-table-panel{padding-bottom:12px;display:flex;flex-direction:column}.queue-dual-table-wrap{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:12px}.queue-table-column{min-width:0;overflow-x:auto}.queue-table-column table{width:100%;border-collapse:collapse;font-size:13px}.queue-table-column th{padding:9px 6px;color:#a9a6b4;background:#282832;text-align:left;white-space:nowrap;font-size:12px}.queue-table-column td{padding:9px 6px;border-top:1px solid #343440;color:#d9d6e0;white-space:nowrap;font-size:13px}.grade{font-size:12px;font-weight:800}.grade.very_high{color:#ee737a}.grade.high{color:#f5ad50}.grade.medium{color:#ad90ff}.grade.empty{color:#858292}.queue-detail{padding:4px 8px;border:1px solid #66506d;border-radius:5px;color:#e6c9e9;text-decoration:none;font-size:12px;white-space:nowrap}.queue-empty{padding:30px;text-align:center;color:#9895a6}.queue-pagination{display:flex;justify-content:center;align-items:center;gap:12px;padding-top:14px}.queue-pagination span{min-width:62px;color:#c4c0ce;font-size:12px;text-align:center}.queue-pagination button:disabled{cursor:not-allowed;opacity:.4}.queue-state{display:grid;min-height:360px;place-items:center;color:#c4c0ce}
+
+/* 조회 중에도 그래프와 표의 자리를 유지하고 관리 화면과 같은 로딩 흐름을 보여준다. */
+.queue-summary .ops-loading-block{width:72px;height:16px;margin-top:5px}
+.queue-loading-panel{display:flex;min-height:0;flex-direction:column;gap:9px}
+.queue-loading-panel>.ops-loading-block{width:28%;height:13px}
+.queue-loading-panel>.ops-loading-block:nth-child(2){width:46%;height:8px}
+.queue-loading-panel>.ops-loading-block.chart{width:100%;min-height:110px;flex:1;margin-top:5px;background:repeating-linear-gradient(0deg,#272730 0,#272730 1px,transparent 1px,transparent 30px)}
+.queue-loading-table>div{min-height:0;flex:1;margin-top:5px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:repeat(7,minmax(18px,1fr));gap:1px 14px}
+.queue-loading-table>div .ops-loading-block{width:100%;height:auto;border-radius:0;background:#252530}
+:root[data-theme="light"] .queue-loading-panel>.ops-loading-block,
+:root[data-theme="light"] .queue-loading-table>div .ops-loading-block{background:var(--ops-line)}
+:root[data-theme="light"] .queue-loading-panel>.ops-loading-block.chart{background:repeating-linear-gradient(0deg,var(--ops-line) 0,var(--ops-line) 1px,transparent 1px,transparent 30px)}
 @media(max-width:1250px){.queue-filter{grid-template-columns:1fr 1fr}.queue-filter-actions{grid-column:1/-1;justify-content:flex-end}}@media(max-width:1050px){.queue-summary{grid-template-columns:1fr 1fr}.queue-summary div:nth-child(2){border-right:0}.queue-summary div:nth-child(-n+2){border-bottom:1px solid #353541}}@media(max-width:700px){.queue-content{padding:20px}.queue-header{display:grid;gap:12px}.queue-filter{grid-template-columns:1fr}.queue-filter-actions{grid-column:auto}.queue-summary{grid-template-columns:1fr}.queue-summary div{border-right:0;border-bottom:1px solid #353541}.queue-summary div:last-child{border-bottom:0}.scatter-time-axis span:nth-child(2){display:none}}
 
 /* 데스크톱에서는 표만 남은 높이를 사용하고, 페이지 자체는 한 화면에 고정한다. */
@@ -82,6 +94,7 @@
   .grade{font-size:12px}
   .queue-pagination{flex:0 0 auto;padding-top:4px}
   .queue-pagination span{font-size:13px}
+  .queue-loading-trend{min-height:290px}
 }
 
 /* 룰·모델 관리처럼 중간 화면에서는 간격을 줄이고 헤더가 자연스럽게 줄바꿈된다. */
@@ -200,6 +213,7 @@
   .queue-mobile-detail{min-height:38px;border:1px solid #754d7d;border-radius:8px;display:flex;align-items:center;justify-content:center;background:#322438;color:#f1d7f3;font-size:12px;font-weight:700;text-decoration:none}
   .queue-mobile-detail:focus-visible{outline:2px solid #ce62d5;outline-offset:2px}
   .queue-empty{padding:22px 10px}
+  .queue-loading-table>div{grid-template-columns:1fr;grid-template-rows:repeat(7,34px)}
 }
 
 /* 처리 목록은 표의 행과 상태가 가장 먼저 보이는 중립 콘솔로 표현한다. */
