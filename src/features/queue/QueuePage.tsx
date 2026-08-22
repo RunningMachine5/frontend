@@ -11,7 +11,7 @@ import { useQueue } from "./useQueue";
 import "./QueuePage.css";
 
 const SELECTED_TRANSACTION_ID_KEY = "fds.selectedTransactionId";
-const PAGE_SIZE = 16;
+const PAGE_SIZE = 14;
 const EMPTY_FILTERS: Omit<QueueSearchFilters, "page"> = {
   transactionId: "",
   ipAddress: "",
