@@ -36,6 +36,7 @@ import type {
 import type { TransactionLabelQueueSummary } from "./transactionLabelingTypes";
 
 const OVERVIEW_REFRESH_MS = 15_000;
+const MODEL_VERSIONS_REFRESH_MS = 60_000;
 const numberFormat = new Intl.NumberFormat("ko-KR");
 const rateFormat = new Intl.NumberFormat("ko-KR", { maximumFractionDigits: 1 });
 const ACTION_RUNS_LIMIT = 4;
@@ -54,11 +55,33 @@ let overviewCache: ModelOverviewSnapshot | null = null;
 let overviewRequest: Promise<ModelOverviewSnapshot> | null = null;
 let detailsCache: { runId: number; value: ModelDetails; updatedAt: Date } | null = null;
 let detailsRequest: { runId: number; promise: Promise<ModelDetails | null> } | null = null;
+let modelVersionsCache: { value: ModelVersionSummary[]; updatedAt: Date } | null = null;
+let modelVersionsRequest: Promise<ModelVersionSummary[]> | null = null;
 
 function getCachedOverview() {
   if (!overviewCache) return null;
   const age = Date.now() - overviewCache.updatedAt.getTime();
   return age < OVERVIEW_REFRESH_MS ? overviewCache : null;
+}
+
+// 모델별 거래 통계 집계는 무거워서 운영 상태보다 천천히 갱신한다.
+async function fetchOverviewModelVersions() {
+  if (modelVersionsCache) {
+    const age = Date.now() - modelVersionsCache.updatedAt.getTime();
+    if (age < MODEL_VERSIONS_REFRESH_MS) return modelVersionsCache.value;
+  }
+  if (modelVersionsRequest) return modelVersionsRequest;
+
+  modelVersionsRequest = fetchModelVersions().then((value) => {
+    modelVersionsCache = { value, updatedAt: new Date() };
+    return value;
+  });
+
+  try {
+    return await modelVersionsRequest;
+  } finally {
+    modelVersionsRequest = null;
+  }
 }
 
 async function fetchOverview(force = false) {
@@ -79,7 +102,7 @@ async function fetchOverview(force = false) {
       pageSize: 1,
     }).then((response) => response.summary).catch(() => null),
     fetchInferencePerformance().catch(() => null),
-    fetchModelVersions().catch(() => []),
+    fetchOverviewModelVersions().catch(() => []),
   ]).then(([datasets, runs, serving, labelSummary, inference, models]) => {
     overviewCache = {
       datasets,
