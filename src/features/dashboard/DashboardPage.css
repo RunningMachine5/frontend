@@ -649,9 +649,17 @@
   .monitoring-top-row .live-status-tag,
   .monitoring-top-row .trend-stat-badge{padding:5px 9px}
   .agent-refresh-btn,
-  .agent-panel-head .status-badge{
+  .agent-panel-head .status-badge,
+  .channel-total-badge{
     min-height:30px;
     padding:6px 11px;
     font-size:13px;
   }
+  .channel-total-badge{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    white-space:nowrap;
+  }
+  .channel-total-badge strong{font-size:14px}
 }
