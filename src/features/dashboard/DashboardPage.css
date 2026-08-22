@@ -397,6 +397,7 @@
 .live-pill{background:var(--ops-focus-soft);color:#b9c9f4}
 .metric-card,.panel{border-color:var(--ops-line);border-radius:4px;background:var(--ops-surface);box-shadow:none}
 .metric-card::before{width:2px;border-radius:0;background:var(--metric-color)}
+.metric-card.brand{--metric-color:var(--ops-focus)}
 .metric-card.purple{--metric-color:var(--ops-info)}
 .metric-card.orange{--metric-color:var(--ops-high)}
 .metric-card.red{--metric-color:var(--ops-critical)}

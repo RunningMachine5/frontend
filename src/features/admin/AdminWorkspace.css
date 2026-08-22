@@ -853,3 +853,6 @@
   .model-catalog-pagination{align-items:flex-start;flex-direction:column}
   .model-catalog-pagination>div{width:100%;justify-content:space-between}
 }
+
+/* 업무 영역을 구분하는 선은 브랜드 색으로 통일한다. */
+.model-summary-grid>a:nth-child(n) .model-summary-primary{border-left-color:var(--ops-focus)}
