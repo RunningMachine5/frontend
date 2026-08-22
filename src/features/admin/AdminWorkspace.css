@@ -516,14 +516,16 @@
   .labeling-status-strip{grid-template-columns:1fr}.labeling-status-strip button{border-right:0;border-bottom:1px solid var(--ops-line)}.labeling-status-strip button:last-child{border-bottom:0}.labeling-filters{grid-template-columns:1fr}.labeling-action-row{grid-template-columns:1fr 1fr}.label-action{min-height:46px}.labeling-detail-header{align-items:flex-start;flex-direction:column}.labeling-detail-grid,.signal-section ul{grid-template-columns:1fr 1fr}.labeling-decision-band{grid-template-columns:1fr}.labeling-decision-band>div{border-right:0;border-bottom:1px solid var(--ops-line)}.labeling-decision-band>div:last-child{border-bottom:0}
 }
 
-/*
- * 화면 배율이 적용된 1920 환경도 포함하도록 1440 CSS px부터 글자를 키운다.
- * 이상거래 분석의 12px 보조 정보보다 모델 관리의 판단 정보는 한 단계 크게 표시한다.
- * 카드 구조나 색은 그대로 두고 룰·모델 관리 화면의 글자 위계만 맞춘다.
- */
+/* 넓은 화면에서만 사용하는 검증 2열 배치는 기존 기준을 유지한다. */
 @media(min-width:1440px){
   .rule-verify-workspace{grid-template-columns:minmax(500px,.9fr) minmax(700px,1.25fr)}
+}
 
+/*
+ * 1920 화면에 Windows 배율이 적용되면 브라우저 폭은 약 1280 CSS px로 줄어든다.
+ * 관리 화면의 글자와 조작 요소만 확대하고, 좁은 폭용 카드 배치는 그대로 유지한다.
+ */
+@media(min-width:1180px){
   .rule-admin-page .admin-header>div>p:last-child,
   .model-section-page .admin-header>div>p:last-child{font-size:16px;line-height:1.5}
   .rule-admin-page .admin-eyebrow{font-size:13px}
