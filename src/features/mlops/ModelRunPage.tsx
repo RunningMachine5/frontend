@@ -405,6 +405,23 @@ export function ModelRunPage() {
     : modelReview?.decision === "NOT_RECOMMENDED"
       ? "not-recommended"
     : "pending";
+  const qualityGate = run?.status === "CANDIDATE"
+    ? details?.quality_gate
+    : undefined;
+  const qualityGateStatus = !qualityGate
+    ? null
+    : !qualityGate.configured
+      ? "설정 필요"
+      : qualityGate.passed
+        ? "기준 통과"
+        : "기준 미달";
+  const approvalBlockReason = !qualityGate
+    ? null
+    : !qualityGate.configured
+      ? "서버 품질 기준이 설정되지 않아 후보를 승인할 수 없습니다."
+      : !qualityGate.passed
+        ? "후보 지표가 서버 품질 기준에 미달해 승인할 수 없습니다."
+        : null;
 
   return (
     <ModelPageShell
@@ -469,6 +486,17 @@ export function ModelRunPage() {
                   </em>
                 )}
               </div>
+              {qualityGate && (
+                <div className={`model-quality-gate ${qualityGate.configured && qualityGate.passed ? "passed" : "blocked"}`}>
+                  <span>품질 기준</span>
+                  <strong>
+                    {qualityGate.configured
+                      ? `PR-AUC ≥ ${qualityGate.minimum_pr_auc.toFixed(4)} · Recall ≥ ${qualityGate.minimum_recall.toFixed(4)}`
+                      : "서버 기준값을 설정해야 합니다."}
+                  </strong>
+                  <em>{qualityGateStatus}</em>
+                </div>
+              )}
               <div aria-label="선택 모델과 운영 모델 성능 비교" className="model-comparison" role="table">
                 <div className="model-comparison-row model-comparison-header" role="row">
                   <span role="columnheader">성능 지표</span><span role="columnheader">선택 Run</span><span role="columnheader">운영 모델</span><span role="columnheader">차이</span>
@@ -540,7 +568,8 @@ export function ModelRunPage() {
                   </section>
                   <div className="run-action-buttons">
                     <button className="admin-button danger-button" disabled={isBusy} onClick={() => void decide("REJECT")} type="button">후보 거절</button>
-                    <button className="admin-button primary" disabled={isBusy} onClick={() => void decide("APPROVE")} type="button">후보 승인</button>
+                    <button className="admin-button primary" disabled={isBusy || Boolean(approvalBlockReason)} onClick={() => void decide("APPROVE")} type="button">후보 승인</button>
+                    {approvalBlockReason && <small className="run-approval-block-reason">{approvalBlockReason}</small>}
                   </div>
                 </>
               )}
