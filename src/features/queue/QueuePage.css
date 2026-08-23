@@ -363,3 +363,17 @@
   .realtime-risk-panel .live-status-tag,
   .realtime-risk-panel .trend-stat-badge{padding:5px 9px}
 }
+
+/* 1920 화면에서는 양쪽 표의 마지막 상세 버튼까지 각 열 안에 표시한다. */
+@media(min-width:1600px) and (min-height:800px){
+  .queue-dual-table-wrap{gap:10px}
+  .queue-table-column th,
+  .queue-table-column td{padding-right:4px;padding-left:4px}
+  .queue-table-column td{font-size:13px}
+}
+
+/* 크롬 UI로 세로 공간이 줄어도 숨은 거래 행을 표 안에서 이어서 볼 수 있게 한다. */
+@media(min-width:1440px) and (min-height:800px) and (max-height:959px){
+  .queue-dual-table-wrap{overflow-x:hidden;overflow-y:auto}
+  .queue-table-column{overflow:visible}
+}
