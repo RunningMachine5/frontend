@@ -4,6 +4,8 @@ import { formatCompactMoney, formatNumber } from "../dashboardFormatters";
 
 const SELECTED_TRANSACTION_ID_KEY = "fds.selectedTransactionId";
 const RECENT_POINT_LIMIT = 30;
+const MAX_TIME_LABELS = 7;
+const MIN_TIME_LABEL_GAP_PX = 110;
 const riskScoreFormat = new Intl.NumberFormat("ko-KR", {
   maximumFractionDigits: 1,
 });
@@ -51,6 +53,31 @@ function formatDate(value: string | number, includeYear = false) {
 
 function formatRiskScore(score: number) {
   return riskScoreFormat.format(score);
+}
+
+function getTimeLabelIndexes(pointCount: number, renderedPlotWidth: number) {
+  if (pointCount <= 0) return new Set<number>();
+  if (pointCount === 1) return new Set([0]);
+
+  const pointGap = renderedPlotWidth / (pointCount - 1);
+  const requiredPointGap = Math.max(
+    1,
+    Math.ceil(MIN_TIME_LABEL_GAP_PX / pointGap),
+  );
+  const availableLabelCount = Math.floor(
+    (pointCount - 1) / requiredPointGap,
+  ) + 1;
+  const labelCount = Math.min(
+    pointCount,
+    MAX_TIME_LABELS,
+    Math.max(2, availableLabelCount),
+  );
+
+  return new Set(
+    Array.from({ length: labelCount }, (_, index) => (
+      Math.round((index * (pointCount - 1)) / (labelCount - 1))
+    )),
+  );
 }
 
 export function buildRealtimeRiskPoints(
@@ -193,6 +220,7 @@ export function RealtimeRiskTrendChart({
   const chartHeight = renderHeight - padding.top - padding.bottom;
   const plotWidth = Math.max(10, chartWidth - innerInsetX * 2);
   const plotStartX = padding.left + innerInsetX;
+  const renderedPlotWidth = plotWidth * (containerWidth / width);
 
   const maxAmount = Math.max(...items.map((item) => item.amount), 10_000_000);
   const minScore = 0;
@@ -231,6 +259,7 @@ export function RealtimeRiskTrendChart({
   const activeItem = hoveredIndex !== null ? items[hoveredIndex] : null;
   const activeScoreCoord = hoveredIndex !== null ? scoreCoords[hoveredIndex] : null;
   const activeGradeStyle = activeItem ? getRiskGradeStyle(activeItem.score) : null;
+  const timeLabelIndexes = getTimeLabelIndexes(scoreCoords.length, renderedPlotWidth);
 
   useLayoutEffect(() => {
     const container = containerRef.current;
@@ -441,15 +470,14 @@ export function RealtimeRiskTrendChart({
           const showBadge = isLatest || isHighRisk || isHovered;
           const gradeStyle = getRiskGradeStyle(item.score);
 
-          // 데이터가 많을 때 X축 시간 라벨 겹침 방지 (스마트 샘플링)
-          const totalPoints = scoreCoords.length;
-          const maxLabels = 7;
-          const labelInterval = totalPoints > 10 ? Math.ceil(totalPoints / maxLabels) : 1;
-          const shouldShowTimeLabel =
-            index === 0 ||
-            index === totalPoints - 1 ||
-            index % labelInterval === 0 ||
-            isHovered;
+          const hoveredCoord = hoveredIndex === null ? null : scoreCoords[hoveredIndex];
+          const distanceFromHovered = hoveredCoord
+            ? (Math.abs(x - hoveredCoord.x) / width) * containerWidth
+            : Number.POSITIVE_INFINITY;
+          const shouldShowTimeLabel = isHovered || (
+            timeLabelIndexes.has(index)
+            && distanceFromHovered >= MIN_TIME_LABEL_GAP_PX
+          );
 
           return (
             <g
