@@ -69,11 +69,16 @@ function timeLabel(value: string, showDate: boolean, detailed = false) {
   }).format(new Date(value));
 }
 
-function sampledTimestamps(timeline: string[]) {
-  if (timeline.length <= X_TICK_COUNT) return timeline;
+function timeRangeTicks(timeline: string[]) {
+  if (timeline.length <= 1) return timeline;
+  const start = timestampValue(timeline[0]);
+  const end = timestampValue(timeline.at(-1)!);
+  if (start === end) return [timeline[0]];
+
+  // 샘플이 한쪽 시간대에 몰려도 축 라벨은 전체 조회 구간에 고르게 배치한다.
   return Array.from({ length: X_TICK_COUNT }, (_, index) => (
-    timeline[Math.round(index * (timeline.length - 1) / (X_TICK_COUNT - 1))]
-  )).filter((timestamp, index, rows) => rows.indexOf(timestamp) === index);
+    new Date(start + (end - start) * index / (X_TICK_COUNT - 1)).toISOString()
+  ));
 }
 
 export function MetricChart({
@@ -125,7 +130,7 @@ export function MetricChart({
     current: item.points.at(-1)?.value ?? 0,
     peak: Math.max(0, ...item.points.map((point) => point.value)),
   }));
-  const xTicks = sampledTimestamps(timeline);
+  const xTicks = timeRangeTicks(timeline);
   const activeX = activeTimestamp ? xPosition(activeTimestamp) : null;
 
   const handlePointerMove = (event: PointerEvent<SVGSVGElement>) => {
