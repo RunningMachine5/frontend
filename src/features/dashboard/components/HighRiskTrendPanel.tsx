@@ -4,6 +4,9 @@ import { formatCompactMoney, formatNumber } from "../dashboardFormatters";
 
 const SELECTED_TRANSACTION_ID_KEY = "fds.selectedTransactionId";
 const RECENT_POINT_LIMIT = 30;
+const riskScoreFormat = new Intl.NumberFormat("ko-KR", {
+  maximumFractionDigits: 1,
+});
 
 export type RealtimeRiskPoint = {
   transactionId: number;
@@ -44,6 +47,10 @@ function formatDate(value: string | number, includeYear = false) {
   const month = String(date.getMonth() + 1).padStart(2, "0");
   const day = String(date.getDate()).padStart(2, "0");
   return includeYear ? `${year}.${month}.${day}` : `${month}.${day}`;
+}
+
+function formatRiskScore(score: number) {
+  return riskScoreFormat.format(score);
 }
 
 export function buildRealtimeRiskPoints(
@@ -499,7 +506,7 @@ export function RealtimeRiskTrendChart({
                     x={x}
                     y={y - 13}
                   >
-                    {item.score}
+                    {formatRiskScore(item.score)}
                   </text>
                 </>
               )}
@@ -541,7 +548,7 @@ export function RealtimeRiskTrendChart({
             <div className="tooltip-row">
               <span className="tooltip-label">위험 등급:</span>
               <strong className="tooltip-grade-badge" style={{ color: activeGradeStyle.mainColor }}>
-                {activeGradeStyle.gradeText} ({activeItem.score}점)
+                {activeGradeStyle.gradeText} ({formatRiskScore(activeItem.score)}점)
               </strong>
             </div>
             <div className="tooltip-row">
