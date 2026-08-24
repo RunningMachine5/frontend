@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { AppLayout } from "../../components/layout/AppLayout";
 import { PageHeading } from "../../components/layout/PageHeading";
 import { AgentInsightPanel } from "./components/AgentInsightPanel";
@@ -25,8 +25,6 @@ function getCurrentDashboardPeriod() {
 }
 
 const CURRENT_PERIOD = getCurrentDashboardPeriod();
-const LAST_ACKNOWLEDGED_FRAUD_KEY = "fds.lastAcknowledgedFraudTransaction";
-
 function formatLiveTime(value: string) {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return "시간 정보 없음";
@@ -42,10 +40,16 @@ function getReceivedTime(transaction: RecentTransaction) {
   return transaction.received_at || transaction.created_at;
 }
 
-function LiveTransactionAlerts({ transactions }: { transactions: RecentTransaction[] }) {
+function LiveTransactionAlerts({
+  transactions,
+  onNewTransaction,
+}: {
+  transactions: RecentTransaction[];
+  onNewTransaction: (isFraud: boolean) => void;
+}) {
   const [currentTime, setCurrentTime] = useState(() => new Date());
   const [isFraudAlertOpen, setIsFraudAlertOpen] = useState(false);
-  const [hasUnacknowledgedFraud, setHasUnacknowledgedFraud] = useState(false);
+  const latestTransactionKeyRef = useRef<string | null>(null);
 
   useEffect(() => {
     const timer = window.setInterval(() => setCurrentTime(new Date()), 1_000);
@@ -53,23 +57,28 @@ function LiveTransactionAlerts({ transactions }: { transactions: RecentTransacti
   }, []);
 
   const fraudTransactions = transactions.filter((transaction) => transaction.predict_result === true);
-  const latestFraudTransaction = fraudTransactions[0];
-  const latestFraudKey = latestFraudTransaction
-    ? `${latestFraudTransaction.transaction_id}:${getReceivedTime(latestFraudTransaction)}`
+  const latestTransaction = transactions[0];
+  const latestTransactionKey = latestTransaction
+    ? `${latestTransaction.transaction_id}:${getReceivedTime(latestTransaction)}`
     : null;
+  const isLatestTransactionFraud = latestTransaction?.predict_result === true;
 
   useEffect(() => {
-    if (latestFraudKey && localStorage.getItem(LAST_ACKNOWLEDGED_FRAUD_KEY) !== latestFraudKey) {
-      setHasUnacknowledgedFraud(true);
+    if (!latestTransactionKey) return;
+
+    // 첫 조회는 기존 기록이므로 깜빡이지 않고, 새 이상 거래가 들어온 순간만 알린다.
+    if (
+      latestTransactionKeyRef.current !== null &&
+      latestTransactionKeyRef.current !== latestTransactionKey
+    ) {
+      onNewTransaction(isLatestTransactionFraud);
     }
-  }, [latestFraudKey]);
+
+    latestTransactionKeyRef.current = latestTransactionKey;
+  }, [isLatestTransactionFraud, latestTransactionKey, onNewTransaction]);
 
   function openFraudAlert() {
     setIsFraudAlertOpen((current) => !current);
-    if (latestFraudKey) {
-      localStorage.setItem(LAST_ACKNOWLEDGED_FRAUD_KEY, latestFraudKey);
-      setHasUnacknowledgedFraud(false);
-    }
   }
 
   return (
@@ -81,12 +90,12 @@ function LiveTransactionAlerts({ transactions }: { transactions: RecentTransacti
       <div className="dashboard-live-buttons" aria-label="최근 거래 알림">
         <button
           aria-expanded={isFraudAlertOpen}
-          aria-label={hasUnacknowledgedFraud ? "이상 거래 발생: 최근 사기 의심 거래 목록 보기" : "정상: 최근 사기 의심 거래 목록 보기"}
-          className={`dashboard-live-button fraud ${hasUnacknowledgedFraud ? "unacknowledged" : ""} ${isFraudAlertOpen ? "selected" : ""}`}
+          aria-label={isLatestTransactionFraud ? "이상 거래 발생: 최근 사기 의심 거래 목록 보기" : "정상: 최근 사기 의심 거래 목록 보기"}
+          className={`dashboard-live-button ${isLatestTransactionFraud ? "fraud" : "normal"} ${isFraudAlertOpen ? "selected" : ""}`}
           onClick={openFraudAlert}
           type="button"
         >
-          <span>{hasUnacknowledgedFraud ? "이상 거래 발생" : "정상"}</span>
+          <span>{isLatestTransactionFraud ? "이상 거래 발생" : "정상"}</span>
         </button>
       </div>
       {isFraudAlertOpen && (
@@ -168,6 +177,7 @@ function DashboardLoadingSkeleton() {
 
 export function DashboardPage() {
   const [period, setPeriod] = useState(CURRENT_PERIOD);
+  const [isFraudFlashActive, setIsFraudFlashActive] = useState(false);
   const {
     data,
     realtimeRiskRows,
@@ -177,6 +187,23 @@ export function DashboardPage() {
     isRefreshingInsight,
     refreshAgentInsight,
   } = useDashboardOverview(period);
+
+  function showTransactionSignal(isFraud: boolean) {
+    if (!isFraud) {
+      setIsFraudFlashActive(false);
+      return;
+    }
+
+    // 연속 이상 거래가 들어오면 애니메이션을 처음부터 다시 시작한다.
+    setIsFraudFlashActive(false);
+    window.requestAnimationFrame(() => setIsFraudFlashActive(true));
+  }
+
+  useEffect(() => {
+    if (!isFraudFlashActive) return;
+    const timer = window.setTimeout(() => setIsFraudFlashActive(false), 4_000);
+    return () => window.clearTimeout(timer);
+  }, [isFraudFlashActive]);
 
   const handleRefreshAgentInsight = async () => {
     // 현재 시각 기준 최근 7일(now - 7일 ~ now)로 기간 변경 및 최신 분석 실행
@@ -204,10 +231,13 @@ export function DashboardPage() {
 
   return (
     <AppLayout activeNav="dashboard">
-      <div className="dashboard-content" id="main">
+      <div className={`dashboard-content ${isFraudFlashActive ? "fraud-flash" : ""}`} id="main">
         <header className="app-page-header dashboard-header">
           <PageHeading eyebrow="FRAUD MONITORING" title="이상거래 감시" />
-          <LiveTransactionAlerts transactions={recentTransactions} />
+          <LiveTransactionAlerts
+            transactions={recentTransactions}
+            onNewTransaction={showTransactionSignal}
+          />
         </header>
         {errorMessage && <p className="refresh-error">최근 갱신 실패: {errorMessage}</p>}
 
