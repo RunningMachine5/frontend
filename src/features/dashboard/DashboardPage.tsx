@@ -37,7 +37,7 @@ function formatLiveTime(value: string) {
 }
 
 function getReceivedTime(transaction: RecentTransaction) {
-  return transaction.received_at || transaction.created_at;
+  return transaction.transaction_datetime || transaction.received_at || transaction.created_at;
 }
 
 function LiveTransactionAlerts({

@@ -30,8 +30,8 @@ type RealtimeChartRow = {
 export type TimeInterval = "second" | "minute";
 
 function getEventTime(row: RealtimeChartRow) {
-  // 이전 API 응답에는 received_at이 없으므로 실제 거래 시각을 함께 사용한다.
-  return row.received_at || row.transaction_datetime;
+  // received_at은 서버 환경에 따라 9시간 차이가 날 수 있어 실제 거래 시각을 우선한다.
+  return row.transaction_datetime;
 }
 
 function formatTime(value: string | number, interval: TimeInterval) {
