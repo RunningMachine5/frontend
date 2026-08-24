@@ -189,10 +189,7 @@ export function DashboardPage() {
   } = useDashboardOverview(period);
 
   function showTransactionSignal(isFraud: boolean) {
-    if (!isFraud) {
-      setIsFraudFlashActive(false);
-      return;
-    }
+    if (!isFraud) return;
 
     // 연속 이상 거래가 들어오면 애니메이션을 처음부터 다시 시작한다.
     setIsFraudFlashActive(false);
