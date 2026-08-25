@@ -78,8 +78,18 @@ export function useDashboardOverview(params: DashOverviewParams){
                 }
 
                 setData(overview);
-                setRealtimeRiskRows(riskRows.items);
-                setRecentTransactions(recentTransactions);
+                setRealtimeRiskRows((current) =>
+                    riskRows.items.reduce(
+                        (merged, row) => upsertRealtimeRiskRow(merged, row),
+                        current,
+                    ),
+                );
+                setRecentTransactions((current) =>
+                    recentTransactions.reduce(
+                        (merged, transaction) => upsertRecentTransaction(merged, transaction),
+                        current,
+                    ),
+                );
                 if (hasNewFraud) {
                     setFraudAlertSequence((current) => current + 1);
                 }
@@ -144,7 +154,13 @@ export function useDashboardOverview(params: DashOverviewParams){
                     seenEventIds.add(`transaction:${transaction.transaction_id}`);
                 }
 
-                setRecentTransactions(latestTransactions);
+                // API 응답이 SSE보다 늦어도 이미 화면에 추가된 거래를 지우지 않는다.
+                setRecentTransactions((current) =>
+                    latestTransactions.reduce(
+                        (merged, transaction) => upsertRecentTransaction(merged, transaction),
+                        current,
+                    ),
+                );
                 if (hasNewFraud) {
                     setFraudAlertSequence((current) => current + 1);
                 }
