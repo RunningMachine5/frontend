@@ -6,6 +6,12 @@ const SELECTED_TRANSACTION_ID_KEY = "fds.selectedTransactionId";
 const RECENT_POINT_LIMIT = 30;
 const MAX_TIME_LABELS = 7;
 const MIN_TIME_LABEL_GAP_PX = 110;
+const RISK_GRADE_AXIS_TICKS = [
+  { ratio: 0, label: "심각" },
+  { ratio: 0.33, label: "경고" },
+  { ratio: 0.66, label: "주의" },
+  { ratio: 1, label: "정상" },
+];
 const riskScoreFormat = new Intl.NumberFormat("ko-KR", {
   maximumFractionDigits: 1,
 });
@@ -356,10 +362,9 @@ export function RealtimeRiskTrendChart({
         </defs>
 
         {/* 그리드 가이드라인 및 Y축 */}
-        {[0, 0.33, 0.66, 1].map((ratio) => {
+        {RISK_GRADE_AXIS_TICKS.map(({ ratio, label }) => {
           const y = padding.top + chartHeight * ratio;
           const leftAmountVal = maxAmount * (1 - ratio);
-          const rightScoreVal = Math.round(maxScore * (1 - ratio));
 
           return (
             <g key={ratio}>
@@ -388,7 +393,7 @@ export function RealtimeRiskTrendChart({
                 x={width - padding.right / 2}
                 y={y}
               >
-                {rightScoreVal}점
+                {label}
               </text>
             </g>
           );
