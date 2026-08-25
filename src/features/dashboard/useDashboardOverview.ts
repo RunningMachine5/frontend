@@ -20,6 +20,7 @@ import { fetchQueueRows } from "../queue/queueApi";
 import type { CaseListItem } from "../queue/queueTypes";
 
 const REFRESH_INTERVAL_MS = 300;
+const RECENT_TRANSACTION_SYNC_MS = 500;
 const REALTIME_RISK_PAGE_SIZE = 100;
 const REALTIME_RISK_FILTERS = {
     transactionId: "",
@@ -35,6 +36,7 @@ export function useDashboardOverview(params: DashOverviewParams){
     const [data, setData] = useState<DashboardOverviewResponse | null>(null);
     const [realtimeRiskRows, setRealtimeRiskRows] = useState<CaseListItem[]>([]);
     const [recentTransactions, setRecentTransactions] = useState<RecentTransaction[]>([]);
+    const [fraudAlertSequence, setFraudAlertSequence] = useState(0);
     const [isLoading, setIsLoading] = useState(true);
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
@@ -64,6 +66,12 @@ export function useDashboardOverview(params: DashOverviewParams){
                     return;
                 }
 
+                const hasNewFraud = hasSnapshot && recentTransactions.some(
+                    (transaction) =>
+                        transaction.predict_result === true &&
+                        !seenTransactionIds.has(transaction.transaction_id),
+                );
+
                 for (const transaction of recentTransactions) {
                     seenTransactionIds.add(transaction.transaction_id);
                     seenEventIds.add(`transaction:${transaction.transaction_id}`);
@@ -72,6 +80,9 @@ export function useDashboardOverview(params: DashOverviewParams){
                 setData(overview);
                 setRealtimeRiskRows(riskRows.items);
                 setRecentTransactions(recentTransactions);
+                if (hasNewFraud) {
+                    setFraudAlertSequence((current) => current + 1);
+                }
                 setErrorMessage(null);
                 hasSnapshot = true;
 
@@ -114,6 +125,31 @@ export function useDashboardOverview(params: DashOverviewParams){
             // 조회 중 이벤트가 왔다면 최신 상태를 한 번 더 조회한다.
             if (isActive && refreshPending) {
                 scheduleRefresh();
+            }
+        }
+
+        async function syncRecentTransactions() {
+            try {
+                const latestTransactions = await fetchRecentTransactions();
+                if (!isActive || !hasSnapshot) return;
+
+                const hasNewFraud = latestTransactions.some(
+                    (transaction) =>
+                        transaction.predict_result === true &&
+                        !seenTransactionIds.has(transaction.transaction_id),
+                );
+
+                for (const transaction of latestTransactions) {
+                    seenTransactionIds.add(transaction.transaction_id);
+                    seenEventIds.add(`transaction:${transaction.transaction_id}`);
+                }
+
+                setRecentTransactions(latestTransactions);
+                if (hasNewFraud) {
+                    setFraudAlertSequence((current) => current + 1);
+                }
+            } catch {
+                // SSE가 정상일 때는 기존 경로가 동작하므로 보정 조회 실패는 무시한다.
             }
         }
 
@@ -163,6 +199,9 @@ export function useDashboardOverview(params: DashOverviewParams){
 
             seenEventIds.add(patch.event_id);
             seenTransactionIds.add(transactionId);
+            if (patch.transaction.predict_result === true) {
+                setFraudAlertSequence((current) => current + 1);
+            }
             const suspiciousCase = patch.suspicious_case;
             setRecentTransactions((current) =>
                 upsertRecentTransaction(current, patch.transaction),
@@ -191,6 +230,10 @@ export function useDashboardOverview(params: DashOverviewParams){
         const eventSource = new EventSource("/api/dashboard/events");
         eventSource.addEventListener("dashboard_updated", handleDashboardUpdated);
         eventSource.addEventListener("open", handleOpen);
+        const recentSyncTimer = window.setInterval(
+            () => void syncRecentTransactions(),
+            RECENT_TRANSACTION_SYNC_MS,
+        );
 
         return () => {
             isActive = false;
@@ -199,6 +242,7 @@ export function useDashboardOverview(params: DashOverviewParams){
                 window.clearTimeout(refreshTimer);
             }
 
+            window.clearInterval(recentSyncTimer);
             eventSource.close();
         };
     }, [params.periodStart, params.periodEnd]);
@@ -230,6 +274,7 @@ export function useDashboardOverview(params: DashOverviewParams){
         data,
         realtimeRiskRows,
         recentTransactions,
+        fraudAlertSequence,
         isLoading,
         errorMessage,
         isRefreshingInsight,
