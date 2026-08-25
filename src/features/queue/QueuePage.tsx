@@ -32,8 +32,11 @@ function getInitialFilters(): Omit<QueueSearchFilters, "page"> {
   const riskGrades = (query.get("risk_grades") ?? "")
     .split(",")
     .filter((riskGrade) => RISK_GRADE_OPTIONS.includes(riskGrade));
+  const reviewStatuses = (query.get("review_statuses") ?? "")
+    .split(",")
+    .filter((reviewStatus) => REVIEW_STATUS_OPTIONS.some(([value]) => value === reviewStatus));
 
-  return { ...EMPTY_FILTERS, riskGrades };
+  return { ...EMPTY_FILTERS, riskGrades, reviewStatuses };
 }
 
 function selectTransaction(transactionId: number) {
